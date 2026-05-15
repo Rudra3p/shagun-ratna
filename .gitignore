@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+# Database Seed Scripts
+seed.ts
+seed.js
+
 # debug
 npm-debug.log*
 yarn-debug.log*
