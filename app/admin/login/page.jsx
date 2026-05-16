@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import adminApi from "@/lib/adminApi";
 import { useRouter } from "next/navigation";
@@ -24,33 +25,80 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-10 bg-white shadow-2xl rounded-3xl border border-gray-100">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">SHAGUN RATNA</h1>
-          <p className="text-gray-500 text-sm mt-2">ADMINISTRATION ACCESS</p>
-        </div>
+    // Background: Premium Full Cream (#F9F3EB)
+    <div className="min-h-screen flex items-center justify-center bg-[#F9F3EB] px-4 py-8 relative overflow-hidden font-sans">
+      
+      {/* Main Login Card: Crisp White (bg-white) with Deep Maroon Border (#2A0005) */}
+      <div className="w-full max-w-[420px] p-6 sm:p-10 bg-white shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
+        
+        {/* Header Section */}
+<div className="flex flex-col items-center justify-center mb-6 w-full px-4">
+  <div className="relative w-[180px] h-[90px]">
+    <Image 
+      src="/shagunratnalogo.png"            
+      alt="Shagunratna Logo" 
+      fill                       // Fills the parent container smoothly
+      priority                   // Loads instantly on page load
+      sizes="180px"              // Optimizes rendering size
+      className="object-contain" // Prevents stretching
+    />
+  </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <input 
-            type="email" 
-            placeholder="Email"
-            className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-black"
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input 
-            type="password" 
-            placeholder="Password"
-            className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-black"
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && <p className="text-red-500 text-center text-sm">{error}</p>}
-          <button className="w-full py-4 bg-black text-white rounded-xl font-bold hover:bg-gray-800 transition">
+  {/* Tiny elegant sub-divider under the image */}
+  <div className="flex items-center justify-center gap-2 mt-2 w-full max-w-[200px]">
+    <div className="h-[1px] flex-1 bg-[#5C0612]/20"></div>
+    <span className="text-[#666666] text-[0.55rem] uppercase tracking-[0.25em] font-bold">
+      Ahmedabad
+    </span>
+    <div className="h-[1px] flex-1 bg-[#5C0612]/20"></div>
+  </div>
+</div>
+        {/* Login Form */}
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-5">
+            <div className="relative">
+              <label className="block text-[#5C0612] font-bold text-[0.65rem] uppercase tracking-widest mb-2 ml-1">Email</label>
+              {/* Added rounded-xl to inputs */}
+              <input 
+                type="email" 
+                className="w-full px-4 py-3 bg-[#FFFFFF] text-[#5C0612] border border-[#C5A059]/60 rounded-xl outline-none placeholder-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059] focus:border-[#C5A059] transition-all duration-300 font-mono text-sm sm:text-base shadow-inner"
+                placeholder="Enter email"
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="relative">
+              <label className="block text-[#5C0612] font-bold text-[0.65rem] uppercase tracking-widest mb-2 ml-1">Password</label>
+              {/* Added rounded-xl to inputs */}
+              <input 
+                type="password" 
+                className="w-full px-4 py-3 bg-[#FFFFFF] text-[#5C0612] border border-[#C5A059]/60 rounded-xl outline-none placeholder-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059] focus:border-[#C5A059] transition-all duration-300 font-mono text-sm sm:text-base tracking-[0.3em] shadow-inner"
+                placeholder="••••••••"
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-[#5C0612]/10 border border-[#5C0612]/30 rounded-xl text-center mt-4">
+              <p className="text-[#5C0612] font-semibold text-xs tracking-wider uppercase">{error}</p>
+            </div>
+          )}
+
+          {/* Solid Maroon Login Button - Changed to rounded-xl */}
+          <button 
+            type="submit"
+            className="w-full mt-8 py-4 bg-[#5C0612] text-[#FFFFFF] rounded-xl font-bold uppercase tracking-[0.2em] text-xs sm:text-sm hover:bg-[#3A030B] hover:shadow-[0_8px_20px_rgba(42,0,5,0.4)] transition-all duration-300 flex items-center justify-center"
+          >
             Login to Dashboard
           </button>
         </form>
+
+        {/* Security Footer Removed Entirely */}
+
       </div>
     </div>
   );

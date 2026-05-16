@@ -1,3 +1,4 @@
+import "./globals.css";
 export const metadata = {
   // 1. Browser Tab Branding
   title: {
