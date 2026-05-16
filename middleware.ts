@@ -1,30 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminMiddleware } from './middlewares/adminMiddleware';
-import { userMiddleware } from './middlewares/userMiddleware';
+// 1. Comment out the import if you aren't using it
+// import { userMiddleware } from './middlewares/userMiddleware';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Route to Admin Logic
+  // Let Axios talk to your API endpoints directly without interference
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
+
+  // 2. Route to Admin Logic
   if (pathname.startsWith('/admin')) {
-    // Public exception for the login page
     if (pathname === '/admin/login') return NextResponse.next();
     
     const adminResponse = await adminMiddleware(request);
     return adminResponse || NextResponse.next();
   }
 
-  // 2. Public exception for the Landing Page
+  // 3. Public exception for the Landing Page
   if (pathname === '/') {
     return NextResponse.next();
   }
 
-  // 3. Route to User Logic (Profile, Settings, etc.)
-  const userResponse = await userMiddleware(request);
-  return userResponse || NextResponse.next();
+  // 4. SAFELY BYPASS USER MIDDLEWARE
+  // Since userMiddleware is commented out, just let all other paths load freely
+  return NextResponse.next();
 }
 
 export const config = {
-  // Protects everything except static files and Next.js internals
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
