@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import adminApi from "@/lib/adminApi";
 
 export default function AdminDashboard() {
   return (

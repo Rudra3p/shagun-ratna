@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/lib/api";
+import adminApi from "@/lib/adminApi";
 import { useRouter } from "next/navigation";
 
 export default function AdminLogin() {
@@ -14,7 +14,7 @@ export default function AdminLogin() {
     e.preventDefault();
     setError("");
     try {
-      const res = await api.post("/admin/login", { email, password });
+      const res = await adminApi.post("/admin/login", { email, password });
       if (res.status === 200) {
         router.push("/admin"); // Push to dashboard
       }
