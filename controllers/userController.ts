@@ -70,7 +70,7 @@ export const userLogin = async (req: Request) => {
     response.cookies.set("shagun_user_access", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 15 * 60, // 15 mins
     });
@@ -79,7 +79,7 @@ export const userLogin = async (req: Request) => {
     response.cookies.set("shagun_user_refresh", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days
     });

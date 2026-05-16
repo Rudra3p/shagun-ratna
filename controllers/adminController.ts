@@ -47,7 +47,7 @@ export const adminLogin = async (req: Request) => {
     response.cookies.set("shagun_admin_access", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 15 * 60,
     });
@@ -56,7 +56,7 @@ export const adminLogin = async (req: Request) => {
     response.cookies.set("shagun_admin_refresh", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
     });
