@@ -44,7 +44,7 @@ export default function AdminLogin() {
   </div>
 </div>
 
-<div className="text-center w-[90%] mb-6 border-[1px] border-[#5C0612]">
+<div className="text-center w-[90%] mb-6 border-[1px] border-[#640a17]">
 
 </div>
         {/* Login Form */}
@@ -55,7 +55,7 @@ export default function AdminLogin() {
               {/* Added rounded-xl to inputs */}
               <input 
                 type="email" 
-                className="w-full px-4 py-3 bg-[#FFFFFF] text-[#5C0612] border border-[#C5A059]/60 rounded-xl outline-none placeholder-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059] focus:border-[#C5A059] transition-all duration-300 font-mono text-sm sm:text-base shadow-inner"
+                className="w-full px-4 py-3 bg-[#FFFFFF] text-[#5C0612] border border-[#C5A059]/60 rounded-xl outline-none placeholder-[#C5A059]/65 focus:ring-1 focus:ring-[#C5A059] focus:border-[#C5A059] transition-all duration-300 font-mono text-sm sm:text-base shadow-inner"
                 placeholder="Enter email"
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -67,7 +67,7 @@ export default function AdminLogin() {
               {/* Added rounded-xl to inputs */}
               <input 
                 type="password" 
-                className="w-full px-4 py-3 bg-[#FFFFFF] text-[#5C0612] border border-[#C5A059]/60 rounded-xl outline-none placeholder-[#C5A059]/40 focus:ring-1 focus:ring-[#C5A059] focus:border-[#C5A059] transition-all duration-300 font-mono text-sm sm:text-base tracking-[0.3em] shadow-inner"
+                className="w-full px-4 py-3 bg-[#FFFFFF] text-[#5C0612] border border-[#C5A059]/60 rounded-xl outline-none placeholder-[#C5A059]/65 focus:ring-1 focus:ring-[#C5A059] focus:border-[#C5A059] transition-all duration-300 font-mono text-sm sm:text-base tracking-[0.3em] shadow-inner"
                 placeholder="••••••••"
                 onChange={(e) => setPassword(e.target.value)}
                 required
