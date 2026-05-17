@@ -44,8 +44,8 @@ export default function AdminLogin() {
   </div>
 </div>
 
-<div className="text-center w-[90%] mb-6 border-[1px] border-[#640a17]">
-
+<div className=" relative text-center h-0 w-[90%] mb-6 border-[1px] border-[#640a17]">
+  <span className=" absolute text-start font-bold text-[#640a17] text-[0.6rem] top-[-1rem] left-0" >Administrator Login</span>
 </div>
         {/* Login Form */}
         <form onSubmit={handleLogin} className="w-full">
