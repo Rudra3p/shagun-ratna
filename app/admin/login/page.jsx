@@ -45,7 +45,10 @@ export default function AdminLogin() {
 </div>
 
 <div className=" relative text-center h-0 w-[90%] mb-6 border-[1px] border-[#640a17]">
-  <span className=" absolute text-start font-bold text-[#640a17] text-[0.6rem] top-[-1rem] left-0" >Administrator Login</span>
+  <div className=" absolute w-full -top-[1rem] left-0 flex flex-row justify-between items-center">
+    <span className=" font-bold text-[#640a17] text-[0.6rem] w-auto" >Administrator Login</span>
+    <span className=" font-bold text-[#640a17] text-[0.65rem] w-auto ">login attempt: 5</span>
+  </div>
 </div>
         {/* Login Form */}
         <form onSubmit={handleLogin} className="w-full">
