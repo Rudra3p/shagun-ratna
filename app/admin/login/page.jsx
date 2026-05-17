@@ -32,25 +32,15 @@ export default function AdminLogin() {
       <div className="w-full max-w-[420px] p-6 sm:p-10 bg-white shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
         
         {/* Header Section */}
-<div className="flex flex-col items-center justify-center mb-6 w-full px-4">
-  <div className="relative w-[180px] h-[90px]">
+<div className="relative overflow-hidden w-[180px] h-[90px] flex flex-col items-center justify-center mb-6 w-full px-4">
+  <div className=" w-[250%] h-[250%] -top-1/2 -left-1/2">
     <Image 
       src="/shagunratnalogo.png"            
       alt="Shagunratna Logo" 
       fill                       // Fills the parent container smoothly
       priority                   // Loads instantly on page load
-      sizes="180px"              // Optimizes rendering size
       className="object-contain" // Prevents stretching
     />
-  </div>
-
-  {/* Tiny elegant sub-divider under the image */}
-  <div className="flex items-center justify-center gap-2 mt-2 w-full max-w-[200px]">
-    <div className="h-[1px] flex-1 bg-[#5C0612]/20"></div>
-    <span className="text-[#666666] text-[0.55rem] uppercase tracking-[0.25em] font-bold">
-      Ahmedabad
-    </span>
-    <div className="h-[1px] flex-1 bg-[#5C0612]/20"></div>
   </div>
 </div>
         {/* Login Form */}
