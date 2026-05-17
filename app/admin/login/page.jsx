@@ -29,7 +29,7 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-[#F9F3EB] px-4 py-8 relative overflow-hidden font-sans">
       
       {/* Main Login Card: Crisp White (bg-white) with Deep Maroon Border (#2A0005) */}
-      <div className=" flex items-center flex-col w-full max-w-[420px] p-6 sm:p-10 bg-[#000] shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
+      <div className=" flex items-center flex-col w-full max-w-[420px] p-6 sm:p-10 bg-[#fff] shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
         
         {/* Header Section */}
 <div className="relative w-[240px] h-[120px] overflow-hidden">
