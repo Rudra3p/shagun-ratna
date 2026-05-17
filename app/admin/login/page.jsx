@@ -29,22 +29,26 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-[#F9F3EB] px-4 py-8 relative overflow-hidden font-sans">
       
       {/* Main Login Card: Crisp White (bg-white) with Deep Maroon Border (#2A0005) */}
-      <div className="w-full max-w-[420px] p-6 sm:p-10 bg-white shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
+      <div className=" flex items-center flex-col w-full max-w-[420px] p-6 sm:p-10 bg-[#000] shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
         
         {/* Header Section */}
-<div className="relative overflow-hidden w-[180px] h-[90px] flex flex-col items-center justify-center mb-6 w-full px-4">
-  <div className=" w-[250%] h-[250%] -top-1/2 -left-1/2">
+<div className="relative w-[240px] h-[120px] overflow-hidden">
+  <div className="relative w-full h-full scale-125"> {/* Zooms the image up by 125% */}
     <Image 
       src="/shagunratnalogo.png"            
       alt="Shagunratna Logo" 
-      fill                       // Fills the parent container smoothly
-      priority                   // Loads instantly on page load
-      className="object-contain" // Prevents stretching
+      fill                       
+      priority                   
+      className="object-contain" 
     />
   </div>
 </div>
+
+<div className="text-center w-[90%] mb-6 border-[1px] border-[#5C0612]">
+
+</div>
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="w-full">
           <div className="space-y-5">
             <div className="relative">
               <label className="block text-[#5C0612] font-bold text-[0.65rem] uppercase tracking-widest mb-2 ml-1">Email</label>
