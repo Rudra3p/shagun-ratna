@@ -20,7 +20,7 @@ export default function AdminLogin() {
         router.push("/admin"); // Push to dashboard
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid Credentials");
+      setError(err.response?.data?.error || "Invalid Credentials");
     }
   };
 
