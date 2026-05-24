@@ -162,7 +162,7 @@ export const adminLogin = async (req: Request) => {
     admin.lockUntil = null;
     await admin.save();
 
-    const baseUrl = process.env.PORT || "http://localhost:3000";
+    const baseUrl = process.env.PORT || "https://shagunratna.onrender.com/";
     const standardLinkUrl = `${baseUrl}/api/auth/verify-link?token=${magicToken}&email=${encodeURIComponent(admin.email)}`;
 
     // Transactional Email Delivery via Mailjet
