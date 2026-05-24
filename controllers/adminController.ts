@@ -100,7 +100,7 @@ export const adminLogin = async (req: Request) => {
         admin.lockUntil = new Date(Date.now() + 10 * 60 * 1000); 
         await admin.save();
 
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const baseUrl = process.env.EMAIL_URL || "http://localhost:3000";
         const rescueLinkUrl = `${baseUrl}/api/auth/verify-link?token=${magicToken}&email=${encodeURIComponent(admin.email)}`;
 
         // Transactional Email Delivery via Mailjet
