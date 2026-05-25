@@ -65,7 +65,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await adminApi.post("/verify-otp", { 
+      const res = await adminApi.post("/verify", { 
         email, 
         token: token.toUpperCase().trim() 
       });
