@@ -1,27 +1,31 @@
 import { NextResponse } from "next/server";
 import adminApi from "@/lib/adminApi";
 
-export async function GET(request: Request) {
+// Changed from GET to POST because the frontend is submitting form data
+export async function POST(request: Request) {
   try {
-    // 1. Extract the query parameters from the link clicked by the user
-    const { searchParams } = new URL(request.url);
-    const token = searchParams.get("token");
-    const email = searchParams.get("email");
+    // 1. Extract the JSON body payload submitted from your frontend OTP input form
+    const { email, token } = await request.json();
 
     if (!token || !email) {
-      return NextResponse.redirect(new URL("/admin/login?error=Invalid+Link", request.url));
+      return NextResponse.json({ error: "Missing email or verification code" }, { status: 400 });
     }
 
-    // 2. Forward the verification request to your Backend server controller
-    // This executes the 'verifyOTP' logic we updated earlier
-    const backendResponse = await adminApi.post("/admin/verify", { email, token });
+    // 2. Forward the verification payload to your backend controller
+    // This executes the updated 'verifyOTP' logic we wrote earlier
+    const backendResponse = await adminApi.post("/admin/verify", { 
+      email, 
+      token: token.trim().toUpperCase() // Automatically sanitize inputs to uppercase
+    });
 
     if (backendResponse.status === 200) {
-      // 3. Success! Redirect straight to your admin dashboard layout
-      const dashboardUrl = new URL("/admin", request.url);
-      const response = NextResponse.redirect(dashboardUrl);
+      // 3. Success! Prepare a standard JSON success response for your React/Next frontend
+      const response = NextResponse.json(
+        { message: "Verification successful. Redirecting..." },
+        { status: 200 }
+      );
 
-      // 4. Pass along the HttpOnly authorization cookies dropped by your backend
+      // 4. Pass along the HttpOnly authorization cookies dropped by your backend server
       const setCookieHeader = backendResponse.headers["set-cookie"];
       if (setCookieHeader) {
         setCookieHeader.forEach((cookie) => {
@@ -32,16 +36,17 @@ export async function GET(request: Request) {
       return response;
     }
 
-    // Fallback if backend rejected validation
-    return NextResponse.redirect(new URL("/admin/login?error=Verification+Failed", request.url));
+    return NextResponse.json({ error: "Verification Failed" }, { status: 401 });
 
   } catch (error) {
     const err = error as {
       response?: { data?: { error?: string } };
       message?: string;
     };
-    console.error("Link processing failure:", err.response?.data || err.message);
-    const errMsg = err.response?.data?.error || "Link+Expired+or+Invalid";
-    return NextResponse.redirect(new URL(`/admin/login?error=${encodeURIComponent(errMsg)}`, request.url));
+    
+    console.error("OTP processing failure:", err.response?.data || err.message);
+    const errMsg = err.response?.data?.error || "Invalid or Expired OTP code.";
+    
+    return NextResponse.json({ error: errMsg }, { status: 401 });
   }
 }

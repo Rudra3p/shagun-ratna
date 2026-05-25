@@ -5,11 +5,8 @@ export interface IAdmin extends Document {
   email: string;
   password: string;
   
-  otp: string | null;            // Stores the 32-character Magic Link token hex
-  otptimeout: Date | null;       // Valid for 11 minutes (Backend validation buffer)
-  
-  loginAttempts: number;         // Tracks wrong passwords up to 4-5 tries to trigger rescue
-  lockUntil: Date | null;        // Freezes password authentication attempts for 10 mins
+  loginAttempts: number;         // Tracks wrong password attempts on Path 1
+  lockUntil: Date | null;        // Standard MongoDB fallback lockout reference
   
   refreshToken?: string;
   createdAt: Date;
@@ -34,14 +31,6 @@ const AdminSchema: Schema = new Schema({
   password: { 
     type: String, 
     required: true 
-  },
-  otp: { 
-    type: String, 
-    default: null 
-  },
-  otptimeout: { 
-    type: Date, 
-    default: null 
   },
   loginAttempts: { 
     type: Number, 
