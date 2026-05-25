@@ -53,7 +53,6 @@ export default function AdminLogin() {
         setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 5));
       }
     } finally {
-      styleLoading(false);
       setLoading(false);
     }
   };
