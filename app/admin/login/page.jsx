@@ -43,14 +43,21 @@ export default function AdminLogin() {
         setCurrentStep("OTP"); // Shift view over to input the alphanumeric code
       }
     } catch (err) {
-      const errMsg = err.response?.data?.error || "Invalid Credentials";
+      const errorData = err.response?.data;
+      const errMsg = errorData?.error || "Invalid Credentials";
       setError(errMsg);
       
       // Update attemptsRemaining dynamically from backend data payload if available
-      if (err.response?.data?.attemptsRemaining !== undefined) {
-        setAttemptsLeft(err.response.data.attemptsRemaining);
+      if (errorData?.attemptsRemaining !== undefined) {
+        setAttemptsLeft(errorData.attemptsRemaining);
       } else {
         setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 5));
+      }
+
+      // 🔥 FIX INTEGRATION: Switch to OTP panel even if backend returned a 4xx code alongside the OTP trigger
+      if (errorData?.step === "AWAITING_OTP") {
+        setSuccess(errorData.message || "Credentials verified. Check your email.");
+        setCurrentStep("OTP");
       }
     } finally {
       setLoading(false);
@@ -78,16 +85,17 @@ export default function AdminLogin() {
         }, 1000);
       }
     } catch (err) {
-      const errMsg = err.response?.data?.error || "Invalid Credentials";
+      const errorData = err.response?.data;
+      const errMsg = errorData?.error || "Invalid Verification Code";
       setError(errMsg);
       
-      if (err.response?.data?.attemptsRemaining !== undefined) {
-        setAttemptsLeft(err.response.data.attemptsRemaining);
+      if (errorData?.attemptsRemaining !== undefined) {
+        setAttemptsLeft(errorData.attemptsRemaining);
       } else {
         setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 5));
       }
     } finally {
-      setLoading(false); // ✅ Kept this, it handles your spinner state perfectly
+      setLoading(false); 
     }
   };
 
@@ -104,8 +112,8 @@ export default function AdminLogin() {
             <Image 
               src="/shagunratnalogo.png"            
               alt="Shagunratna Logo" 
-              fill                               
-              priority                                  
+              fill                                              
+              priority                                   
               className="object-contain" 
             />
           </div>
@@ -122,7 +130,7 @@ export default function AdminLogin() {
 
         {currentStep === "OTP" ? (
           /* ==========================================
-             🔒 VIEW B: DIRECT ALPHANUMERIC OTP INPUT FORM
+              🔒 VIEW B: DIRECT ALPHANUMERIC OTP INPUT FORM
              ========================================== */
           <form onSubmit={handleVerifyOTP} className="w-full">
             <div className="space-y-5">
@@ -170,7 +178,7 @@ export default function AdminLogin() {
           </form>
         ) : (
           /* ==========================================
-             🔑 VIEW A: INITIAL ACCOUNT DETAILS CREDENTIAL INPUTS
+              🔑 VIEW A: INITIAL ACCOUNT DETAILS CREDENTIAL INPUTS
              ========================================== */
           <form onSubmit={handleLogin} className="w-full">
             <div className="space-y-5">
