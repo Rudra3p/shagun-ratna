@@ -1,12 +1,16 @@
 import { adminLogout } from "@/controllers/adminController";
 import { NextResponse } from "next/server";
 
+// Handles: POST /api/admin/logout
 export async function POST(req: Request) {
   try {
-    // No DB connection needed just to clear cookie strings, making it fast
+    // Passes the request down to your controller to clear cookie headers
     return await adminLogout(req);
   } catch (error) {
-    console.error("Admin Logout Route Error:", error);
-    return NextResponse.json({ error: "Failed to logout" }, { status: 500 });
+    console.error("Admin Logout Backend Route Error:", error);
+    return NextResponse.json(
+      { error: "Failed to execute server-side logout process" }, 
+      { status: 500 }
+    );
   }
 }
