@@ -35,7 +35,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await adminApi.post("/auth/login", { email, password });
+      const res = await adminApi.post("/login", { email, password });
       
       // Look for the "AWAITING_OTP" flag we set up in our backend controller
       if (res.data?.step === "AWAITING_OTP") {
@@ -66,7 +66,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await adminApi.post("/auth/verify-otp", { 
+      const res = await adminApi.post("/verify-otp", { 
         email, 
         token: token.toUpperCase().trim() 
       });
