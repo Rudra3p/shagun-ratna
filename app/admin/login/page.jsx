@@ -8,17 +8,16 @@ import { useRouter } from "next/navigation";
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setToken] = useState(""); // Stores user input code (e.g. R45DS9)
+  const [token, setToken] = useState(""); 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   // --- Step Tracking & Security UI States ---
-  const [currentStep, setCurrentStep] = useState("CREDENTIALS"); // "CREDENTIALS" or "OTP"
+  const [currentStep, setCurrentStep] = useState("CREDENTIALS"); 
   const [attemptsLeft, setAttemptsLeft] = useState(5);
 
-  // Clear message statuses instantly when user hops back to try again
   const resetAuthFlow = () => {
     setCurrentStep("CREDENTIALS");
     setToken("");
@@ -27,7 +26,7 @@ export default function AdminLogin() {
     setAttemptsLeft(5);
   };
 
-  // --- STEP 1: CREDENTIAL SUBMISSION ---
+  // --- STEP 1: INITIAL PASSWORD LOGIN OR LOCKOUT TRIGGER ---
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -37,34 +36,39 @@ export default function AdminLogin() {
     try {
       const res = await adminApi.post("/login", { email, password });
       
-      // Look for the "AWAITING_OTP" flag we set up in our backend controller
-      if (res.data?.step === "AWAITING_OTP") {
-        setSuccess(res.data.message);
-        setCurrentStep("OTP"); // Shift view over to input the alphanumeric code
+      // If password matches on the first try, go straight to dashboard
+      if (res.status === 200) {
+        setSuccess("Access Granted. Redirecting...");
+        setTimeout(() => router.push("/admin"), 1000);
       }
     } catch (err) {
-      const errorData = err.response?.data;
-      const errMsg = errorData?.error || "Invalid Credentials";
-      setError(errMsg);
-      
-      // Update attemptsRemaining dynamically from backend data payload if available
-      if (errorData?.attemptsRemaining !== undefined) {
-        setAttemptsLeft(errorData.attemptsRemaining);
-      } else {
-        setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 5));
-      }
+      const errorResponse = err.response;
+      const errorData = errorResponse?.data;
+      const status = errorResponse?.status;
 
-      // 🔥 FIX INTEGRATION: Switch to OTP panel even if backend returned a 4xx code alongside the OTP trigger
-      if (errorData?.step === "AWAITING_OTP") {
-        setSuccess(errorData.message || "Credentials verified. Check your email.");
-        setCurrentStep("OTP");
+      // 🔥 THE CRITICAL FIX: If status is 423 (Locked out after 5 attempts) 
+      // or if the backend payload explicitly states we are now shifting to OTP mode
+      if (status === 423 || errorData?.step === "AWAITING_OTP") {
+        setAttemptsLeft(0);
+        setSuccess("Password locked out. A secure login code has been sent to your email.");
+        setCurrentStep("OTP"); // 🚀 Forces open the OTP view instantly!
+      } else {
+        // Still have attempts remaining (401 Unauthorized)
+        const errMsg = errorData?.error || "Invalid Credentials";
+        setError(errMsg);
+        
+        if (errorData?.attemptsRemaining !== undefined) {
+          setAttemptsLeft(errorData.attemptsRemaining);
+        } else {
+          setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 0));
+        }
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // --- STEP 2: OTP VERIFICATION SUBMISSION ---
+  // --- STEP 2: BACKUP OTP LOGIN METHOD ---
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setError("");
@@ -72,38 +76,29 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
+      // Form submits directly to your dedicated verify file path
       const res = await adminApi.post("/verify", { 
         email, 
         token: token.toUpperCase().trim() 
       });
 
       if (res.status === 200) {
-        setSuccess("Access Granted. Welcome back, Boss.");
-        // Short timeout allows the user to see the success state before transition
+        setSuccess("Backup validation successful. Welcome back.");
         setTimeout(() => {
           router.push("/admin"); 
         }, 1000);
       }
     } catch (err) {
       const errorData = err.response?.data;
-      const errMsg = errorData?.error || "Invalid Verification Code";
-      setError(errMsg);
-      
-      if (errorData?.attemptsRemaining !== undefined) {
-        setAttemptsLeft(errorData.attemptsRemaining);
-      } else {
-        setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 5));
-      }
+      setError(errorData?.error || "Invalid or Expired Verification Code");
     } finally {
       setLoading(false); 
     }
   };
 
   return (
-    // Background: Premium Full Cream (#F9F3EB)
     <div className="min-h-screen flex items-center justify-center bg-[#F9F3EB] px-4 py-8 relative overflow-hidden font-sans">
       
-      {/* Main Login Card: Crisp White with Deep Maroon Border (#2A0005) */}
       <div className="flex items-center flex-col w-full max-w-[420px] p-6 sm:p-10 bg-[#fff] shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
         
         {/* Header Section */}
@@ -123,20 +118,20 @@ export default function AdminLogin() {
           <div className="absolute w-full -top-[1rem] left-0 flex flex-row justify-between items-center bg-[#fff] px-1">
             <span className="font-bold text-[#640a17] text-[0.6rem] w-auto">Administrator Login</span>
             <span className="font-bold text-[#640a17] text-[0.65rem] w-auto">
-              {currentStep === "OTP" ? "SECURITY CODE" : `login attempt: ${attemptsLeft}`}
+              {currentStep === "OTP" ? "ALTERNATIVE OTP ACCESS" : `login attempt: ${attemptsLeft}`}
             </span>
           </div>
         </div>
 
         {currentStep === "OTP" ? (
           /* ==========================================
-              🔒 VIEW B: DIRECT ALPHANUMERIC OTP INPUT FORM
+              🔒 VIEW B: BACKUP OTP LOGIN METHOD
              ========================================== */
           <form onSubmit={handleVerifyOTP} className="w-full">
             <div className="space-y-5">
               <div className="relative">
                 <label className="block text-[#5C0612] font-bold text-[0.65rem] uppercase tracking-widest mb-2 ml-1">
-                  Enter 6-Digit Verification Code
+                  Enter Account Login Code
                 </label>
                 <input 
                   type="text" 
@@ -151,7 +146,6 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            {/* Status Messages for OTP validation step */}
             {(error || success) && (
               <div className={`p-3 border rounded-xl text-center mt-4 ${success ? "bg-emerald-50 border-emerald-200" : "bg-[#5C0612]/10 border-[#5C0612]/30"}`}>
                 <p className={`font-semibold text-xs tracking-wider uppercase ${success ? "text-emerald-800" : "text-[#5C0612]"}`}>
@@ -165,7 +159,7 @@ export default function AdminLogin() {
               disabled={loading}
               className="w-full mt-6 py-4 bg-[#5C0612] text-[#FFFFFF] rounded-xl font-bold uppercase tracking-[0.2em] text-xs sm:text-sm hover:bg-[#3A030B] hover:shadow-[0_8px_20px_rgba(42,0,5,0.4)] transition-all duration-300 flex items-center justify-center disabled:opacity-50"
             >
-              {loading ? "Authorizing Profile..." : "Verify & Unlock"}
+              {loading ? "Authenticating Code..." : "Verify & Log In"}
             </button>
 
             <button
@@ -173,12 +167,12 @@ export default function AdminLogin() {
               onClick={resetAuthFlow}
               className="w-full mt-3 text-center text-[#c5a059] hover:text-[#5C0612] font-bold uppercase tracking-widest text-[0.6rem] transition-colors duration-200"
             >
-              ← Back to login details
+              ← Back to password details
             </button>
           </form>
         ) : (
           /* ==========================================
-              🔑 VIEW A: INITIAL ACCOUNT DETAILS CREDENTIAL INPUTS
+              🔑 VIEW A: INITIAL PASSWORD CREDENTIAL INPUTS
              ========================================== */
           <form onSubmit={handleLogin} className="w-full">
             <div className="space-y-5">
@@ -209,7 +203,6 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            {/* Status Messages for credentials check step */}
             {error && (
               <div className="p-3 border rounded-xl text-center mt-4 bg-[#5C0612]/10 border-[#5C0612]/30">
                 <p className="font-semibold text-xs tracking-wider uppercase text-[#5C0612]">
@@ -223,7 +216,7 @@ export default function AdminLogin() {
               disabled={loading}
               className="w-full mt-8 py-4 bg-[#5C0612] text-[#FFFFFF] rounded-xl font-bold uppercase tracking-[0.2em] text-xs sm:text-sm hover:bg-[#3A030B] hover:shadow-[0_8px_20px_rgba(42,0,5,0.4)] transition-all duration-300 flex items-center justify-center disabled:opacity-50"
             >
-              {loading ? "Verifying Keys..." : "Login to Dashboard"}
+              {loading ? "Verifying Credentials..." : "Login to Dashboard"}
             </button>
           </form>
         )}
