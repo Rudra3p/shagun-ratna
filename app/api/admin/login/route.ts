@@ -1,28 +1,20 @@
 import dbConnect from "@/db/db";
-import { adminLogin, verifyOTP } from "@/controllers/adminController"; // 🔥 Import both from your controller
+import { adminLogin } from "@/controllers/adminController"; 
 import { NextResponse } from "next/server";
 
-// Handles: POST /api/admin/login
 export async function POST(req: Request) {
   try {
+    // 1. Ensure DB connection
     await dbConnect();
     
-    // Clone the incoming request so we can read its JSON body data safely
-    const clonedReq = req.clone();
-    const bodyData = await clonedReq.json();
-
-    // 🔒 STEP 2: If the frontend sends action: "VERIFY_OTP", process the token validation
-    if (bodyData?.action === "VERIFY_OTP") {
-      return await verifyOTP(req);
-    }
-
-    // 🔑 STEP 1: Default to the normal password and email check
+    // 2. Delegate the login logic to your adminLogin controller
+    // This controller handles credential checking and email dispatch
     return await adminLogin(req);
 
   } catch (error) {
-    console.error("Authentication Route Failure:", error);
+    console.error("Login Route Failure:", error);
     return NextResponse.json(
-      { error: "Failed to process authentication request" }, 
+      { error: "Internal Server Error" }, 
       { status: 500 }
     );
   }
