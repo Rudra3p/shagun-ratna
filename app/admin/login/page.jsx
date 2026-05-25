@@ -79,10 +79,16 @@ export default function AdminLogin() {
         }, 1000);
       }
     } catch (err) {
-      const errMsg = err.response?.data?.error || "Invalid verification code.";
+      const errMsg = err.response?.data?.error || "Invalid Credentials";
       setError(errMsg);
+      
+      if (err.response?.data?.attemptsRemaining !== undefined) {
+        setAttemptsLeft(err.response.data.attemptsRemaining);
+      } else {
+        setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 5));
+      }
     } finally {
-      setLoading(false);
+      setLoading(false); // ✅ Kept this, it handles your spinner state perfectly
     }
   };
 
