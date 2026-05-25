@@ -1,4 +1,5 @@
 import Admin from "@/models/admin";
+import OTP from "@/models/otp"; // 🔥 Verified: Imports the dedicated OTP Model
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -11,13 +12,26 @@ const mailjet = new NodeMailjet({
   apiSecret: process.env.MJ_APIKEY_PRIVATE || ""
 });
 
-// --- GLOBAL IN-MEMORY IP + EMAIL TRACKER (RAM) ---
-interface IRateLimit {
-  count: number;       // Tracks attempts within the current tier (0 to 5)
-  strikeTier: number;  // Tracks how many times they have been locked out (0, 1, 2, 3+)
-  lockUntil: number;   // Timestamp when the current lockout expires
+// =========================================================================
+// ─── SEPARATED GLOBAL IN-MEMORY RATELIMIT MANAGERS ───────────────────────
+// =========================================================================
+interface IAccountRateLimit {
+  count: number;
+  strikeTier: number;
+  lockUntil: number;
 }
-const globalRateLimitStore = new Map<string, IRateLimit>();
+
+interface IIpRateLimit {
+  count: number;      
+  strikeTier: number; // 1 = 5-minute block, 2 = 14-hour block
+  lockUntil: number;  
+}
+
+// Path 1 Tracker: Keyed by Admin Email string strictly
+const adminAccountStore = new Map<string, IAccountRateLimit>();
+
+// Path 2 Tracker: Keyed by Attacker Client IP string strictly
+const maliciousIpStore = new Map<string, IIpRateLimit>();
 
 // Secure Alphanumeric OTP Generator (e.g., R45DS9)
 const generateAlphanumericOTP = (length = 6): string => {
@@ -31,18 +45,32 @@ const generateAlphanumericOTP = (length = 6): string => {
 };
 
 // =========================================================================
-// STEP 1: VERIFY PASSWORD & EMAIL -> DISPATCH 6-CHARACTER OTP
+// STEP 1: VERIFY PASSWORD & EMAIL -> DISPATCH & STORE DEDICATED OTP
 // =========================================================================
 export const adminLogin = async (req: Request) => {
   try {
     const currentTime = Date.now();
 
-    // Multi-Platform IP Extraction
+    // ─── 1. MULTI-PLATFORM IP EXTRACTION ────────────────────────────────────
     const ip = 
       req.headers.get("x-forwarded-for")?.split(",")[0].trim() || 
       req.headers.get("x-real-ip") ||                            
       req.headers.get("cf-connecting-ip") ||                    
       "127.0.0.1";                                               
+
+    // ─── 2. CHECK PATH 2 IP BLOCK CONDITIONS (WRONG EMAIL DEFENSE) ──────────
+    const ipTrack = maliciousIpStore.get(ip);
+    if (ipTrack && ipTrack.lockUntil > currentTime) {
+      const remainingTime = ipTrack.lockUntil - currentTime;
+      let timeString = remainingTime > 60 * 60 * 1000 
+        ? `${Math.ceil(remainingTime / 3600000)} hours` 
+        : `${Math.ceil(remainingTime / 60000)} minutes`;
+
+      return NextResponse.json(
+        { error: `Access Denied. Suspicious network activity. Try again in ${timeString}.` },
+        { status: 429 }
+      );
+    }
 
     const { email, password } = await req.json();
 
@@ -51,98 +79,86 @@ export const adminLogin = async (req: Request) => {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const rateLimitKey = `${ip}:${cleanEmail}`;
 
-    // 1. Check Rate Limit Status for this IP + Email combination
-    const ipTrack = globalRateLimitStore.get(rateLimitKey);
-    if (ipTrack && ipTrack.lockUntil > currentTime) {
-      const remainingTime = ipTrack.lockUntil - currentTime;
-      
-      let timeString = "";
-      if (remainingTime > 60 * 60 * 1000) {
-        timeString = `${Math.ceil(remainingTime / 3600000)} hours`;
-      } else if (remainingTime > 60 * 1000) {
-        timeString = `${Math.ceil(remainingTime / 60000)} minutes`;
-      } else {
-        timeString = `${Math.ceil(remainingTime / 1000)} seconds`;
-      }
-
+    // ─── 3. CHECK PATH 1 ACCOUNT LOCK CONDITIONS (REAL ADMIN PASSWORD TYPOS) ───
+    const accountTrack = adminAccountStore.get(cleanEmail);
+    if (accountTrack && accountTrack.lockUntil > currentTime) {
+      const remainingTime = accountTrack.lockUntil - currentTime;
+      const minutesLeft = Math.ceil(remainingTime / 60000);
       return NextResponse.json(
-        { error: `Too many login attempts. Access blocked. Try again in ${timeString}.` },
-        { status: 429 }
+        { error: `Too many failed password attempts. Account locked. Try again in ${minutesLeft} minutes.` },
+        { status: 423 }
       );
     }
 
-    // 2. Query DB for Admin profile
+    // ─── 4. DATABASE LOOKUP ──────────────────────────────────────────────────
     const admin = await Admin.findOne({ email: cleanEmail });
 
-    // ─── SPLIT SECURITY FAILURE HANDLER ───
-    const handleFailure = async (isAdminFound: boolean) => {
-      const currentTrack = globalRateLimitStore.get(rateLimitKey) || { count: 0, strikeTier: 0, lockUntil: 0 };
+    // 🛑 PATH 2 EXECUTION: EMAIL WRONG -> EXECUTE IP BANS
+    if (!admin) {
+      const currentIpTrack = maliciousIpStore.get(ip) || { count: 0, strikeTier: 0, lockUntil: 0 };
+      currentIpTrack.count += 1;
+      
+      if (currentIpTrack.count >= 5) {
+        currentIpTrack.strikeTier += 1;
+        currentIpTrack.count = 0; 
+
+        if (currentIpTrack.strikeTier === 1) {
+          currentIpTrack.lockUntil = Date.now() + 5 * 60 * 1000; // 1st tier: 5 mins block
+        } else {
+          currentIpTrack.lockUntil = Date.now() + 14 * 60 * 60 * 1000; // 2nd tier+: 14 hours block
+        }
+      }
+      
+      maliciousIpStore.set(ip, currentIpTrack);
+      
+      const attemptsRemaining = 5 - currentIpTrack.count;
+      return NextResponse.json({ 
+        error: "Invalid Credentials",
+        attemptsRemaining: currentIpTrack.lockUntil > Date.now() ? 0 : attemptsRemaining
+      }, { status: 401 });
+    }
+
+    // ─── 5. VERIFY PASSWORD MATCH (EMAIL FOUND) ─────────────────────────────
+    const isMatch = await bcrypt.compare(password, admin.password);
+
+    // 🛑 PATH 1 EXECUTION: EMAIL RIGHT BUT PASSWORD WRONG
+    if (!isMatch) {
+      const currentTrack = adminAccountStore.get(cleanEmail) || { count: 0, strikeTier: 0, lockUntil: 0 };
       currentTrack.count += 1;
 
-      if (isAdminFound) {
-        // RULE 1: REAL ADMIN EMAIL (Escalating short penalties)
-        if (currentTrack.count >= 5) {
-          currentTrack.strikeTier += 1;
-          currentTrack.count = 0; 
+      if (currentTrack.count >= 5) {
+        currentTrack.strikeTier += 1;
+        currentTrack.count = 0; 
 
-          if (currentTrack.strikeTier === 1) {
-            currentTrack.lockUntil = Date.now() + 2 * 60 * 1000;  // Try 1: 2 mins lock
-          } else if (currentTrack.strikeTier === 2) {
-            currentTrack.lockUntil = Date.now() + 5 * 60 * 1000;  // Try 2: 5 mins lock
-          } else {
-            currentTrack.lockUntil = Date.now() + 10 * 60 * 1000; // Try 3+: 10 mins lock
-          }
-        }
-        
-        if (admin) {
-          admin.loginAttempts += 1;
-          await admin.save();
-        }
-      } else {
-        // RULE 2: DIFFERENT / UNMATCHED EMAIL (Brute-force dynamic ban)
-        if (currentTrack.count >= 5) {
-          currentTrack.lockUntil = Date.now() + 14 * 60 * 60 * 1000; // 14 Hours Block
-          currentTrack.count = 0;
+        if (currentTrack.strikeTier === 1) {
+          currentTrack.lockUntil = Date.now() + 2 * 60 * 1000;   // Strike 1: 2 mins lock
+        } else if (currentTrack.strikeTier === 2) {
+          currentTrack.lockUntil = Date.now() + 5 * 60 * 1000;   // Strike 2: 5 mins lock
+        } else {
+          currentTrack.lockUntil = Date.now() + 10 * 60 * 1000;  // Strike 3+: 10 mins lock
         }
       }
 
-      globalRateLimitStore.set(rateLimitKey, currentTrack);
-
-      const attemptsRemaining = 5 - currentTrack.count;
+      adminAccountStore.set(cleanEmail, currentTrack);
       return NextResponse.json({ 
         error: "Invalid Credentials", 
-        attemptsRemaining: currentTrack.lockUntil > Date.now() ? 0 : attemptsRemaining 
+        attemptsRemaining: currentTrack.lockUntil > Date.now() ? 0 : 5 - currentTrack.count 
       }, { status: 401 });
-    };
-
-    // If email is wrong, trigger 14-hour system defense rule immediately
-    if (!admin) return handleFailure(false);
-
-    // Check Account Lock Status in MongoDB
-    if (admin.lockUntil && new Date() < admin.lockUntil) {
-      return NextResponse.json({ error: "Account locked temporarily. Try again later." }, { status: 423 });
     }
 
-    // 3. Verify Password Match
-    const isMatch = await bcrypt.compare(password, admin.password);
-
-    // If password fails, execute Admin Tiered Penalty rule
-    if (!isMatch) {
-      return handleFailure(true);
-    }
-
-    // ─── CREDENTIALS PASSED: GENERATE AND EMAIL OTP ───
-    globalRateLimitStore.delete(rateLimitKey); // Clear temporary rate limit cache
+    // ─── 🎉 HIGHWAY PATH: CREDENTIALS FULLY VERIFIED ────────────────────────
+    adminAccountStore.delete(cleanEmail); // Wipes memory track on success
+    maliciousIpStore.delete(ip);          // Wipes network track on success
 
     const directOTP = generateAlphanumericOTP(6);
 
-    admin.otp = directOTP;
-    admin.otptimeout = new Date(Date.now() + 5 * 60 * 1000); // Code valid for 5 mins
-    admin.loginAttempts = 0; 
-    admin.lockUntil = null;
-    await admin.save();
+    // 🔥 SAVE CODE TO THE DEDICATED MODEL INSTEAD OF ADMIN SCHEMA
+    await OTP.deleteMany({ email: cleanEmail }); // Clear any stale codes hanging around
+    await OTP.create({
+      email: cleanEmail,
+      code: directOTP
+    });
 
     // Deliver Direct OTP using Mailjet Template
     try {
@@ -187,31 +203,35 @@ export const adminLogin = async (req: Request) => {
 };
 
 // =========================================================================
-// STEP 2: VERIFY SUBMITTED OTP INPUT CODE & ISSUE COOKIES
+// STEP 2: VERIFY SUBMITTED OTP INPUT CODE FROM ISOLATED MODEL
 // =========================================================================
 export const verifyOTP = async (req: Request) => {
   try {
-    // Frontend should POST data directly to this endpoint: { "email": "...", "token": "R45DS9" }
     const { email, token } = await req.json();
 
     if (!email || !token) {
       return NextResponse.json({ error: "Missing required validation parameters" }, { status: 400 });
     }
 
-    const admin = await Admin.findOne({ email: email.toLowerCase().trim() });
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanToken = token.trim().toUpperCase();
+
+    // 🔥 FIND RECORD WITHIN THE DEDICATED OTP COLLECTION
+    const otpRecord = await OTP.findOne({ email: cleanEmail, code: cleanToken });
+
+    // If it's missing, it's either an invalid code or MongoDB TTL already auto-deleted it!
+    if (!otpRecord) {
+      return NextResponse.json({ error: "The code has expired or is invalid. Please request a new one." }, { status: 401 });
+    }
+
+    // Grab corresponding admin schema profile to create the cookie tokens
+    const admin = await Admin.findOne({ email: cleanEmail });
     if (!admin) {
       return NextResponse.json({ error: "Access Denied" }, { status: 404 });
     }
 
-    // Check expiration boundaries
-    if (!admin.otp || !admin.otptimeout || new Date() > admin.otptimeout) {
-      return NextResponse.json({ error: "The code has expired or is invalid. Please request a new one." }, { status: 400 });
-    }
-
-    // Validate string inputs securely (Normalizes case mismatches)
-    if (admin.otp.toUpperCase() !== token.toUpperCase().trim()) {
-      return NextResponse.json({ error: "Invalid security verification code." }, { status: 401 });
-    }
+    // 🔥 INSTANTLY FLUSH RECORD SO IT CAN NEVER BE REPLAYED TWICE
+    await OTP.deleteOne({ _id: otpRecord._id });
 
     // Generate JWT Web Tokens
     const accessToken = jwt.sign(
@@ -226,10 +246,8 @@ export const verifyOTP = async (req: Request) => {
       { expiresIn: "7d" }
     );
 
-    // Reset temporary document auth properties
+    // Save session context tracking
     admin.refreshToken = refreshToken;
-    admin.otp = null;
-    admin.otptimeout = null;
     admin.loginAttempts = 0;      
     admin.lockUntil = null;       
     await admin.save();
