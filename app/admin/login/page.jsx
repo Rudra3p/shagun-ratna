@@ -29,39 +29,28 @@ export default function AdminLogin() {
   // --- STEP 1: INITIAL PASSWORD LOGIN OR LOCKOUT TRIGGER ---
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
     setLoading(true);
+    setError("");
 
     try {
+      // Sends to /api/admin/login
       const res = await adminApi.post("/login", { email, password });
       
-      // If password matches on the first try, go straight to dashboard
       if (res.status === 200) {
         setSuccess("Access Granted. Redirecting...");
         setTimeout(() => router.push("/admin"), 1000);
       }
     } catch (err) {
-      const errorResponse = err.response;
-      const errorData = errorResponse?.data;
-      const status = errorResponse?.status;
+      const status = err.response?.status;
+      const data = err.response?.data;
 
-      // 🔥 THE CRITICAL FIX: If status is 423 (Locked out after 5 attempts) 
-      // or if the backend payload explicitly states we are now shifting to OTP mode
-      if (status === 423 || errorData?.step === "AWAITING_OTP") {
-        setAttemptsLeft(0);
-        setSuccess("Password locked out. A secure login code has been sent to your email.");
-        setCurrentStep("OTP"); // 🚀 Forces open the OTP view instantly!
+      // Ensure this matches the JSON response from your backend
+      if (status === 423 || data?.step === "AWAITING_OTP") {
+        setCurrentStep("OTP");
+        setSuccess("Password locked. OTP sent to your email.");
       } else {
-        // Still have attempts remaining (401 Unauthorized)
-        const errMsg = errorData?.error || "Invalid Credentials";
-        setError(errMsg);
-        
-        if (errorData?.attemptsRemaining !== undefined) {
-          setAttemptsLeft(errorData.attemptsRemaining);
-        } else {
-          setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 0));
-        }
+        setError(data?.error || "Invalid Credentials");
+        setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 0));
       }
     } finally {
       setLoading(false);
