@@ -1,16 +1,13 @@
+// app/api/admin/logout/route.ts
 import { adminLogout } from "@/controllers/adminController";
 import { NextResponse } from "next/server";
 
-// Handles: POST /api/admin/logout
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    // Passes the request down to your controller to clear cookie headers
-    return await adminLogout(req);
+    // Call it without the 'req' argument
+    return await adminLogout();
   } catch (error) {
     console.error("Admin Logout Backend Route Error:", error);
-    return NextResponse.json(
-      { error: "Failed to execute server-side logout process" }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Logout Failed" }, { status: 500 });
   }
 }

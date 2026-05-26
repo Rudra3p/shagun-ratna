@@ -92,7 +92,7 @@ export const verifyOTP = async (req: Request) => {
   }
 };
 
-export const adminLogout = async () => {
+export const adminLogout = async () => { // <--- No parameter here
   const response = NextResponse.json({ message: "Logged out" }, { status: 200 });
   response.cookies.set("shagun_admin_access", "", { maxAge: 0, path: "/" });
   response.cookies.set("shagun_admin_refresh", "", { maxAge: 0, path: "/" });
