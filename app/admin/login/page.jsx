@@ -60,30 +60,38 @@ export default function AdminLogin() {
     }
   };
   // --- STEP 2: BACKUP OTP LOGIN METHOD ---
+// Ensure this logic is inside your AdminLogin.jsx
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
     setLoading(true);
+    setError("");
+    
+    // Create the final payload
+    const finalEmail = email.trim().toLowerCase();
+    const finalToken = token.trim().toUpperCase();
+
+    // 🔍 DEBUG LOG: Copy this output from your browser console. 
+    // It must match your MongoDB Atlas records exactly.
+    console.log("DEBUG: Sending to /verify:", { email: finalEmail, token: finalToken });
 
     try {
-      // Form submits directly to your dedicated verify file path
       const res = await adminApi.post("/verify", { 
-        email, 
-        token: token.toUpperCase().trim() 
+        email: finalEmail, 
+        token: finalToken 
       });
 
       if (res.status === 200) {
-        setSuccess("Backup validation successful. Welcome back.");
-        setTimeout(() => {
-          router.push("/admin"); 
-        }, 1000);
+        setSuccess("Validation successful. Redirecting...");
+        setTimeout(() => router.push("/admin"), 1000);
       }
     } catch (err) {
-      const errorData = err.response?.data;
-      setError(errorData?.error || "Invalid or Expired Verification Code");
+      // 🔍 DEBUG LOG: See the full error response from the backend
+      console.error("DEBUG: Server Error Response:", err.response?.data);
+      
+      const serverError = err.response?.data?.error || "Invalid or Expired Code.";
+      setError(serverError);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
