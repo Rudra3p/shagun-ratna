@@ -30,23 +30,30 @@ export default function AdminLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
       const res = await adminApi.post("/login", { email, password });
       
-      // Direct Login Path
+      // If success (200), direct login
       if (res.status === 200) {
-        router.push("/admin");
+        setSuccess("Login successful. Redirecting...");
+        setTimeout(() => router.push("/admin"), 1000);
       }
     } catch (err) {
       const status = err.response?.status;
       
-      // Trigger OTP Flow if server sends 423
+      // THIS IS THE KEY: If we hit 423, the backend has already generated the OTP.
+      // So we MUST switch the UI to the OTP view.
       if (status === 423) {
-        setCurrentStep("OTP"); // This shows your OTP input form
-        setSuccess("OTP sent to your email for identity verification.");
+        setCurrentStep("OTP"); 
+        setSuccess("Too many attempts. Verification code sent to your email.");
+      } 
+      // If 401, just show error
+      else if (status === 401) {
+        setError("Invalid password. Please try again.");
       } else {
-        setError("Invalid password.");
+        setError("An unexpected error occurred.");
       }
     } finally {
       setLoading(false);
