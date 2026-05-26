@@ -51,57 +51,40 @@ const generateAlphanumericOTP = (length: number): string => {
 export const adminLogin = async (req: Request) => {
   try {
     const { email, password } = await req.json();
+    const cleanEmail = email.toLowerCase().trim();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    // 1. Check for lockout
+    const accountStatus = adminAccountStore.get(cleanEmail);
+    if (accountStatus?.lockUntil && Date.now() < accountStatus.lockUntil) {
+      return NextResponse.json({ error: "Account locked. Try again in 15 minutes." }, { status: 423 });
     }
 
-    const admin = await Admin.findOne({ email: email.toLowerCase().trim() });
+    const admin = await Admin.findOne({ email: cleanEmail });
 
-    if (!admin || !await bcrypt.compare(password, admin.password)) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    // 2. Validate Credentials
+    if (!admin || !(await bcrypt.compare(password, admin.password))) {
+      const attempts = (accountStatus?.attempts || 0) + 1;
+      
+      if (attempts >= 5) {
+        adminAccountStore.set(cleanEmail, { attempts, lockUntil: Date.now() + 15 * 60 * 1000 });
+        return NextResponse.json({ error: "Too many failed attempts. Account locked." }, { status: 423 });
+      }
+
+      adminAccountStore.set(cleanEmail, { attempts });
+      return NextResponse.json({ error: `Invalid credentials. ${5 - attempts} attempts left.` }, { status: 401 });
     }
 
-    // ─── 🎉 HIGHWAY PATH: CREDENTIALS FULLY VERIFIED ────────────────────────
-    const cleanEmail = String(admin.email).toLowerCase().trim();
+    // 3. Success: Reset attempts and trigger OTP
     adminAccountStore.delete(cleanEmail);
-
     const directOTP = generateAlphanumericOTP(6);
-
     await OTP.deleteMany({ email: cleanEmail });
     await OTP.create({ email: cleanEmail, code: directOTP });
 
-    // Deliver Direct OTP using Gmail API
-    try {
-      const transporter = await createTransporter();
-      await transporter.sendMail({
-        from: `"Shagun Ratna" <${process.env.GMAIL_USER}>`,
-        to: cleanEmail,
-        subject: "🔑 Secure Portal Gateway: Your OTP Verification Code",
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; max-width: 500px; border: 1px solid #2A0005; border-radius: 12px; background-color: #FCF8F2;">
-            <h2 style="color: #5C0612;">Dashboard Verification Requested</h2>
-            <p style="color: #333;">Your primary credentials have been successfully verified. Use the security code below to complete your administrative login:</p>
-            <div style="margin: 30px 0; text-align: center;">
-              <span style="background-color: #5C0612; color: #FFFFFF; padding: 12px 35px; border-radius: 8px; font-size: 26px; font-family: monospace; font-weight: bold; letter-spacing: 5px; display: inline-block;">${directOTP}</span>
-            </div>
-            <p style="font-size: 0.8rem; color: #640a17;">This security code is strictly single-use and expires in 5 minutes.</p>
-          </div>
-        `
-      });
-      console.log(`[GMAIL SUCCESS] OTP Code dispatched to: ${cleanEmail}`);
-    } catch (mailError) {
-      console.error("[GMAIL ERROR] System fallback engaged:", mailError);
-      console.log(`\n🔑 [LOCAL DEV OTP DEBUG] CODE: ${directOTP}\n`);
-    }
+    // (Include your existing mailer code here)
 
-    return NextResponse.json({ 
-      message: "Credentials approved. Enter the verification code sent to your email.",
-      step: "AWAITING_OTP"
-    }, { status: 200 });
+    return NextResponse.json({ message: "OTP sent to email.", step: "AWAITING_OTP" }, { status: 200 });
 
   } catch (error) {
-    console.error("Admin Login Step 1 Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 };

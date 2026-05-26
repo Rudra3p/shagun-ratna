@@ -33,30 +33,28 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      // Sends to /api/admin/login
       const res = await adminApi.post("/login", { email, password });
       
       if (res.status === 200) {
-        setSuccess("Access Granted. Redirecting...");
-        setTimeout(() => router.push("/admin"), 1000);
+        setCurrentStep("OTP");
+        setSuccess("OTP sent to your email.");
       }
     } catch (err) {
       const status = err.response?.status;
       const data = err.response?.data;
 
-      // Ensure this matches the JSON response from your backend
-      if (status === 423 || data?.step === "AWAITING_OTP") {
-        setCurrentStep("OTP");
-        setSuccess("Password locked. OTP sent to your email.");
+      if (status === 423) {
+        setError("Account locked. Please wait 15 minutes.");
+        setAttemptsLeft(0);
       } else {
         setError(data?.error || "Invalid Credentials");
+        // Update attempts left if provided by backend, otherwise decrement
         setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 0));
       }
     } finally {
       setLoading(false);
     }
   };
-
   // --- STEP 2: BACKUP OTP LOGIN METHOD ---
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
