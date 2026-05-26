@@ -3,38 +3,14 @@ import Admin from "@/models/admin";
 import OTP from "@/models/otp";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { google } from "googleapis";
-const nodemailer = require("nodemailer");
+import { Resend } from "resend";
 
-// --- Configuration ---
-const oAuth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI
-);
-oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-
-const createTransporter = async () => {
-  const accessToken = await oAuth2Client.getAccessToken();
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      type: "OAuth2",
-      user: process.env.GMAIL_USER,
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-      accessToken: accessToken.token,
-    },
-  });
-};
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const generateAlphanumericOTP = (length: number) => {
   const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
 };
-
-// --- Handlers ---
 
 export const adminLogin = async (req: Request) => {
   try {
@@ -46,30 +22,42 @@ export const adminLogin = async (req: Request) => {
 
     const isMatch = await bcrypt.compare(password, admin.password);
 
-    if (isMatch) {
-      const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
-      const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
+    if (!isMatch) {
+      // 1. Increment failed attempts
+      admin.loginAttempts += 1;
+      await admin.save();
 
-      const response = NextResponse.json({ message: "Login successful" }, { status: 200 });
-      response.cookies.set("shagun_admin_access", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 900 });
-      response.cookies.set("shagun_admin_refresh", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 604800 });
-      return response;
+      // 2. If 5 attempts reached, trigger OTP
+      if (admin.loginAttempts >= 5) {
+        const directOTP = generateAlphanumericOTP(6);
+        await OTP.deleteMany({ email: cleanEmail });
+        await OTP.create({ email: cleanEmail, code: directOTP });
+
+        await resend.emails.send({
+          from: 'onboarding@resend.dev',
+          to: cleanEmail,
+          subject: 'Security Alert: Verification Code',
+          html: `Too many failed login attempts. Your security code is: <strong>${directOTP}</strong>`
+        });
+
+        return NextResponse.json({ message: "Too many failed attempts. OTP sent to your email.", step: "AWAITING_OTP" }, { status: 423 });
+      }
+
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Handle Failures & Trigger OTP
-    const directOTP = generateAlphanumericOTP(6);
-    await OTP.deleteMany({ email: cleanEmail });
-    await OTP.create({ email: cleanEmail, code: directOTP });
+    // SUCCESS: Reset counter on successful password match
+    admin.loginAttempts = 0;
+    await admin.save();
 
-    const transporter = await createTransporter();
-    await transporter.sendMail({
-      from: `"Shagun Ratna" <${process.env.GMAIL_USER}>`,
-      to: cleanEmail,
-      subject: "Security Alert: Verification Code",
-      html: `Your verification code is: <b>${directOTP}</b>`
-    });
+    const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
+    const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
 
-    return NextResponse.json({ message: "OTP sent to your email.", step: "AWAITING_OTP" }, { status: 423 });
+    const response = NextResponse.json({ message: "Login successful" }, { status: 200 });
+    response.cookies.set("shagun_admin_access", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 900 });
+    response.cookies.set("shagun_admin_refresh", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 604800 });
+    return response;
+
   } catch (error) {
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
@@ -81,15 +69,16 @@ export const verifyOTP = async (req: Request) => {
     const cleanEmail = email.toLowerCase().trim();
     const cleanToken = token.trim().toUpperCase();
 
-    // Use findOneAndDelete to ensure atomic verification and single-use logic
     const otpRecord = await OTP.findOneAndDelete({ email: cleanEmail, code: cleanToken });
     
-    if (!otpRecord) {
-      return NextResponse.json({ error: "Invalid or expired code" }, { status: 401 });
-    }
+    if (!otpRecord) return NextResponse.json({ error: "Invalid or expired code" }, { status: 401 });
 
     const admin = await Admin.findOne({ email: cleanEmail });
     if (!admin) return NextResponse.json({ error: "Access Denied" }, { status: 404 });
+
+    // Reset attempts on successful OTP verification
+    admin.loginAttempts = 0;
+    await admin.save();
 
     const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
     const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });

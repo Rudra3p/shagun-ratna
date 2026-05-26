@@ -40,22 +40,23 @@ export default function AdminLogin() {
         setSuccess("Login successful. Redirecting...");
         setTimeout(() => router.push("/admin"), 1000);
       }
-    } catch (err) {
+    } 
+    catch (err) {
       const status = err.response?.status;
       
-      // THIS IS THE KEY: If we hit 423, the backend has already generated the OTP.
-      // So we MUST switch the UI to the OTP view.
       if (status === 423) {
         setCurrentStep("OTP"); 
         setSuccess("Too many attempts. Verification code sent to your email.");
       } 
-      // If 401, just show error
       else if (status === 401) {
+        // Decrement attempts only if not already locked
+        setAttemptsLeft((prev) => (prev > 0 ? prev - 1 : 0));
         setError("Invalid password. Please try again.");
       } else {
         setError("An unexpected error occurred.");
       }
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   };
