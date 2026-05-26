@@ -30,32 +30,25 @@ export default function AdminLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
-      // 1. Attempt to login with credentials
-      const res = await adminApi.post("/login", { 
-        email: email.toLowerCase().trim(), 
-        password 
-      });
+      const res = await adminApi.post("/login", { email, password });
       
-      // 2. If 200, the backend successfully found the user, verified the password, 
-      //    and sent the email. Move to OTP screen.
+      // Direct Login Path
       if (res.status === 200) {
-        setSuccess("Credentials verified. Please enter the code sent to your email.");
-        setCurrentStep("OTP"); 
+        router.push("/admin");
       }
-  } catch (err) {
-    const status = err.response?.status;
-    
-    if (status === 423) {
-      alert("Security Alert: Your account is locked for 15 minutes due to multiple failed attempts.");
-    } else if (status === 401) {
-      alert("Invalid email or password. Please check your credentials.");
-    } else {
-      alert("An unexpected error occurred. Please try again later.");
-    }
-  } finally {
+    } catch (err) {
+      const status = err.response?.status;
+      
+      // Trigger OTP Flow if server sends 423
+      if (status === 423) {
+        setCurrentStep("OTP"); // This shows your OTP input form
+        setSuccess("OTP sent to your email for identity verification.");
+      } else {
+        setError("Invalid password.");
+      }
+    } finally {
       setLoading(false);
     }
   };

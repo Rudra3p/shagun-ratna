@@ -53,51 +53,45 @@ export const adminLogin = async (req: Request) => {
     const { email, password } = await req.json();
     const cleanEmail = email.toLowerCase().trim();
 
-    // 1. Check for global lock (Rate limiting)
-    const accountStatus = adminAccountStore.get(cleanEmail);
-    if (accountStatus?.lockUntil && Date.now() < accountStatus.lockUntil) {
-      return NextResponse.json({ error: "Account locked. Try again later." }, { status: 423 });
-    }
-
-    // 2. Find Admin by Email FIRST
     const admin = await Admin.findOne({ email: cleanEmail });
 
-    // 3. Handle Scenario: Email does NOT exist
+    // 1. If email doesn't exist, stop immediately (Security)
     if (!admin) {
-      // Don't send OTP, just return generic error
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // 4. Handle Scenario: Email exists, but Password is WRONG
-    if (!(await bcrypt.compare(password, admin.password))) {
-      const attempts = (accountStatus?.attempts || 0) + 1;
-      
-      if (attempts >= 5) {
-        adminAccountStore.set(cleanEmail, { attempts, lockUntil: Date.now() + 15 * 60 * 1000 });
-        return NextResponse.json({ error: "Too many failed attempts. Account locked." }, { status: 423 });
-      }
+    // 2. Check Password
+    const isMatch = await bcrypt.compare(password, admin.password);
 
-      adminAccountStore.set(cleanEmail, { attempts });
-      return NextResponse.json({ error: `Invalid credentials. ${5 - attempts} attempts left.` }, { status: 401 });
+    if (isMatch) {
+      // SUCCESS: Direct Login
+      adminAccountStore.delete(cleanEmail);
+      // ... Generate JWTs and set cookies as you did in your original code ...
+      return NextResponse.json({ message: "Login successful" }, { status: 200 });
+    } 
+
+    // 3. PASSWORD FAILED: Track attempts
+    const accountStatus = adminAccountStore.get(cleanEmail) || { attempts: 0 };
+    accountStatus.attempts += 1;
+    adminAccountStore.set(cleanEmail, accountStatus);
+
+    // 4. If exactly 5 attempts fail, SEND OTP
+    if (accountStatus.attempts === 5) {
+      const directOTP = generateAlphanumericOTP(6);
+      await OTP.deleteMany({ email: cleanEmail });
+      await OTP.create({ email: cleanEmail, code: directOTP });
+      
+      // Trigger Mailer here...
+      return NextResponse.json({ 
+        message: "Too many attempts. An OTP has been sent to your email to verify your identity.", 
+        step: "AWAITING_OTP" 
+      }, { status: 423 }); // Use 423 to trigger the switch to OTP view
     }
 
-    // 5. SUCCESS: Email found AND Password matches
-    adminAccountStore.delete(cleanEmail);
-    
-    // Generate and send OTP...
-    const directOTP = generateAlphanumericOTP(6);
-    await OTP.deleteMany({ email: cleanEmail });
-    await OTP.create({ email: cleanEmail, code: directOTP });
-
-    // (Add your existing Mailer code here)
-
-    return NextResponse.json({ 
-      message: "Credentials approved. OTP sent to your email.", 
-      step: "AWAITING_OTP" 
-    }, { status: 200 });
+    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
 
   } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 };
 
