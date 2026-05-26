@@ -53,16 +53,23 @@ export const adminLogin = async (req: Request) => {
     const { email, password } = await req.json();
     const cleanEmail = email.toLowerCase().trim();
 
-    // 1. Check for lockout
+    // 1. Check for global lock (Rate limiting)
     const accountStatus = adminAccountStore.get(cleanEmail);
     if (accountStatus?.lockUntil && Date.now() < accountStatus.lockUntil) {
-      return NextResponse.json({ error: "Account locked. Try again in 15 minutes." }, { status: 423 });
+      return NextResponse.json({ error: "Account locked. Try again later." }, { status: 423 });
     }
 
+    // 2. Find Admin by Email FIRST
     const admin = await Admin.findOne({ email: cleanEmail });
 
-    // 2. Validate Credentials
-    if (!admin || !(await bcrypt.compare(password, admin.password))) {
+    // 3. Handle Scenario: Email does NOT exist
+    if (!admin) {
+      // Don't send OTP, just return generic error
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    // 4. Handle Scenario: Email exists, but Password is WRONG
+    if (!(await bcrypt.compare(password, admin.password))) {
       const attempts = (accountStatus?.attempts || 0) + 1;
       
       if (attempts >= 5) {
@@ -74,15 +81,20 @@ export const adminLogin = async (req: Request) => {
       return NextResponse.json({ error: `Invalid credentials. ${5 - attempts} attempts left.` }, { status: 401 });
     }
 
-    // 3. Success: Reset attempts and trigger OTP
+    // 5. SUCCESS: Email found AND Password matches
     adminAccountStore.delete(cleanEmail);
+    
+    // Generate and send OTP...
     const directOTP = generateAlphanumericOTP(6);
     await OTP.deleteMany({ email: cleanEmail });
     await OTP.create({ email: cleanEmail, code: directOTP });
 
-    // (Include your existing mailer code here)
+    // (Add your existing Mailer code here)
 
-    return NextResponse.json({ message: "OTP sent to email.", step: "AWAITING_OTP" }, { status: 200 });
+    return NextResponse.json({ 
+      message: "Credentials approved. OTP sent to your email.", 
+      step: "AWAITING_OTP" 
+    }, { status: 200 });
 
   } catch (error) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

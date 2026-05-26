@@ -33,23 +33,35 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await adminApi.post("/login", { email, password });
+      // 1. Attempt to login with credentials
+      const res = await adminApi.post("/login", { 
+        email: email.toLowerCase().trim(), 
+        password 
+      });
       
+      // 2. If 200, the backend successfully found the user, verified the password, 
+      //    and sent the email. Move to OTP screen.
       if (res.status === 200) {
-        setCurrentStep("OTP");
-        setSuccess("OTP sent to your email.");
+        setSuccess("Credentials verified. Please enter the code sent to your email.");
+        setCurrentStep("OTP"); 
       }
     } catch (err) {
       const status = err.response?.status;
       const data = err.response?.data;
 
+      // 3. Handle the specific Lockout status (423)
       if (status === 423) {
         setError("Account locked. Please wait 15 minutes.");
         setAttemptsLeft(0);
-      } else {
-        setError(data?.error || "Invalid Credentials");
-        // Update attempts left if provided by backend, otherwise decrement
+      } 
+      // 4. Handle invalid credentials (401)
+      else if (status === 401) {
+        setError("Invalid email or password.");
         setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 0));
+      } 
+      // 5. Handle unexpected errors
+      else {
+        setError(data?.error || "Login failed. Please try again.");
       }
     } finally {
       setLoading(false);
