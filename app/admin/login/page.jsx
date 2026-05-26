@@ -45,25 +45,17 @@ export default function AdminLogin() {
         setSuccess("Credentials verified. Please enter the code sent to your email.");
         setCurrentStep("OTP"); 
       }
-    } catch (err) {
-      const status = err.response?.status;
-      const data = err.response?.data;
-
-      // 3. Handle the specific Lockout status (423)
-      if (status === 423) {
-        setError("Account locked. Please wait 15 minutes.");
-        setAttemptsLeft(0);
-      } 
-      // 4. Handle invalid credentials (401)
-      else if (status === 401) {
-        setError("Invalid email or password.");
-        setAttemptsLeft((prev) => (prev > 1 ? prev - 1 : 0));
-      } 
-      // 5. Handle unexpected errors
-      else {
-        setError(data?.error || "Login failed. Please try again.");
-      }
-    } finally {
+  } catch (err) {
+    const status = err.response?.status;
+    
+    if (status === 423) {
+      alert("Security Alert: Your account is locked for 15 minutes due to multiple failed attempts.");
+    } else if (status === 401) {
+      alert("Invalid email or password. Please check your credentials.");
+    } else {
+      alert("An unexpected error occurred. Please try again later.");
+    }
+  } finally {
       setLoading(false);
     }
   };
