@@ -52,49 +52,52 @@ export const adminLogin = async (req: Request) => {
   try {
     const { email, password } = await req.json();
     const cleanEmail = email.toLowerCase().trim();
-
     const admin = await Admin.findOne({ email: cleanEmail });
 
-    // 1. If email doesn't exist, stop immediately (Security)
-    if (!admin) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
+    if (!admin) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
-    // 2. Check Password
     const isMatch = await bcrypt.compare(password, admin.password);
 
     if (isMatch) {
-      // SUCCESS: Direct Login
+      // SUCCESS: Generate JWTs
       adminAccountStore.delete(cleanEmail);
-      // ... Generate JWTs and set cookies as you did in your original code ...
-      return NextResponse.json({ message: "Login successful" }, { status: 200 });
+      const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET as string, { expiresIn: "15m" });
+      const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET as string, { expiresIn: "7d" });
+
+      const response = NextResponse.json({ message: "Login successful" }, { status: 200 });
+      response.cookies.set("shagun_admin_access", accessToken, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 15 * 60 });
+      response.cookies.set("shagun_admin_refresh", refreshToken, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 7 * 24 * 60 * 60 });
+      return response;
     } 
 
-    // 3. PASSWORD FAILED: Track attempts
+    // PASSWORD FAILED
     const accountStatus = adminAccountStore.get(cleanEmail) || { attempts: 0 };
     accountStatus.attempts += 1;
     adminAccountStore.set(cleanEmail, accountStatus);
 
-    // 4. If exactly 5 attempts fail, SEND OTP
     if (accountStatus.attempts === 5) {
       const directOTP = generateAlphanumericOTP(6);
       await OTP.deleteMany({ email: cleanEmail });
       await OTP.create({ email: cleanEmail, code: directOTP });
       
-      // Trigger Mailer here...
-      return NextResponse.json({ 
-        message: "Too many attempts. An OTP has been sent to your email to verify your identity.", 
-        step: "AWAITING_OTP" 
-      }, { status: 423 }); // Use 423 to trigger the switch to OTP view
+      // CALL YOUR MAILER HERE
+      const transporter = await createTransporter();
+      await transporter.sendMail({
+        from: `"Shagun Ratna" <${process.env.GMAIL_USER}>`,
+        to: cleanEmail,
+        subject: "Verification Code",
+        html: `Your OTP is: ${directOTP}`
+      });
+
+      return NextResponse.json({ message: "OTP sent.", step: "AWAITING_OTP" }, { status: 423 });
     }
 
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
-
   } catch (error) {
+    console.error("Login Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 };
-
 // ... (Keep your existing verifyOTP and adminLogout functions)
 
 // =========================================================================
