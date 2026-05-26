@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+// Fallback to 2 minutes (120000ms) if ENV is missing
+const OTP_COOLDOWN = Number(process.env.OTP_COOLDOWN_MS) || 120000;
 
 const generateAlphanumericOTP = (length: number) => {
   const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -23,33 +25,49 @@ export const adminLogin = async (req: Request) => {
     const isMatch = await bcrypt.compare(password, admin.password);
 
     if (!isMatch) {
-      // 1. Increment failed attempts
       admin.loginAttempts += 1;
       await admin.save();
 
-      // 2. If 5 attempts reached, trigger OTP
       if (admin.loginAttempts >= 5) {
+        const now = new Date();
+
+        // Check cooldown: If last sent was < OTP_COOLDOWN, block the email
+        if (admin.lastOtpSentAt && (now.getTime() - admin.lastOtpSentAt.getTime() < OTP_COOLDOWN)) {
+          const remainingSeconds = Math.ceil((OTP_COOLDOWN - (now.getTime() - admin.lastOtpSentAt.getTime())) / 1000);
+          return NextResponse.json(
+            { error: `Too many attempts. Please wait ${remainingSeconds} seconds before requesting a new code.` }, 
+            { status: 429 }
+          );
+        }
+
+        // Generate and send new OTP
         const directOTP = generateAlphanumericOTP(6);
         await OTP.deleteMany({ email: cleanEmail });
         await OTP.create({ email: cleanEmail, code: directOTP });
+
+        // Update the cooldown timestamp
+        admin.lastOtpSentAt = now;
+        await admin.save();
 
         await resend.emails.send({
           from: 'onboarding@resend.dev',
           to: cleanEmail,
           subject: 'Security Alert: Verification Code',
-          html: `Too many failed login attempts. Your security code is: <strong>${directOTP}</strong>`
+          html: `Your security code is: <strong>${directOTP}</strong>`
         });
 
-        return NextResponse.json({ message: "Too many failed attempts. OTP sent to your email.", step: "AWAITING_OTP" }, { status: 423 });
+        return NextResponse.json({ message: "OTP sent to your email.", step: "AWAITING_OTP" }, { status: 423 });
       }
 
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // SUCCESS: Reset counter on successful password match
+    // SUCCESS: Reset all security tracking
     admin.loginAttempts = 0;
+    admin.lastOtpSentAt = null; 
     await admin.save();
 
+    // ... (JWT and Cookie logic remains the same)
     const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
     const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
 

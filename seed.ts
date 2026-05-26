@@ -11,8 +11,10 @@ const AdminSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   loginAttempts: { type: Number, default: 0 },
-  lockUntil: { type: Date, default: null }
-});
+  lockUntil: { type: Date, default: null },
+  lastOtpSentAt: { type: Date, default: null },
+  refreshToken: { type: String },
+}, { timestamps: true });
 
 // Use the existing model if it exists, otherwise create it
 const Admin = mongoose.models.Admin || mongoose.model('Admin', AdminSchema);
@@ -39,7 +41,9 @@ const seedAdmin = async () => {
       email: 'rudra090207@gmail.com',
       password: hashedPassword,
       loginAttempts: 0,
-      lockUntil: null
+      lockUntil: null,
+      lastOtpSentAt: null,
+      refreshToken: null
     });
 
     console.log("-----------------------------------------");

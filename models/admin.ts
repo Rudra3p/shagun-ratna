@@ -7,7 +7,8 @@ export interface IAdmin extends Document {
   
   loginAttempts: number;         // Tracks wrong password attempts on Path 1
   lockUntil: Date | null;        // Standard MongoDB fallback lockout reference
-  
+  lastOtpSentAt?: Date | null;    // Timestamp of last OTP sent for cooldown logic
+
   refreshToken?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -38,6 +39,10 @@ const AdminSchema: Schema = new Schema({
     default: 0 
   },
   lockUntil: { 
+    type: Date, 
+    default: null 
+  },
+  lastOtpSentAt: { 
     type: Date, 
     default: null 
   },
