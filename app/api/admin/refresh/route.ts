@@ -47,6 +47,7 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
+    console.error("Refresh Error:", error); // Helpful for logs
     return NextResponse.json({ error: "Authentication failed" }, { status: 401 });
   }
 }

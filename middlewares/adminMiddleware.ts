@@ -20,6 +20,11 @@ export async function adminMiddleware(request: NextRequest) {
 
   try {
     // 3. Verify Access Token signature with your Secret
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is missing!");
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     await jwtVerify(accessToken!, secret);
     

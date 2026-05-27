@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST() {
   try {
-    // Call it without the 'req' argument
+    // Calling without arguments as per your current controller setup
     return await adminLogout();
   } catch (error) {
     console.error("Admin Logout Backend Route Error:", error);

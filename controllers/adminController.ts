@@ -112,6 +112,9 @@ export const adminLogin = async (req: Request) => {
     const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
     const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
 
+    admin.refreshToken = refreshToken;
+    await admin.save();
+
     const response = NextResponse.json({ message: "Login successful" }, { status: 200 });
     response.cookies.set("shagun_admin_access", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 900 });
     response.cookies.set("shagun_admin_refresh", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 604800 });
@@ -139,11 +142,11 @@ export const verifyOTP = async (req: Request) => {
     admin.loginAttempts = 0;
     await admin.save();
 
-    const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
-    admin.refreshToken = refreshToken; // Update the document field
-    await admin.save();
-
     const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
+    const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
+
+    admin.refreshToken = refreshToken;
+    await admin.save();
 
     const response = NextResponse.json({ message: "Verified successfully" }, { status: 200 });
     response.cookies.set("shagun_admin_access", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 900 });
@@ -154,9 +157,12 @@ export const verifyOTP = async (req: Request) => {
   }
 };
 
-export const adminLogout = async () => { // <--- No parameter here
+export const adminLogout = async () => {
   const response = NextResponse.json({ message: "Logged out" }, { status: 200 });
+  
+  // Clear cookies by setting maxAge to 0
   response.cookies.set("shagun_admin_access", "", { maxAge: 0, path: "/" });
   response.cookies.set("shagun_admin_refresh", "", { maxAge: 0, path: "/" });
+  
   return response;
 };
