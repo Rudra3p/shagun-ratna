@@ -5,6 +5,47 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Resend } from "resend";
 
+export const refreshAccessToken = async (req: Request) => {
+  try {
+    // 1. Get the refresh token from the browser cookies
+    const cookieHeader = req.headers.get("cookie") || "";
+    const refreshToken = cookieHeader
+      .split(';')
+      .find(c => c.trim().startsWith('shagun_admin_refresh='))
+      ?.split('=')[1];
+
+    if (!refreshToken) {
+      return NextResponse.json({ error: "Unauthorized: No refresh token" }, { status: 401 });
+    }
+
+    // 2. Verify the refresh token using your secret
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { id: string };
+
+    // 3. Generate a brand new, short-lived Access Token
+    const newAccessToken = jwt.sign(
+      { id: decoded.id }, 
+      process.env.JWT_SECRET!, 
+      { expiresIn: "15m" }
+    );
+
+    // 4. Send the new Access Token back in an httpOnly cookie
+    const response = NextResponse.json({ message: "Token refreshed successfully" }, { status: 200 });
+    
+    response.cookies.set("shagun_admin_access", newAccessToken, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "lax", 
+      path: "/", 
+      maxAge: 900 // 15 minutes
+    });
+
+    return response;
+  } catch (error) {
+    // If the refresh token is expired or invalid, force logout
+    return NextResponse.json({ error: "Session expired, please login again" }, { status: 403 });
+  }
+};
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 // Fallback to 2 minutes (120000ms) if ENV is missing
 const OTP_COOLDOWN = Number(process.env.OTP_COOLDOWN_MS) || 120000;
