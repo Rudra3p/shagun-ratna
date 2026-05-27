@@ -139,8 +139,11 @@ export const verifyOTP = async (req: Request) => {
     admin.loginAttempts = 0;
     await admin.save();
 
-    const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
     const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
+    admin.refreshToken = refreshToken; // Update the document field
+    await admin.save();
+
+    const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
 
     const response = NextResponse.json({ message: "Verified successfully" }, { status: 200 });
     response.cookies.set("shagun_admin_access", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 900 });
