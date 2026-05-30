@@ -4,6 +4,7 @@ import OTP from "@/models/otp";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Resend } from "resend";
+import { LoginSchema, OtpVerifySchema } from "@/schemas/authAdminSchemas";
 
 export const refreshAccessToken = async (req: Request) => {
   try {
@@ -57,9 +58,17 @@ const generateAlphanumericOTP = (length: number) => {
 
 export const adminLogin = async (req: Request) => {
   try {
-    const { email, password } = await req.json();
-    const cleanEmail = email.toLowerCase().trim();
-    const admin = await Admin.findOne({ email: cleanEmail });
+    const body = await req.json();
+
+    // 1. Zod Validation (This is the new "Gatekeeper")
+    const validation = LoginSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+    }
+
+    // 2. Data is already trimmed and lowercased by Zod
+    const { email, password } = validation.data;
+    const admin = await Admin.findOne({ email });
 
     if (!admin) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
@@ -72,7 +81,6 @@ export const adminLogin = async (req: Request) => {
       if (admin.loginAttempts >= 5) {
         const now = new Date();
 
-        // Check cooldown: If last sent was < OTP_COOLDOWN, block the email
         if (admin.lastOtpSentAt && (now.getTime() - admin.lastOtpSentAt.getTime() < OTP_COOLDOWN)) {
           const remainingSeconds = Math.ceil((OTP_COOLDOWN - (now.getTime() - admin.lastOtpSentAt.getTime())) / 1000);
           return NextResponse.json(
@@ -81,18 +89,16 @@ export const adminLogin = async (req: Request) => {
           );
         }
 
-        // Generate and send new OTP
         const directOTP = generateAlphanumericOTP(6);
-        await OTP.deleteMany({ email: cleanEmail });
-        await OTP.create({ email: cleanEmail, code: directOTP });
+        await OTP.deleteMany({ email });
+        await OTP.create({ email, code: directOTP });
 
-        // Update the cooldown timestamp
         admin.lastOtpSentAt = now;
         await admin.save();
 
         await resend.emails.send({
           from: 'onboarding@resend.dev',
-          to: cleanEmail,
+          to: email,
           subject: 'Security Alert: Verification Code',
           html: `Your security code is: <strong>${directOTP}</strong>`
         });
@@ -103,12 +109,11 @@ export const adminLogin = async (req: Request) => {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // SUCCESS: Reset all security tracking
+    // 3. SUCCESS: Reset all security tracking
     admin.loginAttempts = 0;
     admin.lastOtpSentAt = null; 
     await admin.save();
 
-    // ... (JWT and Cookie logic remains the same)
     const accessToken = jwt.sign({ id: admin._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
     const refreshToken = jwt.sign({ id: admin._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
 
@@ -127,15 +132,22 @@ export const adminLogin = async (req: Request) => {
 
 export const verifyOTP = async (req: Request) => {
   try {
-    const { email, token } = await req.json();
-    const cleanEmail = email.toLowerCase().trim();
-    const cleanToken = token.trim().toUpperCase();
+    const body = await req.json();
 
-    const otpRecord = await OTP.findOneAndDelete({ email: cleanEmail, code: cleanToken });
+    // 1. Zod Validation: Replaces manual cleanup
+    const validation = OtpVerifySchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+    }
+
+    // 2. Data is already trimmed and uppercased by Zod
+    const { email, token } = validation.data;
+
+    const otpRecord = await OTP.findOneAndDelete({ email, code: token });
     
     if (!otpRecord) return NextResponse.json({ error: "Invalid or expired code" }, { status: 401 });
 
-    const admin = await Admin.findOne({ email: cleanEmail });
+    const admin = await Admin.findOne({ email });
     if (!admin) return NextResponse.json({ error: "Access Denied" }, { status: 404 });
 
     // Reset attempts on successful OTP verification
