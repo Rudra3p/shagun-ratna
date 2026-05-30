@@ -21,13 +21,21 @@ const otpSchema = new Schema({
 });
 
 // 3. Gatekeeper Middleware
-(otpSchema as any).pre('validate', function (this: Document, next: (err?: Error) => void) {
-  const obj = (this as any).toObject ? (this as any).toObject() : this;
-  const result = OtpZodSchema.safeParse(obj);
+// 3. Gatekeeper Middleware (Modern Async Pattern)
+otpSchema.pre('validate', async function () {
+  // Use .toObject() but filter to only what you expect
+  const data = {
+    email: this.email,
+    code: this.code
+  };
+
+  const result = OtpZodSchema.safeParse(data);
+  
   if (!result.success) {
-    return next(new Error(`OTP Validation Failed: ${result.error?.issues?.[0]?.message || 'Unknown error'}`));
+    // Simply throw; Mongoose handles the rejection
+    throw new Error(`OTP Validation Failed: ${result.error.issues[0].message}`);
   }
-  next();
+  // No need to call next()!
 });
 
 const OTP: Model<IOtp> = mongoose.models.OTP || mongoose.model<IOtp>('OTP', otpSchema);
