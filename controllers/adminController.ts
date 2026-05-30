@@ -126,6 +126,7 @@ export const adminLogin = async (req: Request) => {
     return response;
 
   } catch (error) {
+    console.error("Login Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 };
