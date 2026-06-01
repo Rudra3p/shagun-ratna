@@ -45,15 +45,14 @@ export default function HeroSection() {
         </p>
 
         {/* Logo Container */}
-        <div className="flex justify-center items-center">
-          <Image 
+        <div className="relative w-[200px] h-[80px] md:w-[300px] md:h-[120px]">
+        <Image 
             src="/shagunratnalogo.png" 
             alt="Shagun Ratna Logo" 
-            height={160}
-            width={400}
-            className="object-contain w-auto max-h-24 md:max-h-32" 
+            fill
+            className="object-contain" 
             priority
-          />
+        />
         </div>
 
         <p className="ui-font text-[10px] md:text-[12px] tracking-[0.3em] uppercase text-[#1a1a1a] font-medium pt-2">
