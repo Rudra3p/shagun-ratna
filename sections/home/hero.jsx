@@ -45,14 +45,16 @@ export default function HeroSection() {
         </p>
 
         {/* Logo Container */}
-        <div className="relative w-[200px] h-[80px] md:w-[300px] md:h-[120px]">
-        <Image 
-            src="/shagunratnalogo.png" 
-            alt="Shagun Ratna Logo" 
-            fill
-            className="object-contain" 
-            priority
-        />
+        <div className="relative w-full flex justify-center">
+            <div className="relative w-[200px] h-[80px] md:w-[300px] md:h-[120px]">
+            <Image 
+                src="/shagunratnalogo.png" 
+                alt="Shagun Ratna Logo" 
+                fill
+                className="object-contain" 
+                priority
+            />
+            </div>
         </div>
 
         <p className="ui-font text-[10px] md:text-[12px] tracking-[0.3em] uppercase text-[#1a1a1a] font-medium pt-2">
