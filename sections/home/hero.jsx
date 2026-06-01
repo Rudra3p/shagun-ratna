@@ -46,7 +46,7 @@ export default function HeroSection() {
 
         {/* Logo Container */}
         <div className="relative w-full flex justify-center">
-            <div className="relative w-[200px] h-[80px] md:w-[300px] md:h-[120px]">
+            <div className="relative w-[300px] h-[200px] md:w-[300px] md:h-[120px]">
             <Image 
                 src="/shagunratnalogo.png" 
                 alt="Shagun Ratna Logo" 
