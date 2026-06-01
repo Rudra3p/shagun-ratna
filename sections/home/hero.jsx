@@ -44,7 +44,7 @@ export default function HeroSection() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 text-center flex flex-col items-center justify-center px-4"
+        className="relative z-10 text-center flex flex-col items-center justify-center px-4 mt-12"
       >
         <motion.p variants={childVariants} className="font-sans text-xs tracking-[0.4em] uppercase text-[#1a1a1a] mb-6">
           Est. 1980
