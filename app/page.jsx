@@ -1,63 +1,71 @@
 "use client";
 
+import React from 'react';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 
-export default function Home() {
+const FontInjector = () => (
+  <style dangerouslySetInnerHTML={{
+    __html: `
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@200;300;400&display=swap');
+      .brand-font { font-family: 'Cormorant Garamond', serif; }
+      .ui-font { font-family: 'Montserrat', sans-serif; }
+    `
+  }} />
+);
+
+export default function HeroSection() {
   return (
-    <main className="min-h-screen bg-white">
-      {/* 1. HERO SECTION */}
-      <section className="relative h-[70vh] flex items-center justify-center bg-gray-100">
-        <div className="text-center z-10">
-          <h1 className="text-5xl md:text-7xl font-serif text-gray-900 mb-4">
-            Shagun Ratna
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 uppercase tracking-[0.2em] mb-8">
-            Exquisite Handcrafted Jewelry
-          </p>
-          <button className="bg-black text-white px-8 py-3 rounded-none hover:bg-gray-800 transition">
-            Explore Collection
+    <section className="h-screen flex items-center justify-center bg-[#faf3e5] relative overflow-hidden">
+      <FontInjector />
+      
+      {/* Background Hand Image */}
+      <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+        <Image 
+          src="/hero_sec_hand.png" 
+          alt="Shagun Ratna Jewelry" 
+          width={600} 
+          height={800} 
+          className="object-contain h-[90%] mt-[7%]" 
+          priority
+        />
+        {/* Soft overlay */}
+        <div className="absolute inset-0 bg-[#faf3e5]/50" />
+      </div>
+
+      {/* Content Layer */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="relative z-10 text-center space-y-6 mt-[7vh]"
+      >
+        <p className="ui-font text-[10px] md:text-[12px] tracking-[0.5em] uppercase text-[#1a1a1a]">
+          Est. 1980
+        </p>
+
+        {/* Logo Container */}
+        <div className="flex justify-center items-center">
+          <Image 
+            src="/shagunratnalogo.png" 
+            alt="Shagun Ratna Logo" 
+            height={80}
+            width={200}
+            className="object-contain w-auto max-h-24 md:max-h-32" 
+            priority
+          />
+        </div>
+
+        <p className="ui-font text-[10px] md:text-[12px] tracking-[0.3em] uppercase text-[#1a1a1a] font-medium pt-2">
+          Defining the art of subtlety through timeless, handcrafted elegance.
+        </p>
+
+        <div className="pt-8">
+          <button className="ui-font px-10 py-3 text-[10px] tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] hover:bg-[#700509] transition-all rounded-full shadow-md">
+            Acquire the collection
           </button>
         </div>
-        {/* Placeholder for a high-quality jewelry background image */}
-        <div className="absolute inset-0 opacity-40">
-           {/* <Image src="/hero-jewelry.jpg" fill className="object-cover" alt="Hero" /> */}
-        </div>
-      </section>
-
-      {/* 2. PRODUCT CATEGORIES (The Shop Part) */}
-      <section className="py-20 px-4 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-light text-center mb-12">Our Collections</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="group cursor-pointer">
-            <div className="aspect-[4/5] bg-gray-200 mb-4 overflow-hidden relative">
-              {/* Image goes here */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
-            </div>
-            <h3 className="text-xl font-medium text-center">Gold Rings</h3>
-          </div>
-
-          <div className="group cursor-pointer">
-            <div className="aspect-[4/5] bg-gray-200 mb-4 overflow-hidden relative">
-              {/* Image goes here */}
-            </div>
-            <h3 className="text-xl font-medium text-center">Diamond Necklaces</h3>
-          </div>
-
-          <div className="group cursor-pointer">
-            <div className="aspect-[4/5] bg-gray-200 mb-4 overflow-hidden relative">
-              {/* Image goes here */}
-            </div>
-            <h3 className="text-xl font-medium text-center">Premium Earrings</h3>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. CALL TO ACTION FOR ADMIN (Only for you) */}
-      <footer className="py-10 border-t text-center text-gray-400 text-sm">
-        <p>© 2026 Shagun Ratna. Powered by Texnox.</p>
-        <a href="/admin" className="mt-2 inline-block hover:underline">Staff Login</a>
-      </footer>
-    </main>
+      </motion.div>
+    </section>
   );
 }
