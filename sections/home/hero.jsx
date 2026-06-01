@@ -45,8 +45,8 @@ export default function HeroSection() {
           <Image 
             src="/shagunratnalogo.png" 
             alt="Shagun Ratna Logo" 
-            height={80}
-            width={200}
+            height={160}
+            width={400}
             className="object-contain w-auto max-h-24 md:max-h-32" 
             priority
           />
