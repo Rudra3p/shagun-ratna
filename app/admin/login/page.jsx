@@ -103,7 +103,7 @@ export default function AdminLogin() {
         
         {/* Header Section */}
         <div className="relative w-[240px] h-[120px] overflow-hidden">
-          <div className="relative w-full h-full scale-125">
+          <div className="relative w-full h-full">
             <Image 
               src="/shagunratnalogo.png"            
               alt="Shagunratna Logo" 
