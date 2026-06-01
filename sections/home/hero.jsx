@@ -60,7 +60,7 @@ export default function HeroSection() {
           />
         </motion.div>
 
-        <motion.p variants={childVariants} className="font-sans text-xs tracking-[0.35em] uppercase text-[#1a1a1a] font-light mt-6 max-w-lg leading-relaxed">
+        <motion.p variants={childVariants} className="font-sans text-xs tracking-[0.35em] uppercase text-[#1a1a1a] mt-6 max-w-lg leading-relaxed">
           Defining the art of subtlety through timeless, handcrafted elegance.
         </motion.p>
 
