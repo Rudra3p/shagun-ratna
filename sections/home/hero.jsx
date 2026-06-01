@@ -46,7 +46,7 @@ export default function HeroSection() {
     </p>
 
     {/* Logo - Slightly larger constraint for desktop impact */}
-    <div className="relative w-[300px] h-[150px] md:w-[450px] md:h-[225px] transition-all">
+    <div className="relative w-[450px] h-[225px] md:w-[450px] md:h-[225px] transition-all">
         <Image 
         src="/shagunratnalogo.png" 
         alt="Shagun Ratna Logo" 
