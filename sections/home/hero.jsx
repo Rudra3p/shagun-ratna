@@ -34,39 +34,38 @@ export default function HeroSection() {
       </div>
 
       {/* Content Layer */}
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="relative z-10 text-center space-y-6 mt-[7vh]"
-      >
-        <p className="ui-font text-[10px] md:text-[12px] tracking-[0.5em] uppercase text-[#1a1a1a]">
-          Est. 1980
-        </p>
+{/* Content Layer - Adjusted for better visual balance */}
+    <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 1.2, ease: "easeOut" }}
+    className="relative z-10 text-center flex flex-col items-center justify-center px-4"
+    >
+    <p className="ui-font text-xs md:text-sm tracking-[0.4em] uppercase text-[#1a1a1a] mb-6">
+        Est. 1980
+    </p>
 
-        {/* Logo Container */}
-        <div className="relative w-full flex justify-center">
-            <div className="relative w-[300px] h-[200px] md:w-[300px] md:h-[200px]">
-            <Image 
-                src="/shagunratnalogo.png" 
-                alt="Shagun Ratna Logo" 
-                fill
-                className="object-contain" 
-                priority
-            />
-            </div>
-        </div>
+    {/* Logo - Slightly larger constraint for desktop impact */}
+    <div className="relative w-[300px] h-[150px] md:w-[450px] md:h-[225px] transition-all">
+        <Image 
+        src="/shagunratnalogo.png" 
+        alt="Shagun Ratna Logo" 
+        fill
+        className="object-contain" 
+        priority
+        />
+    </div>
 
-        <p className="ui-font text-[10px] md:text-[12px] tracking-[0.3em] uppercase text-[#1a1a1a] font-medium pt-2">
-          Defining the art of subtlety through timeless, handcrafted elegance.
-        </p>
+    <p className="ui-font text-[10px] md:text-xs tracking-[0.3em] uppercase text-[#1a1a1a] font-light mt-6 max-w-lg">
+        Defining the art of subtlety through timeless, handcrafted elegance.
+    </p>
 
-        <div className="pt-8">
-          <button className="ui-font px-10 py-3 text-[10px] tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] hover:bg-[#700509] transition-all rounded-full shadow-md">
-            Acquire the collection
-          </button>
-        </div>
-      </motion.div>
+    <div className="mt-12">
+        <button className="ui-font px-12 py-4 text-sm tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] hover:bg-[#7a050a] transition-all duration-500 ease-in-out hover:scale-[1.02] rounded-full shadow-lg">
+        Acquire the collection
+        </button>
+    </div>
+    </motion.div>
     </section>
   );
 }
