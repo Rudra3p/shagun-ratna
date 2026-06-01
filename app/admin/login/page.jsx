@@ -102,7 +102,7 @@ export default function AdminLogin() {
       <div className="flex items-center flex-col w-full max-w-[420px] p-6 sm:p-10 bg-[#fff] shadow-[0_20px_50px_rgba(42,0,5,0.1)] rounded-2xl border border-[#2A0005] relative z-10 transition-all duration-300">
         
         {/* Header Section */}
-        <div className="relative w-[240px] h-[120px] overflow-hidden">
+        <div className="relative w-[240px] h-[120px] overflow-hidden mb-6">
           <div className="relative w-full h-full">
             <Image 
               src="/shagunratnalogo.png"            
