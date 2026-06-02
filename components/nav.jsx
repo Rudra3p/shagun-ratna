@@ -48,8 +48,13 @@ const Navbar = () => {
 };
 
 const NavLink = ({ label }) => (
-  <a href={`/${label.toLowerCase()}`} className="hover:opacity-50 transition-opacity duration-500">
+  <a 
+    href={`/${label.toLowerCase()}`} 
+    className="relative group hover:opacity-100 transition-opacity duration-500"
+  >
     {label}
+    {/* The Growing Underline Effect */}
+    <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#90060c] transition-all duration-500 group-hover:w-full" />
   </a>
 );
 
