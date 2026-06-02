@@ -46,9 +46,7 @@ export default function HeroSection() {
         animate="visible"
         className="relative z-10 text-center flex flex-col items-center justify-center px-4 mt-12"
       >
-        <motion.p variants={childVariants} className="font-sans text-xs tracking-[0.4em] uppercase text-[#1a1a1a] mb-6">
-          Est. 1980
-        </motion.p>
+
 
         <motion.div variants={childVariants} className="relative w-[450px] h-[225px]">
           <Image 
@@ -60,6 +58,10 @@ export default function HeroSection() {
           />
         </motion.div>
 
+        <motion.p variants={childVariants} className="font-sans text-xs tracking-[0.4em] uppercase text-[#1a1a1a] mb-6">
+          Est. 1980
+        </motion.p>
+        
         <motion.p variants={childVariants} className="font-sans text-xs tracking-[0.35em] uppercase text-[#1a1a1a] mt-6 max-w-lg leading-relaxed">
           Defining the art of subtlety through timeless, handcrafted elegance.
         </motion.p>
