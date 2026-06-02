@@ -1,5 +1,5 @@
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/nav";
 export const metadata = {
   // 1. Browser Tab Branding
   title: {
