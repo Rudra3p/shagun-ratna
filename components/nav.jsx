@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { ShoppingBag } from 'lucide-react'; // Importing the cart icon
+import { ShoppingBag } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -22,28 +22,23 @@ const Navbar = () => {
         : 'bg-transparent py-6 border-b border-transparent'
     } flex items-center justify-between px-12 text-[#90060c]`}>
       
-      {/* Left Links */}
-      <div className="flex gap-8 font-sans text-[11px] uppercase tracking-[0.25em] font-medium">
-        <NavLink label="Home" />
-        <NavLink label="Collection" />
-      </div>
-
-      {/* Center Brand Name */}
+      {/* Brand Name on the Left */}
       <div className="font-serif text-2xl font-bold tracking-tight">
         ShagunRatna
       </div>
 
-      {/* Right Links & Actions */}
+      {/* Links in the Center */}
+      <div className="flex gap-10 font-sans text-[11px] uppercase tracking-[0.25em] font-medium">
+        {['Home', 'Collection', 'About', 'Contact'].map((item) => (
+          <NavLink key={item} label={item} />
+        ))}
+      </div>
+
+      {/* Actions on the Right */}
       <div className="flex items-center gap-8 font-sans text-[11px] uppercase tracking-[0.25em]">
-        <NavLink label="About" />
-        <NavLink label="Contact" />
-        
-        {/* Sign In Button with Maroon BG and White text */}
         <button className="bg-[#90060c] text-white px-5 py-2 rounded-sm hover:bg-[#90060c]/90 transition-all duration-500">
           Sign In
         </button>
-
-        {/* Cart Icon only */}
         <button className="hover:opacity-50 transition-opacity duration-500">
           <ShoppingBag size={20} strokeWidth={1.5} />
         </button>
