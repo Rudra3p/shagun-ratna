@@ -1,4 +1,5 @@
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 export const metadata = {
   // 1. Browser Tab Branding
   title: {
@@ -42,7 +43,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-[#faf3e5]">
+        <Navbar />
+        <main>{children}</main>
+      </body>
     </html>
   );
 }
