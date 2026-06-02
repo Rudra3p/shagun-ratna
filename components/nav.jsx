@@ -19,9 +19,9 @@ const Navbar = () => {
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-700 ${
       isScrolled 
-        ? 'bg-[#faf3e5]/90 backdrop-blur-md py-4 border-b border-[#90060c]/20' 
-        : 'bg-transparent py-6 border-b border-transparent'
-    } flex items-center justify-between h-16 text-[#90060c]`}>
+        ? 'bg-[#faf3e5]/90 backdrop-blur-md h-14 border-b border-[#90060c]/20' 
+        : 'bg-transparent h-16 border-b border-transparent'
+    } flex items-center justify-between px-12 text-[#90060c]`}>
       
       {/* Brand Name on the Left */}
       <div className="h-[40px] w-[120px] relative">
