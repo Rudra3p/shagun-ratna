@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ShoppingBag } from 'lucide-react';
+import Image from 'next/image';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,9 +24,7 @@ const Navbar = () => {
     } flex items-center justify-between px-12 text-[#90060c]`}>
       
       {/* Brand Name on the Left */}
-      <div className="font-serif text-2xl font-bold tracking-tight">
-        ShagunRatna
-      </div>
+      <Image src="/shagunratnalogo.png" alt="Shagun Ratna Logo" width={150} height={50} />
 
       {/* Links in the Center */}
       <div className="flex gap-10 font-sans text-[11px] uppercase tracking-[0.25em] font-medium">
