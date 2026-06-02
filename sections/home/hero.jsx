@@ -24,7 +24,7 @@ const childVariants = {
 
 export default function HeroSection() {
   return (
-    <section className="h-screen w-full flex items-center justify-center bg-[#faf3e5] relative overflow-hidden antialiased">
+    <section className="h-screen w-full mt-6 flex items-center justify-center bg-[#faf3e5] relative overflow-hidden antialiased">
       
       {/* Background Hand Image */}
       <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
