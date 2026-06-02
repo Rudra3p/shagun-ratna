@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { ShoppingBag } from 'lucide-react';
+import { Fullscreen, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 
 const Navbar = () => {
@@ -24,7 +24,9 @@ const Navbar = () => {
     } flex items-center justify-between px-12 text-[#90060c]`}>
       
       {/* Brand Name on the Left */}
-      <Image src="/shagunratnalogo.png" alt="Shagun Ratna Logo" width={150} height={50} />
+      <div className="h-[40px] w-[120px] relative">
+      <Image src="/shagunratnalogo.png" alt="Shagun Ratna Logo" fill />
+      </div>  
 
       {/* Links in the Center */}
       <div className="flex gap-10 font-sans text-[11px] uppercase tracking-[0.25em] font-medium">
