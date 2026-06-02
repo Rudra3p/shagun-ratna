@@ -68,7 +68,10 @@ export default function HeroSection() {
         </motion.p>
 
         <motion.div variants={childVariants} className="mt-12">
-          <button className="font-sans px-12 py-4 text-sm tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] hover:bg-[#7a050a] transition-all duration-500 ease-in-out hover:scale-[1.02] active:scale-[0.98] rounded-full shadow-[0_4px_20px_rgba(144,6,12,0.3)]">
+          <button className="font-sans px-12 py-4 text-sm tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] 
+            transition-all duration-700 ease-in-out 
+            hover:scale-[1.03] hover:shadow-[0_0_25px_rgba(144,6,12,0.4)] 
+            active:scale-[0.98] rounded-full">
             Acquire the collection
           </button>
         </motion.div>
