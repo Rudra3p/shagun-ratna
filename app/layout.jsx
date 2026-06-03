@@ -1,5 +1,12 @@
 import "./globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
+import { Cormorant_Garamond } from 'next/font/google';
+
+const cormorant = Cormorant_Garamond({ 
+  subsets: ['latin'], 
+  weight: ['400', '600'],
+  variable: '--font-brand' 
+});
 
 export const metadata = {
   // 1. Browser Tab Branding
@@ -42,9 +49,10 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  // 2. Add the variable to the className
   return (
-    <html lang="en">
-      <body className="bg-[#faf3e5]">
+    <html lang="en" className={`${cormorant.variable}`}>
+      <body className="bg-[#faf3e5] font-sans">
         <LayoutWrapper>
           {children}
         </LayoutWrapper>

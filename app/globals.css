@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+  /* Define your custom font here */
+  --font-brand: "Cormorant Garamond", serif;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
