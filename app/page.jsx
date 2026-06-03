@@ -9,7 +9,8 @@ export default function Home() {
       <HeroSection />
       <PageDivider />
       <StorySection />
-      <FeaturedCollections />
+      <ProductGrid /> 
+      <PageDivider /> 
     </main>
   );
 }
