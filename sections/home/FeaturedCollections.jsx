@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 const gems = [
   { name: "Certified Diamonds", desc: "Unrivaled brilliance, ethically sourced." },
@@ -13,14 +14,12 @@ export default function FeaturedCollections() {
   return (
     <section className="py-32 px-6 bg-[#faf3e5]">
       <div className="max-w-7xl mx-auto">
-        {/* Updated Header: Maroon base with Gold highlights */}
         <motion.h2 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="text-center font-serif text-5xl mb-20 text-[#90060c]"
+          className="text-center font-serif text-5xl text-[#1a1a1a] mb-20"
         >
-          Explore Our <span className="text-[#C5A059]">Certified Diamonds,</span> <br />
-          <span className="text-[#C5A059]">Rare Gemstones</span> & More
+          Exquisite Selections
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -30,9 +29,9 @@ export default function FeaturedCollections() {
               whileHover={{ y: -10 }}
               className="border border-[#C5A059]/20 p-8 flex flex-col items-center text-center"
             >
-              <div className="w-20 h-20 bg-[#C5A059]/10 rounded-full mb-6" /> 
-              <h4 className="text-xl font-serif mb-3 text-[#1a1a1a]">{gem.name}</h4>
-              <p className="text-sm tracking-widest uppercase opacity-70 text-[#1a1a1a]">{gem.desc}</p>
+              <div className="w-20 h-20 bg-[#C5A059]/10 rounded-full mb-6" /> {/* Placeholder for Gem Icon */}
+              <h4 className="text-xl font-serif mb-3">{gem.name}</h4>
+              <p className="text-sm tracking-widest uppercase opacity-70">{gem.desc}</p>
             </motion.div>
           ))}
         </div>
