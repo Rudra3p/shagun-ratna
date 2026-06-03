@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Fullscreen, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -46,15 +47,17 @@ const Navbar = () => {
   );
 };
 
-const NavLink = ({ label }) => (
-  <a 
-    href={`/${label.toLowerCase()}`} 
-    className="relative group hover:opacity-100 transition-opacity duration-500"
+const NavLink = ({ label, href, className, children }) => (
+  <Link 
+    href={href || `/${label?.toLowerCase() || ''}`} 
+    className={`relative group ${className || ''}`}
   >
-    {label}
-    {/* The Growing Underline Effect */}
-    <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#90060c] transition-all duration-500 group-hover:w-full" />
-  </a>
+    {children || label}
+    {/* Underline only for text links */}
+    {!children && (
+      <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#90060c] transition-all duration-500 group-hover:w-full" />
+    )}
+  </Link>
 );
 
 export default Navbar;
