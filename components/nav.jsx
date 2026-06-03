@@ -37,9 +37,7 @@ const Navbar = () => {
 
       {/* Actions on the Right */}
       <div className="flex items-center gap-8 font-sans text-[11px] uppercase tracking-[0.25em]">
-        <button className="bg-[#90060c] text-white px-5 py-2 rounded-sm hover:bg-[#90060c]/90 transition-all duration-500">
-          Sign In
-        </button>
+        <NavLink key={"signin"} label={"Sign In"} className="bg-[#90060c] text-white px-5 py-2 rounded-sm hover:bg-[#90060c]/90 transition-all duration-500" />
         <button className="hover:opacity-50 transition-opacity duration-500">
           <ShoppingBag size={20} strokeWidth={1.5} />
         </button>
