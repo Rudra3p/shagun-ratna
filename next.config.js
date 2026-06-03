@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  poweredByHeader: false, // Security: Hides tech stack details
   images: {
     remotePatterns: [
       {
@@ -9,7 +10,6 @@ const nextConfig = {
       },
     ],
   },
-  // Add the redirects here:
   async redirects() {
     return [
       {
@@ -18,6 +18,10 @@ const nextConfig = {
         permanent: true,
       },
     ];
+  },
+  experimental: {
+    // Keep this false to save RAM on your Render 512MB tier
+    preloadEntriesOnStart: false, 
   },
 };
 
