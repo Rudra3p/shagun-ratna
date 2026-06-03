@@ -6,7 +6,7 @@ export async function userMiddleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Early exit guard rail inside the sub-middleware
-  if (pathname === '/user/login' || pathname === '/login') {
+  if (pathname === '/user/signin' || pathname === '/signin') {
     return NextResponse.next();
   }
 
@@ -14,9 +14,9 @@ export async function userMiddleware(request: NextRequest) {
   const userAccess = request.cookies.get('shagun_user_access')?.value;
   const userRefresh = request.cookies.get('shagun_user_refresh')?.value;
 
-  // If no tokens found, safely redirect them to user login
+  // If no tokens found, safely redirect them to user signin page
   if (!userAccess && !userRefresh) {
-    return NextResponse.redirect(new URL('/admin/login', request.url)); 
+    return NextResponse.redirect(new URL('/signin', request.url)); 
   }
 
   // If access token is missing but refresh token exists, let them pass to hit the refresh API
@@ -34,6 +34,6 @@ export async function userMiddleware(request: NextRequest) {
     // If verification fails but refresh cookie is there, let the frontend refresh route try to fix it
     if (userRefresh) return NextResponse.next();
     
-    return NextResponse.redirect(new URL('/admin/login', request.url));
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
 }

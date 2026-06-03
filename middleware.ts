@@ -22,8 +22,8 @@ export async function middleware(request: NextRequest) {
   // 3. ISOLATED USER ROUTING
   // This ensures user logic NEVER touches admin paths or the root landing page
   if (pathname.startsWith('/user')) {
-    // Public exception for the user login page (if you build one later)
-    if (pathname === '/user/login' || pathname === '/login') return NextResponse.next();
+    // Public exception for the user signin page (if you build one later)
+    if (pathname === '/user/signin' || pathname === '/signin') return NextResponse.next();
 
     const userResponse = await userMiddleware(request);
     return userResponse || NextResponse.next();

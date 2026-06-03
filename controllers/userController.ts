@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
-// 1. REGISTER BUYER
+// 1. REGISTER USER
 export const registerUser = async (req: Request) => {
   try {
     // UPDATED: name and phone instead of businessName
@@ -31,8 +31,8 @@ export const registerUser = async (req: Request) => {
   }
 };
 
-// 2. LOGIN BUYER
-export const userLogin = async (req: Request) => {
+// 2. SIGNIN USER
+export const userSignin = async (req: Request) => {
   try {
     const { email, password } = await req.json();
 
@@ -86,11 +86,11 @@ export const userLogin = async (req: Request) => {
 
     return response;
   } catch (error) {
-    return NextResponse.json({ error: "Login failed" }, { status: 500 });
+    return NextResponse.json({ error: "Signin failed" }, { status: 500 });
   }
 };
 
-// 3. LOGOUT BUYER
+// 3. LOGOUT USER
 export const userLogout = async (req: Request) => {
   try {
     // Ideally, pass the user ID to clear the DB token
