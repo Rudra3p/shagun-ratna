@@ -9,6 +9,16 @@ const nextConfig = {
       },
     ],
   },
+  // Add the redirects here:
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
