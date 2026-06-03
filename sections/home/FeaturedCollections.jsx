@@ -4,66 +4,37 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
-const collections = [
-  { title: "Bridal Heirloom", sub: "Timeless Elegance", img: "/collection-1.jpg" },
-  { title: "Daily Grace", sub: "Subtle Sophistication", img: "/collection-2.jpg" },
-  { title: "Solitaire Series", sub: "Precision Artistry", img: "/collection-3.jpg" }
+const gems = [
+  { name: "Certified Diamonds", desc: "Unrivaled brilliance, ethically sourced." },
+  { name: "Rare Gemstones", desc: "Stones that tell a story of origin." },
+  { name: "Gold Artistry", desc: "Tradition captured in 22K gold." }
 ];
 
 export default function FeaturedCollections() {
   return (
-    <section className="py-24 px-6 bg-white text-[#1a1a1a]">
+    <section className="py-32 px-6 bg-[#faf3e5]">
       <div className="max-w-7xl mx-auto">
-        
-        {/* Section Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-20"
+        <motion.h2 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          className="text-center font-serif text-5xl text-[#1a1a1a] mb-20"
         >
-          <h3 className="text-[#90060c] font-semibold tracking-[0.3em] uppercase text-xs mb-4">
-            Curated Selection
-          </h3>
-          <h2 className="font-serif text-4xl md:text-5xl">Explore The Artistry</h2>
-        </motion.div>
+          Exquisite Selections
+        </motion.h2>
 
-        {/* Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {collections.map((item, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {gems.map((gem, i) => (
             <motion.div 
-              key={index}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2, duration: 0.8 }}
-              className="group cursor-pointer"
+              key={i} 
+              whileHover={{ y: -10 }}
+              className="border border-[#C5A059]/20 p-8 flex flex-col items-center text-center"
             >
-              <div className="relative h-[550px] w-full overflow-hidden bg-[#e5e5e5] mb-8">
-                <Image 
-                  src={item.img} 
-                  alt={item.title}
-                  fill
-                  className="object-cover transition-transform duration-1000 ease-in-out group-hover:scale-105"
-                />
-              </div>
-              <h4 className="text-lg tracking-[0.2em] uppercase mb-1">{item.title}</h4>
-              <p className="text-[#C5A059] text-xs uppercase tracking-[0.2em]">{item.sub}</p>
+              <div className="w-20 h-20 bg-[#C5A059]/10 rounded-full mb-6" /> {/* Placeholder for Gem Icon */}
+              <h4 className="text-xl font-serif mb-3">{gem.name}</h4>
+              <p className="text-sm tracking-widest uppercase opacity-70">{gem.desc}</p>
             </motion.div>
           ))}
         </div>
-        
-        {/* Footer CTA */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mt-20"
-        >
-          <button className="border-b border-[#1a1a1a] pb-1 uppercase tracking-[0.2em] text-xs hover:text-[#90060c] hover:border-[#90060c] transition-colors">
-            View All Collections
-          </button>
-        </motion.div>
       </div>
     </section>
   );
