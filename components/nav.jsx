@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Fullscreen, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
-import { NavLink } from 'react-router-dom';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
