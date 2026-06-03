@@ -44,8 +44,9 @@ export default function StorySection() {
           <span className="text-[#90060c] font-semibold tracking-[0.3em] uppercase text-xs mb-4">
             The Legacy
           </span>
-          <h2 className="brand-font text-5xl md:text-6xl mb-8 leading-tight">
-            Defined by Time, <br />Crafted by Hand.
+          <h2 className="brand-font text-5xl md:text-6xl mb-8 leading-tight text-[#1a1a1a]">
+            Defined by <span className="text-[#C5A059]">Time,</span> <br /> 
+            <span className="text-[#C5A059]">Crafted</span> by Hand.
           </h2>
           <p className="ui-font text-sm leading-[2.2] tracking-[0.1em] opacity-80 mb-10 max-w-lg">
             Since 1980, Shagun Ratna has transcended the ordinary. We believe that 
