@@ -38,7 +38,7 @@ export default function HeroSection() {
   return (
     <section 
       ref={containerRef} 
-      className="h-screen w-full mt-6 flex items-center justify-center bg-[#faf3e5] relative overflow-hidden antialiased"
+      className="h-screen w-full my-6 flex items-center justify-center bg-[#faf3e5] relative overflow-hidden antialiased"
     >
       
       {/* Background Hand Image with Parallax Animation */}
