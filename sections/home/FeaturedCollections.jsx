@@ -27,7 +27,7 @@ export default function FeaturedCollections() {
             <motion.div 
               key={i} 
               whileHover={{ y: -10 }}
-              className="border border-[#C5A059]/20 p-8 flex flex-col items-center text-center"
+              className="border border-[#C5A059]/80 p-8 flex flex-col items-center text-center"
             >
               <div className="w-20 h-20 bg-[#C5A059]/10 rounded-full mb-6" />
               {/* Card Header Text in Gold */}
