@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 
 // Optimized animation variants for luxury choreography
@@ -23,11 +23,29 @@ const childVariants = {
 };
 
 export default function HeroSection() {
+  const containerRef = useRef(null);
+
+  // Hook into scroll position relative to this container
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
+
+  // Maps scroll progress to vertical translation
+  // Adjust the [0, 300] to change how far down it moves
+  const yOffset = useTransform(scrollYProgress, [0, 1], [0, 300]);
+
   return (
-    <section className="h-screen w-full mt-6 flex items-center justify-center bg-[#faf3e5] relative overflow-hidden antialiased">
+    <section 
+      ref={containerRef} 
+      className="h-screen w-full mt-6 flex items-center justify-center bg-[#faf3e5] relative overflow-hidden antialiased"
+    >
       
-      {/* Background Hand Image */}
-      <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+      {/* Background Hand Image with Parallax Animation */}
+      <motion.div 
+        style={{ y: yOffset }} 
+        className="absolute inset-0 flex justify-center items-center pointer-events-none"
+      >
         <Image 
           src="/hero_sec_hand.png" 
           alt="Shagun Ratna Jewelry" 
@@ -37,7 +55,7 @@ export default function HeroSection() {
           priority
         />
         <div className="absolute inset-0 bg-[#faf3e5]/60" />
-      </div>
+      </motion.div>
 
       {/* Choreographed Content Layer */}
       <motion.div 
