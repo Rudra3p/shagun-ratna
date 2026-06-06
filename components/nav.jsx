@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { Fullscreen, ShoppingBag } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -26,7 +26,7 @@ const Navbar = () => {
       
       {/* Brand Name on the Left */}
       <div className="h-[45px] w-[90px] relative">
-      <Image src="/shagunratnalogo.png" alt="Shagun Ratna Logo" fill />
+        <Image src="/shagunratnalogo.png" alt="Shagun Ratna Logo" fill />
       </div>  
 
       {/* Links in the Center */}
@@ -38,8 +38,13 @@ const Navbar = () => {
 
       {/* Actions on the Right */}
       <div className="flex items-center gap-8 font-sans text-[11px] uppercase tracking-[0.25em]">
-        <NavLink key={"signin"} label={"Sign In"} className="bg-[#90060c] text-white px-5 py-2 rounded-sm hover:bg-[#90060c]/90 transition-all duration-500" />
-        <NavLink key={"cart"} className="hover:opacity-50 transition-opacity duration-500">
+        <NavLink 
+          label="Sign In"
+          href="/signin" 
+          className="bg-[#90060c] text-white px-5 py-2 rounded-sm hover:bg-[#90060c]/90 transition-all duration-500" 
+          noUnderline 
+        />
+        <NavLink href="/cart" className="hover:opacity-50 transition-opacity duration-500">
           <ShoppingBag size={20} strokeWidth={1.5} />
         </NavLink>
       </div>
@@ -47,14 +52,14 @@ const Navbar = () => {
   );
 };
 
-const NavLink = ({ label, href, className, children }) => (
+const NavLink = ({ label, href, className, children, noUnderline }) => (
   <Link 
     href={href || `/${label?.toLowerCase() || ''}`} 
     className={`relative group ${className || ''}`}
   >
     {children || label}
-    {/* Underline only for text links */}
-    {!children && (
+    {/* Underline renders only if it's text (has label) AND noUnderline is not set */}
+    {label && !noUnderline && (
       <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#90060c] transition-all duration-500 group-hover:w-full" />
     )}
   </Link>

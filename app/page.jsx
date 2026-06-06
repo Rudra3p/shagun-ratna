@@ -1,6 +1,5 @@
-import HeroSection from '@/sections/home/hero';
-import StorySection from '@/sections/home/story';
-import PageDivider from '@/components/PageDivider';
+import HeroSection from '@/sections/home/Hero';
+import PageDivider from '@/sections/home/Story.jsx';
 import FeaturedCollections from '@/sections/home/FeaturedCollections';
 import ProductGrid from '@/sections/home/ProductGrid';
 
@@ -13,6 +12,9 @@ export default function Home() {
       <FeaturedCollections />
       <ProductGrid /> 
       <PageDivider /> 
+      {/* <Testimonials />
+      <NewsletterSignup />
+      <Footer /> */}
     </main>
   );
 }
