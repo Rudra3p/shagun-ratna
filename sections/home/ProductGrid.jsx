@@ -43,7 +43,7 @@ export default function ProductGrid() {
                 />
 
                 {/* Category Badge */}
-                <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-4 py-1.5 rounded-full shadow-sm">
+                <div className="absolute top-4 left-4 z-10 bg-[#90060c] text-white px-4 py-1.5 rounded-full shadow-sm">
                   <p className="text-[10px] uppercase tracking-[0.2em] font-medium">
                     {product.category}
                   </p>
@@ -52,7 +52,7 @@ export default function ProductGrid() {
 
               {/* Bottom Details remain clean */}
               <div className="p-6 text-center">
-                <h4 className="font-serif text-lg text-left text-[#90060c]">{product.name}</h4>
+                <h4 className="font-serif text-lg text-left text-[#C5A059]">{product.name}</h4>
               </div>
             </motion.div>
           ))}
