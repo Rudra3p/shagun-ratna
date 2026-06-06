@@ -25,12 +25,12 @@ export default function ProductGrid() {
           Selected Pieces
         </motion.h2>
 
-        {/* 3x2 Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {products.map((product) => (
             <motion.div 
               key={product.id}
               whileHover={{ scale: 1.02 }}
+              /* Subtle golden border with 20% opacity */
               className="group cursor-pointer border border-[#C5A059]/20 bg-white"
             >
               <div className="relative h-[400px] w-full bg-[#e5e5e5] overflow-hidden">
@@ -42,7 +42,7 @@ export default function ProductGrid() {
                   className="object-cover"
                 />
 
-                {/* Category Badge inside the image top-left */}
+                {/* Category Badge - Top Left */}
                 <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-3 py-1 rounded-sm">
                   <p className="text-[10px] uppercase tracking-[0.2em] font-medium">
                     {product.category}
@@ -50,6 +50,7 @@ export default function ProductGrid() {
                 </div>
               </div>
 
+              {/* Bottom Details */}
               <div className="p-6 text-center">
                 <h4 className="font-serif text-lg text-[#1a1a1a]">{product.name}</h4>
               </div>
