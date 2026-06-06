@@ -47,12 +47,12 @@ export default function ProductGrid() {
                   <p className="text-[10px] uppercase tracking-[0.2em] font-medium">
                     {product.category}
                   </p>
-                </div>
+                </div>  
               </div>
 
               {/* Bottom Details remain clean */}
               <div className="p-6 text-center">
-                <h4 className="font-serif text-lg text-[#1a1a1a]">{product.name}</h4>
+                <h4 className="font-serif text-lg text-left text-[#1a1a1a]">{product.name}</h4>
               </div>
             </motion.div>
           ))}
