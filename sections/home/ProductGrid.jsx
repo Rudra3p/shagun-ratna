@@ -20,7 +20,7 @@ export default function ProductGrid() {
         <motion.h2 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="text-center font-serif text-4xl text-[#90060c] mb-16 tracking-[0.2em]"
+          className="text-center font-serif text-4xl text-[#1a1a1a] mb-16 uppercase tracking-[0.2em]"
         >
           Selected Pieces
         </motion.h2>
@@ -30,11 +30,11 @@ export default function ProductGrid() {
             <motion.div 
               key={product.id}
               whileHover={{ scale: 1.02 }}
-              /* rounded-2xl for more pronounced curves, border increased to 40% opacity */
-              className="group cursor-pointer border border-[#C5A059]/40 bg-white rounded-2xl overflow-hidden"
+              /* Transparent background for the card itself */
+              className="group cursor-pointer bg-transparent"
             >
-              <div className="relative h-[400px] w-full bg-[#e5e5e5]">
-                {/* Product Image */}
+              {/* Rounded corners and border moved here */}
+              <div className="relative h-[400px] w-full bg-[#e5e5e5] rounded-3xl border border-[#C5A059]/40 overflow-hidden">
                 <Image 
                   src={`/product-${product.id}.jpg`} 
                   alt={product.name}
@@ -42,7 +42,7 @@ export default function ProductGrid() {
                   className="object-cover"
                 />
 
-                {/* Category Badge - Rounded pill shape */}
+                {/* Category Badge */}
                 <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-4 py-1.5 rounded-full shadow-sm">
                   <p className="text-[10px] uppercase tracking-[0.2em] font-medium">
                     {product.category}
@@ -50,7 +50,7 @@ export default function ProductGrid() {
                 </div>
               </div>
 
-              {/* Bottom Details */}
+              {/* Bottom Details remain clean */}
               <div className="p-6 text-center">
                 <h4 className="font-serif text-lg text-[#1a1a1a]">{product.name}</h4>
               </div>
