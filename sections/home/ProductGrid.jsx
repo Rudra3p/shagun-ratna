@@ -31,9 +31,9 @@ export default function ProductGrid() {
             <motion.div 
               key={product.id}
               whileHover={{ scale: 1.02 }}
-              className="group cursor-pointer border border-[#C5A059]/20"
+              className="group cursor-pointer border border-[#C5A059]/20 bg-white"
             >
-              <div className="relative h-[400px] w-full bg-[#e5e5e5]">
+              <div className="relative h-[400px] w-full bg-[#e5e5e5] overflow-hidden">
                 {/* Product Image */}
                 <Image 
                   src={`/product-${product.id}.jpg`} 
@@ -41,12 +41,17 @@ export default function ProductGrid() {
                   fill
                   className="object-cover"
                 />
+
+                {/* Category Badge inside the image top-left */}
+                <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-3 py-1 rounded-sm">
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-medium">
+                    {product.category}
+                  </p>
+                </div>
               </div>
+
               <div className="p-6 text-center">
                 <h4 className="font-serif text-lg text-[#1a1a1a]">{product.name}</h4>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-[#C5A059] mt-2">
-                  {product.category}
-                </p>
               </div>
             </motion.div>
           ))}
