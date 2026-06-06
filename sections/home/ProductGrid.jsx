@@ -30,10 +30,10 @@ export default function ProductGrid() {
             <motion.div 
               key={product.id}
               whileHover={{ scale: 1.02 }}
-              /* Subtle golden border with 20% opacity */
-              className="group cursor-pointer border border-[#C5A059]/20 bg-white"
+              /* Added rounded-lg for rounded corners and border */
+              className="group cursor-pointer border border-[#C5A059]/20 bg-white rounded-lg overflow-hidden"
             >
-              <div className="relative h-[400px] w-full bg-[#e5e5e5] overflow-hidden">
+              <div className="relative h-[400px] w-full bg-[#e5e5e5]">
                 {/* Product Image */}
                 <Image 
                   src={`/product-${product.id}.jpg`} 
@@ -42,8 +42,8 @@ export default function ProductGrid() {
                   className="object-cover"
                 />
 
-                {/* Category Badge - Top Left */}
-                <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-3 py-1 rounded-sm">
+                {/* Category Badge - Rounded and positioned */}
+                <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-3 py-1 rounded-full">
                   <p className="text-[10px] uppercase tracking-[0.2em] font-medium">
                     {product.category}
                   </p>
