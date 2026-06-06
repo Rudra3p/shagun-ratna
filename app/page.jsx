@@ -5,9 +5,9 @@ import PageDivider from '@/components/PageDivider';
 import StorySection from '@/sections/home/Story';
 import FeaturedCollections from '@/sections/home/FeaturedCollections';
 import ProductGrid from '@/sections/home/ProductGrid';
-// import Testimonials from '@/sections/home/Testimonials';
-// import NewsletterSignup from '@/sections/home/NewsletterSignup';
-// import Footer from '@/components/Footer';
+import Testimonials from '@/sections/home/Testimonials';
+import NewsletterSignup from '@/sections/home/Newsletter';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
@@ -18,9 +18,9 @@ export default function Home() {
       <ProductGrid /> 
       <FeaturedCollections />
       <PageDivider /> 
-      {/* <Testimonials />
+      <Testimonials />
       <NewsletterSignup />
-      <Footer /> */}
+      <Footer />
     </main>
   );
 }
