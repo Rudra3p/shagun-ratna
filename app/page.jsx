@@ -1,6 +1,6 @@
 "use client";
 
-import HeroSection from '@/components/HeroSection';
+import HeroSection from '@/sections/home/HeroSection';
 import PageDivider from '@/components/PageDivider';
 import StorySection from '@/sections/home/Story';
 import FeaturedCollections from '@/sections/home/FeaturedCollections';
