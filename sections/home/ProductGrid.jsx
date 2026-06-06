@@ -52,7 +52,7 @@ export default function ProductGrid() {
 
               {/* Bottom Details remain clean */}
               <div className="p-6 text-center">
-                <h4 className="font-serif text-lg text-[#90060c]">{product.name}</h4>
+                <h4 className="font-serif text-lg text-left text-[#90060c]">{product.name}</h4>
               </div>
             </motion.div>
           ))}

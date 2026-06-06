@@ -2,41 +2,87 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
-const gems = [
-  { name: "Certified Diamonds", desc: "Unrivaled brilliance, ethically sourced." },
-  { name: "Rare Gemstones", desc: "Stones that tell a story of origin." },
-  { name: "Gold Artistry", desc: "Tradition captured in 22K gold." }
+const collections = [
+  {
+    tag: "The Collection",
+    title: "Certified Diamonds",
+    text: "Unrivaled brilliance, ethically sourced. Each stone is hand-selected for its fire and clarity, ensuring your piece is as unique as the moments it celebrates.",
+    image: "/diamond-section.jpg"
+  },
+  {
+    tag: "The Collection",
+    title: "Rare Gemstones",
+    text: "Stones that tell a story of origin. From deep emeralds to vibrant rubies, we curate rare treasures that bring color and life to traditional silhouettes.",
+    image: "/gemstone-section.jpg"
+  },
+  {
+    tag: "The Collection",
+    title: "Gold Artistry",
+    text: "Tradition captured in 22K gold. Our master artisans breathe soul into metal, creating timeless pieces that carry the legacy of generations forward.",
+    image: "/gold-section.jpg"
+  }
 ];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 1.2, ease: [0.22, 1, 0.36, 1] } }
+};
 
 export default function FeaturedCollections() {
   return (
-    <section className="py-32 px-6 bg-[#faf3e5]">
-      <div className="max-w-7xl mx-auto">
-        {/* Full Header in Maroon */}
-        <motion.h2 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          className="text-center font-serif text-5xl text-[#90060c] mb-20"
-        >
-          Exquisite Selections
-        </motion.h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {gems.map((gem, i) => (
+    <div className="bg-[#faf3e5]">
+      {collections.map((item, index) => (
+        <section key={index} className="min-h-screen py-24 px-6 flex items-center">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            
+            {/* Image Section - Alternates Order */}
             <motion.div 
-              key={i} 
-              whileHover={{ y: -10 }}
-              className="border border-[#C5A059]/80 p-8 flex flex-col items-center text-center"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              className={`relative h-[600px] w-full ${index % 2 !== 0 ? 'lg:order-2' : ''}`}
             >
-              <div className="w-20 h-20 bg-[#C5A059]/10 rounded-full mb-6" />
-              {/* Card Header Text in Gold */}
-              <h4 className="text-xl font-serif mb-3 text-[#C5A059]">{gem.name}</h4>
-              <p className="text-sm tracking-widest uppercase opacity-70 text-[#1a1a1a]">{gem.desc}</p>
+              <Image 
+                src={item.image}
+                alt={item.title}
+                fill
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-1000 ease-in-out"
+              />
+              {/* Gold Accent Border - Flips based on side */}
+              <div className={`absolute -bottom-6 w-24 h-24 border-b-2 border-[#C5A059] z-10 
+                ${index % 2 !== 0 ? '-right-6 border-r-2' : '-left-6 border-l-2'}`} 
+              />
             </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
+
+            {/* Text Section */}
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              className={`flex flex-col justify-center ${index % 2 !== 0 ? 'lg:order-1' : ''}`}
+            >
+              <span className="text-[#90060c] font-semibold tracking-[0.3em] uppercase text-xs mb-4">
+                {item.tag}
+              </span>
+              <h2 className="font-serif text-5xl md:text-6xl mb-8 leading-tight text-[#1a1a1a]">
+                {item.title}
+              </h2>
+              <p className="ui-font text-sm leading-[2.2] tracking-[0.1em] opacity-80 mb-10 max-w-lg">
+                {item.text}
+              </p>
+              
+              <button className="w-fit border border-[#90060c] text-[#90060c] px-12 py-4 text-xs tracking-[0.25em] uppercase hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500">
+                Discover {item.title}
+              </button>
+            </motion.div>
+            
+          </div>
+        </section>
+      ))}
+    </div>
   );
 }
