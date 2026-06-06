@@ -20,7 +20,7 @@ export default function ProductGrid() {
         <motion.h2 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="text-center font-serif text-4xl text-[#1a1a1a] mb-16 uppercase tracking-[0.2em]"
+          className="text-center font-serif text-4xl text-[#90060c] mb-16 tracking-[0.2em]"
         >
           Selected Pieces
         </motion.h2>
@@ -30,8 +30,8 @@ export default function ProductGrid() {
             <motion.div 
               key={product.id}
               whileHover={{ scale: 1.02 }}
-              /* Added rounded-lg for rounded corners and border */
-              className="group cursor-pointer border border-[#C5A059]/20 bg-white rounded-lg overflow-hidden"
+              /* rounded-2xl for more pronounced curves, border increased to 40% opacity */
+              className="group cursor-pointer border border-[#C5A059]/40 bg-white rounded-2xl overflow-hidden"
             >
               <div className="relative h-[400px] w-full bg-[#e5e5e5]">
                 {/* Product Image */}
@@ -42,8 +42,8 @@ export default function ProductGrid() {
                   className="object-cover"
                 />
 
-                {/* Category Badge - Rounded and positioned */}
-                <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-3 py-1 rounded-full">
+                {/* Category Badge - Rounded pill shape */}
+                <div className="absolute top-4 left-4 z-10 bg-[#C5A059] text-white px-4 py-1.5 rounded-full shadow-sm">
                   <p className="text-[10px] uppercase tracking-[0.2em] font-medium">
                     {product.category}
                   </p>
