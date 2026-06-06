@@ -15,8 +15,8 @@ export default function Home() {
       <HeroSection />
       <PageDivider />
       <StorySection />
-      <FeaturedCollections />
       <ProductGrid /> 
+      <FeaturedCollections />
       <PageDivider /> 
       {/* <Testimonials />
       <NewsletterSignup />
