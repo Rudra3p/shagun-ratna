@@ -1,5 +1,6 @@
 import HeroSection from '@/sections/home/Hero';
-import PageDivider from '@/sections/home/Story.jsx';
+import PageDivider from '@/sections/home/PageDivider';
+import StorySection from '@/sections/home/StorySection';
 import FeaturedCollections from '@/sections/home/FeaturedCollections';
 import ProductGrid from '@/sections/home/ProductGrid';
 
