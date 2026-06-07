@@ -1,5 +1,9 @@
 "use client";
 
+import Navbar from "@components/nav";
+import Footer from "@components/Footer";
+import { usePathname } from 'next/navigation';
+
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith('/admin');
