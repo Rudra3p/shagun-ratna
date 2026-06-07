@@ -1,21 +1,20 @@
 "use client";
 
 // import AboutHero from '@/sections/about/AboutHero';
-// import MissionSection from '@/sections/about/MissionSection';
-// import TeamSection from '@/sections/about/TeamSection';
+// import HeritageSection from '@/sections/about/Heritage';
+// import PhilosophySection from '@/sections/about/Philosophy';
+// import BoutiqueVisit from '@/sections/about/BoutiqueVisit';
 // import PageDivider from '@/components/PageDivider';
-// import Footer from '@/components/Footer';
 
 export default function About() {
   return (
     <main>
-      about page
       {/* <AboutHero />
       <PageDivider />
-      <MissionSection />
-      <TeamSection />
+      <HeritageSection />
+      <PhilosophySection />
       <PageDivider />
-      <Footer /> */}
+      <BoutiqueVisit /> */}
     </main>
   );
 }

@@ -1,18 +1,16 @@
 "use client";
 
-import { usePathname } from 'next/navigation';
-import Navbar from '@/components/nav';
-
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
-  
-  // This will hide the Navbar on any route starting with /admin
   const isAdminPage = pathname.startsWith('/admin');
 
   return (
     <>
       {!isAdminPage && <Navbar />}
-      <main>{children}</main>
+      <main className={isAdminPage ? "pt-0" : "pt-16"}> {/* Adjust top padding for admin */}
+        {children}
+      </main>
+      {!isAdminPage && <Footer />}
     </>
   );
 }
