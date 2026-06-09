@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function Footer() {
   const [feedback, setFeedback] = useState("");
 
-  const handleFeedback = (e: React.FormEvent) => {
+  const handleFeedback = (e) => {
     e.preventDefault();
     console.log("Feedback submitted:", feedback);
     setFeedback(""); // Clear input after "submission"
