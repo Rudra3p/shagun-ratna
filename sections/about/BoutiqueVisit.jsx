@@ -1,20 +1,30 @@
-"use client";
+import React from 'react';
+import Link from 'next/link';
 
 export default function BoutiqueVisit() {
   return (
-    <section className="py-24 px-6 text-center">
-      <div className="max-w-xl mx-auto">
-        <h2 className="font-serif text-3xl mb-8">Visit Our Boutique</h2>
-        <p className="text-[#1a1a1a]/70 mb-10 leading-relaxed">
-          Experience the collection in person at our Ahmedabad showroom. 
-          Our consultants are ready to assist you in finding your next heirloom.
+    <section className="py-24 px-6 bg-[#faf3e5] text-[#90060c] text-center">
+      <div className="max-w-2xl mx-auto">
+        <h2 className="font-serif text-4xl mb-6">Visit Our Boutique</h2>
+        <p className="text-sm opacity-80 mb-10 leading-relaxed tracking-[0.05em]">
+          Experience the weight of gold and the brilliance of our stones in person. 
+          Step into a world where tradition meets timeless design at our flagship location.
         </p>
-        <button 
-          onClick={() => window.location.href = '/contact'}
-          className="px-8 py-4 border border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#faf3e5] transition-all uppercase text-xs tracking-[0.2em]"
-        >
-          Book Appointment
-        </button>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link 
+            href="/find-a-boutique" 
+            className="bg-[#90060c] text-[#faf3e5] px-10 py-4 uppercase text-xs tracking-[0.2em] font-bold hover:bg-[#C5A059] transition-all"
+          >
+            Find a Boutique
+          </Link>
+          <Link 
+            href="/contact" 
+            className="border border-[#90060c] px-10 py-4 uppercase text-xs tracking-[0.2em] font-bold hover:bg-[#90060c] hover:text-[#faf3e5] transition-all"
+          >
+            Schedule a Visit
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -1,21 +1,24 @@
-"use client";
+import React from 'react';
 
 export default function PhilosophySection() {
-  const pillars = [
-    { title: "Purity", desc: "Every piece is a testament to the highest standard of 22K gold and certified stones." },
-    { title: "Artistry", desc: "Our designs blend ancient Indian heritage with modern, sophisticated sensibilities." },
-    { title: "Trust", desc: "Four decades of transparency have made us a name synonymous with Ahmedabad's elite." }
-  ];
-
   return (
-    <section className="py-24 px-6 bg-[#1a1a1a] text-[#faf3e5]">
-      <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-12">
-        {pillars.map((pillar, i) => (
-          <div key={i} className="text-center border-t border-[#C5A059]/20 pt-10">
-            <h4 className="text-[#C5A059] uppercase text-xs tracking-[0.2em] mb-4">{pillar.title}</h4>
-            <p className="text-sm opacity-70 leading-relaxed">{pillar.desc}</p>
-          </div>
-        ))}
+    <section className="py-24 px-6 bg-[#90060c] text-[#faf3e5]">
+      <div className="max-w-4xl mx-auto text-center">
+        
+        {/* Decorative element to emphasize the "Luxury" feel */}
+        <div className="text-[#C5A059] mb-8 text-2xl">✧</div>
+        
+        <h2 className="font-serif text-4xl mb-10 text-[#C5A059]">Our Philosophy</h2>
+        
+        <div className="space-y-8 text-lg md:text-xl font-light leading-relaxed italic opacity-90">
+          <p>
+            "We believe that jewelry is not merely an accessory, but a silent testament to the moments that define a life."
+          </p>
+          <p>
+            Our commitment to sustainability, ethical sourcing, and unrivaled artistry ensures that every piece we create is as kind to the earth as it is beautiful to the wearer. At Shagun Ratna, we don't just set stones; we uphold the integrity of the legacy they represent.
+          </p>
+        </div>
+
       </div>
     </section>
   );
