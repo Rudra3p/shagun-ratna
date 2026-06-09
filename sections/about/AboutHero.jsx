@@ -17,7 +17,7 @@ export default function AboutHero() {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % images.length);
-    }, 6000);
+    }, 9000);
     return () => clearInterval(timer);
   }, []);
 
