@@ -6,7 +6,6 @@ import StorySection from '@/sections/home/Story';
 import FeaturedCollections from '@/sections/home/FeaturedCollections';
 import ProductGrid from '@/sections/home/ProductGrid';
 import Testimonials from '@/sections/home/Testimonials';
-import NewsletterSignup from '@/sections/home/Newsletter';
 
 export default function Home() {
   return (
@@ -18,7 +17,6 @@ export default function Home() {
       <FeaturedCollections />
       <PageDivider /> 
       <Testimonials />
-      <NewsletterSignup />
     </main>
   );
 }

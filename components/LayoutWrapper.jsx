@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "@/components/nav";
+import FeedbackForm from "@/components/Feedback";
 import Footer from "@/components/Footer";
 import { usePathname } from 'next/navigation';
 
@@ -15,6 +16,7 @@ export default function LayoutWrapper({ children }) {
         {children}
       </main>
       {!isAdminPage && <Footer />}
+      {!isAdminPage && <FeedbackForm />}
     </>
   );
 }
