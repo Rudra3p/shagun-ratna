@@ -1,30 +1,47 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function BoutiqueVisit() {
   return (
-    <section className="py-24 px-6 bg-[#faf3e5] text-[#90060c] text-center">
-      <div className="max-w-2xl mx-auto">
-        <h2 className="font-serif text-4xl mb-6">Visit Our Boutique</h2>
-        <p className="text-sm opacity-80 mb-10 leading-relaxed tracking-[0.05em]">
-          Experience the weight of gold and the brilliance of our stones in person. 
-          Step into a world where tradition meets timeless design at our flagship location.
-        </p>
+    <section className="relative py-24 px-6 bg-[#faf3e5] text-[#90060c]">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link 
-            href="/find-a-boutique" 
-            className="bg-[#90060c] text-[#faf3e5] px-10 py-4 uppercase text-xs tracking-[0.2em] font-bold hover:bg-[#C5A059] transition-all"
-          >
-            Find a Boutique
-          </Link>
-          <Link 
-            href="/contact" 
-            className="border border-[#90060c] px-10 py-4 uppercase text-xs tracking-[0.2em] font-bold hover:bg-[#90060c] hover:text-[#faf3e5] transition-all"
-          >
-            Schedule a Visit
-          </Link>
+        {/* Visual Content - Editorial Style */}
+        <div className="w-full lg:w-1/2 relative">
+          <div className="aspect-[4/3] w-full relative shadow-xl">
+            <Image 
+              src="/boutique-interior.jpg" 
+              alt="Visit our Boutique" 
+              fill 
+              className="object-cover"
+            />
+          </div>
+          {/* Subtle Accent Box */}
+          <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-[#90060c] -z-10 hidden lg:block" />
         </div>
+
+        {/* Text Content - Inviting & Sophisticated */}
+        <div className="w-full lg:w-1/2 space-y-8">
+          <h2 className="font-serif text-4xl md:text-6xl leading-tight">
+            Experience <br />
+            <span className="text-[#90060c]/70 italic">Shagun Ratna</span>
+          </h2>
+          
+          <p className="text-base md:text-lg font-light leading-relaxed opacity-80">
+            Beyond the digital screen lies the true essence of our craft. We invite you to step into our sanctuary, where light dances on gold and every stone tells a story waiting to be yours.
+          </p>
+
+          <div className="pt-4">
+            <Link 
+              href="/find-a-boutique"
+              className="inline-block border border-[#90060c] px-10 py-4 text-[11px] uppercase tracking-[0.25em] hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500"
+            >
+              Find a Boutique
+            </Link>
+          </div>
+        </div>
+
       </div>
     </section>
   );
