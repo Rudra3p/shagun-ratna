@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 import Link from 'next/link';
 
@@ -16,7 +14,7 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Navigation */}
+        {/* Explore */}
         <div>
           <h4 className="uppercase text-xs tracking-[0.2em] text-[#C5A059] mb-6">Explore</h4>
           <ul className="space-y-4 text-sm opacity-90">
@@ -33,6 +31,8 @@ export default function Footer() {
             <li><Link href="/contact" className="hover:text-[#C5A059] transition-colors">Contact Us</Link></li>
             <li><Link href="/find-a-boutique" className="hover:text-[#C5A059] transition-colors">Find a Boutique</Link></li>
             <li><Link href="/faq" className="hover:text-[#C5A059] transition-colors">FAQ</Link></li>
+            {/* Added Link Here */}
+            <li><Link href="/reviews" className="hover:text-[#C5A059] transition-colors">Customer Reviews</Link></li>
           </ul>
         </div>
 
