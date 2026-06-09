@@ -1,16 +1,26 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import Link from 'next/link';
 
 export default function Footer() {
+  const [feedback, setFeedback] = useState("");
+
+  const handleFeedback = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Feedback submitted:", feedback);
+    setFeedback(""); // Clear input after "submission"
+    alert("Thank you for your feedback!");
+  };
+
   return (
-    <footer className="bg-[#1a1a1a] text-[#faf3e5] py-20 px-6">
+    <footer className="bg-[#90060c] text-[#faf3e5] py-20 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
         
         {/* Brand Info */}
         <div className="col-span-1 md:col-span-1">
           <h3 className="font-serif text-2xl mb-6 text-[#C5A059]">Shagun Ratna</h3>
-          <p className="text-sm opacity-60 leading-relaxed">
+          <p className="text-sm opacity-80 leading-relaxed">
             Transcending the ordinary since 1980. Crafting legacies in gold and stone.
           </p>
         </div>
@@ -18,35 +28,45 @@ export default function Footer() {
         {/* Navigation */}
         <div>
           <h4 className="uppercase text-xs tracking-[0.2em] text-[#C5A059] mb-6">Explore</h4>
-          <ul className="space-y-4 text-sm opacity-80">
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Collections</a></li>
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Our Story</a></li>
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Craftsmanship</a></li>
+          <ul className="space-y-4 text-sm opacity-90">
+            <li><Link href="/collections" className="hover:text-white transition-colors">Collections</Link></li>
+            <li><Link href="/about" className="hover:text-white transition-colors">Our Story</Link></li>
+            <li><Link href="/craftsmanship" className="hover:text-white transition-colors">Craftsmanship</Link></li>
           </ul>
         </div>
 
         {/* Support */}
         <div>
           <h4 className="uppercase text-xs tracking-[0.2em] text-[#C5A059] mb-6">Support</h4>
-          <ul className="space-y-4 text-sm opacity-80">
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Contact Us</a></li>
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Find a Boutique</a></li>
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">FAQ</a></li>
+          <ul className="space-y-4 text-sm opacity-90">
+            <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+            <li><Link href="/find-a-boutique" className="hover:text-white transition-colors">Find a Boutique</Link></li>
+            <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
           </ul>
         </div>
 
-        {/* Legal/Social */}
+        {/* Feedback Input */}
         <div>
-          <h4 className="uppercase text-xs tracking-[0.2em] text-[#C5A059] mb-6">Connect</h4>
-          <ul className="space-y-4 text-sm opacity-80">
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Instagram</a></li>
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Facebook</a></li>
-            <li><a href="#" className="hover:text-[#C5A059] transition-colors">Pinterest</a></li>
-          </ul>
+          <h4 className="uppercase text-xs tracking-[0.2em] text-[#C5A059] mb-6">Feedback</h4>
+          <form onSubmit={handleFeedback} className="flex flex-col gap-3">
+            <input
+              type="text"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Your thoughts..."
+              className="bg-[#faf3e5]/10 border border-[#C5A059]/30 px-3 py-2 text-sm text-[#faf3e5] placeholder-[#faf3e5]/50 focus:outline-none focus:border-[#C5A059]"
+            />
+            <button 
+              type="submit" 
+              className="bg-[#C5A059] text-[#90060c] py-2 text-xs uppercase tracking-[0.1em] font-bold hover:bg-white transition-colors"
+            >
+              Submit
+            </button>
+          </form>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-[#C5A059]/20 text-center text-xs opacity-40">
+      <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-[#C5A059]/20 text-center text-xs opacity-60">
         © 2026 Shagun Ratna. All rights reserved.
       </div>
     </footer>
