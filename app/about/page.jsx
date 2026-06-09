@@ -1,5 +1,3 @@
-"use client";
-
 import AboutHero from '@/sections/about/AboutHero';
 import HeritageSection from '@/sections/about/Heritage';
 import PhilosophySection from '@/sections/about/Philosophy';

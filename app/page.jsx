@@ -1,5 +1,3 @@
-"use client";
-
 import HeroSection from '@/sections/home/Hero';
 import PageDivider from '@/components/PageDivider';
 import StorySection from '@/sections/home/Story';
