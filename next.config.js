@@ -4,10 +4,10 @@ const nextConfig = {
   poweredByHeader: false, // Security: Hides tech stack details
   
   // Updated Image configuration for Cloudflare R2
-  images: {
-    loader: 'custom',
-    loaderFile: './lib/image-loader.js',
-  },
+  // images: {
+  //   loader: 'custom',
+  //   loaderFile: './lib/image-loader.js',
+  // },
 
   async redirects() {
     return [
