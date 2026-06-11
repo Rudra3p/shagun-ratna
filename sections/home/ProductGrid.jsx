@@ -34,7 +34,7 @@ export default function ProductGrid() {
               className="group cursor-pointer bg-transparent"
             >
               {/* Rounded corners and border moved here */}
-              <div className="relative w-full aspect-[3/2] bg-[#e5e5e5] rounded-3xl border border-[#C5A059]/40 overflow-hidden">
+              <div className="relative w-full aspect-[2/3] bg-[#e5e5e5] rounded-3xl border border-[#C5A059]/40 overflow-hidden">
                 <Image 
                   src={`/product-${product.id}.jpg`} 
                   alt={product.name}
