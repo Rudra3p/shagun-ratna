@@ -2,14 +2,13 @@
 const nextConfig = {
   output: 'standalone',
   poweredByHeader: false, // Security: Hides tech stack details
+  
+  // Updated Image configuration for Cloudflare R2
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-    ],
+    loader: 'custom',
+    loaderFile: './lib/image-loader.js',
   },
+
   async redirects() {
     return [
       {
