@@ -5,6 +5,10 @@ export interface IProduct extends Document {
   productName: string;
   price: number;
   imageUrl?: string | null;
+  category: string;
+  discount: number;
+  offerPrice: number;
+  offertime: Date | null;
   createdAt: Date;
 }
 
@@ -13,12 +17,20 @@ export const ProductZodSchema = z.object({
   productName: z.string().min(1, "Name is required").trim(),
   price: z.number().positive("Price must be greater than 0"),
   imageUrl: z.string().url().nullable().optional(),
+  category: z.string().default('General').optional(),
+  discount: z.number().default(0).optional(),
+  offerPrice: z.number().default(0).optional(),
+  offertime: z.date().nullable().optional(),
 });
 
 // 2. Mongoose Schema
 const productSchema = new Schema({
   productName: { type: String, required: true, trim: true },
   price: { type: Number, required: true },
+  category: { type: String, default: 'General' }, 
+  discount: { type: Number, default: 0 }, 
+  offerPrice: { type: Number, default: 0},
+  offertime: { type: Date, default: null },
   imageUrl: { type: String, default: null },
 }, { timestamps: true }); // Use timestamps for createdAt/updatedAt
 
