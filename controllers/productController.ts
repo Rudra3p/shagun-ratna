@@ -1,26 +1,47 @@
 import Product from "@/models/product";
 import { NextResponse } from "next/server";
+import dbConnect from '@/db/db';
 
 // 1. ADD PRODUCT
 export const addProduct = async (req: Request) => {
   try {
-    const { productName, price, imageUrl, category, discount, offerPrice, offertime } = await req.json();
+    await dbConnect();
+    const body = await req.json();
+
+    // 1. Sanitize the data
+    // If imageUrl is empty string, convert to null so Zod doesn't fail
+    const sanitizedData = {
+      ...body,
+      imageUrl: (body.imageUrl === "" || body.imageUrl === undefined) ? null : body.imageUrl,
+      // Ensure numeric fields are numbers, default to 0 if missing
+      price: parseFloat(body.price) || 0,
+      discount: parseFloat(body.discount) || 0,
+      offerPrice: parseFloat(body.offerPrice) || 0,
+      // Coerce date if it exists
+      offertime: body.offertime ? new Date(body.offertime) : null
+    };
+
+    // 2. Create the model instance
+    // The pre('validate') hook will trigger here automatically
+    const newProduct = new Product(sanitizedData);
     
-    const newProduct = new Product({
-      productName: productName?.trim(),
-      price,
-      imageUrl,
-      category,
-      discount,
-      offerPrice,
-      offertime,
-    });
-    
+    // 3. Save to DB
     await newProduct.save();
-    return NextResponse.json({ message: "Product added successfully" }, { status: 201 });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "Product added successfully" 
+    }, { status: 201 });
+
   } catch (error) {
-    console.error("Add Product Error:", error);
-    return NextResponse.json({ error: "Failed to add product" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Failed to add product";
+    console.error("Add Product Error:", errorMessage);
+    
+    // Return a 400 status so the frontend knows to display the specific error
+    return NextResponse.json({ 
+      success: false, 
+      error: errorMessage 
+    }, { status: 400 });
   }
 };
 
