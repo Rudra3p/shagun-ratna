@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+import dbConnect from "@/db/db";
 import { 
   getProducts, 
   addProduct, 
@@ -6,17 +8,21 @@ import {
   deleteProduct 
 } from "@/controllers/productController";
 
-// GET: Gateway to fetch all
+// Helper to ensure DB is connected before any logic
+const ensureDB = async () => await dbConnect();
+
 export async function GET() { 
+  await ensureDB();
   return await getProducts(); 
 }
 
-// POST: Intelligent Dispatcher
 export async function POST(req: Request) {
+  await ensureDB(); // Connection happens here first
   const body = await req.json();
   
-  // Logic branch: Search vs Add
   if (body.hasOwnProperty('search')) {
+    // Note: Creating a new Request object is clever, but make sure
+    // your searchProducts logic can handle the cloned request.
     return await searchProducts(new Request(req.url, {
       method: 'POST',
       body: JSON.stringify(body),
@@ -31,12 +37,12 @@ export async function POST(req: Request) {
   }));
 }
 
-// PUT: Update
 export async function PUT(req: Request) { 
+  await ensureDB();
   return await updateProduct(req); 
 }
 
-// DELETE: Remove
 export async function DELETE(req: Request) { 
+  await ensureDB();
   return await deleteProduct(req); 
 }
