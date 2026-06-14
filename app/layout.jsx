@@ -48,7 +48,14 @@ export const metadata = {
   },
 };
 
+export const logTotalMemory = () => {
+  const usage = process.memoryUsage();
+  const totalRamInMB = Math.round(usage.rss / 1024 / 1024);
+  console.log(`[TOTAL APP RAM]: ${totalRamInMB} MB`);
+};
+
 export default function RootLayout({ children }) {
+  logTotalMemory();
   // 2. Add the variable to the className
   return (
     <html lang="en" className={`${cormorant.variable}`}>
