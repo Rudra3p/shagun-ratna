@@ -1,6 +1,7 @@
 import "./globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import { Cormorant_Garamond } from 'next/font/google';
+import os from 'os';
 
 const cormorant = Cormorant_Garamond({ 
   subsets: ['latin'], 
@@ -48,14 +49,17 @@ export const metadata = {
   },
 };
 
-export const logTotalMemory = () => {
-  const usage = process.memoryUsage();
-  const totalRamInMB = Math.round(usage.rss / 1024 / 1024);
-  console.log(`[TOTAL APP RAM]: ${totalRamInMB} MB`);
+// 2. Define the monitoring function
+export const logMemoryStatus = () => {
+  const total = Math.round(os.totalmem() / 1024 / 1024);
+  const used = Math.round(process.memoryUsage().rss / 1024 / 1024);
+  const percentage = Math.round((used / total) * 100);
+  
+  console.log(`[RAM STATUS]: ${used}MB used / ${total}MB total (${percentage}%)`);
 };
 
 export default function RootLayout({ children }) {
-  logTotalMemory();
+  logMemoryStatus();
   // 2. Add the variable to the className
   return (
     <html lang="en" className={`${cormorant.variable}`}>
