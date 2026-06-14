@@ -1,26 +1,51 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import adminApi from "@/lib/adminApi";
+import { useEffect, useState } from 'react';
+import adminApi from '@/lib/adminApi';
 
 export default function AdminDashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminApi.get('/dashboard')
+      .then((res) => {
+        console.log("Data from Backend:", res.data); // <--- CHECK THIS
+        setData(res.data);
+        setLoading(false);
+      })
+      .catch((err) => console.error("Error:", err));
+  }, []);
+
+  if (loading) return <div>Loading Analytics...</div>;
+
   return (
-    <div className="p-10">
-      <div className="flex justify-between items-center mb-10">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm font-bold">
-          System Online
+    <div style={{ padding: '20px' }}>
+      <h1>Dashboard Overview</h1>
+
+      {/* KPI Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+        <div style={cardStyle}>
+          <h3>Total Products</h3>
+          <p style={bigNumber}>{data.totalProducts}</p>
+        </div>
+        <div style={cardStyle}>
+          <h3>Total Revenue</h3>
+          <p style={bigNumber}>₹{data.totalOfflineRevenue}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Quick Stats */}
-        <div className="p-6 bg-white border rounded-2xl shadow-sm">
-          <p className="text-gray-400 text-sm">Inventory</p>
-          <h2 className="text-2xl font-bold">0 Items</h2>
-        </div>
-        {/* Add more stats here */}
+      {/* Low Stock & Inquiries Section */}
+      <div style={{ marginTop: '40px' }}>
+        <h2>Low Stock Alerts</h2>
+        <ul>
+          {data.lowStockItems.map((item) => (
+            <li key={item._id}>{item.productName} ({item.stock} left)</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
+
+const cardStyle = { padding: '20px', border: '1px solid #ddd', borderRadius: '8px' };
+const bigNumber = { fontSize: '2rem', fontWeight: 'bold' };
