@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { ShoppingBag } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -44,8 +44,8 @@ const Navbar = () => {
           className="bg-[#90060c] text-white px-5 py-2 rounded-sm hover:bg-[#90060c]/90 transition-all duration-500" 
           noUnderline 
         />
-        <NavLink href="/cart" className="hover:opacity-50 transition-opacity duration-500">
-          <ShoppingBag size={20} strokeWidth={1.5} />
+        <NavLink href="/my-inquiry" className="hover:opacity-50 transition-opacity duration-500">
+          <ClipboardList size={20} strokeWidth={1.5} />
         </NavLink>
       </div>
     </nav>

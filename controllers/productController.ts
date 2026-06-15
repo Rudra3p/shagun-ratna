@@ -49,84 +49,95 @@ export const addProduct = async (req: Request) => {
 // Only extracts data (IDs/Category matches) and passes it to the Gateway
 export const searchProducts = async (req: Request) => {
   try {
-    const { search } = await req.json();
+    const { search, page = 1, limit = 10 } = await req.json();
 
     if (!search || search.trim() === "") {
-      return await getProducts(); // If no search, jump to default Gateway
+      return await getProducts(null, 0, page); // Fallback to standard pagination
     }
 
+    // Aggregation with pagination
+    const skip = (page - 1) * limit;
     const results = await Product.aggregate([
-      {
-        $search: {
-          index: "default",
-          text: {
-            query: search,
-            path: ["productName", "category"],
-            fuzzy: { maxEdits: 1, prefixLength: 2 }
-          }
-        }
-      },
-      { $limit: 20 }
+      { $search: { index: "default", text: { query: search, path: ["productName", "category"] } } },
+      { $skip: skip },
+      { $limit: limit }
     ]);
 
-    // Pass the filtered results to the Gateway
-    return await getProducts(results);
+    // Get count for search
+    const totalResults = await Product.aggregate([
+      { $search: { index: "default", text: { query: search, path: ["productName", "category"] } } },
+      { $count: "total" }
+    ]);
+    const total = totalResults.length > 0 ? totalResults[0].total : 0;
+
+    // Pass data to Gateway
+    return await getProducts(results, Math.ceil(total / limit), page);
   } catch (error) {
-    console.error("Search Error:", error);
-    return NextResponse.json({ error: "Failed to search" }, { status: 500 });
+    return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
 };
 
 // 3. GET PRODUCTS (The Data Gateway)
 // This is the ONLY function that returns data to the frontend
-export const getProducts = async (refinedResults: any[] | null = null) => {
+export const getProducts = async (
+  products: any[] | null = null, 
+  totalPages: number = 0, 
+  currentPage: number = 1
+) => {
   try {
-    let finalProducts;
-
-    if (refinedResults && refinedResults.length > 0) {
-      finalProducts = refinedResults;
-    } else {
-      finalProducts = await Product.find().sort({ createdAt: -1 });
+    // If we passed specific data (like search results), use it
+    if (products) {
+      return NextResponse.json({ products, totalPages, currentPage }, { status: 200 });
     }
 
-    return NextResponse.json(finalProducts, { status: 200 });
+    // Default fetch logic (if no products were provided)
+    const page = currentPage;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const allProducts = await Product.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await Product.countDocuments();
+
+    return NextResponse.json({ 
+      products: allProducts, 
+      totalPages: Math.ceil(total / limit),
+      currentPage: page 
+    }, { status: 200 });
   } catch (error) {
-    console.error("Get Product Error:", error);
-    return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 };
 
 // 4. UPDATE PRODUCT
 export const updateProduct = async (req: Request) => {
   try {
-    const { id, productName, ...updateData } = await req.json();
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id"); // Extract from URL
+    const body = await req.json(); // Get the rest of the data
     
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      { ...updateData, productName: productName?.trim() },
+      { ...body },
       { new: true, runValidators: true }
     );
     
-    if (!updatedProduct) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
-    }
-    return NextResponse.json({ message: "Product updated successfully", product: updatedProduct }, { status: 200 });
+    if (!updatedProduct) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    return NextResponse.json({ message: "Updated", product: updatedProduct }, { status: 200 });
   } catch (error) {
-    console.error("Update Product Error:", error);
-    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 };
 
 // 5. DELETE PRODUCT
 export const deleteProduct = async (req: Request) => {
   try {
-    const { id } = await req.json();
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id"); // Extract from URL
+    
     const deletedProduct = await Product.findByIdAndDelete(id);
-    if (!deletedProduct) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
-    }
-    return NextResponse.json({ message: "Product deleted successfully" }, { status: 200 });
+    if (!deletedProduct) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ message: "Deleted" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
 };
