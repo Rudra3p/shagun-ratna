@@ -5,8 +5,8 @@ import adminApi from '@/lib/adminApi';
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [view, setView] = useState('list');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   
   const [formData, setFormData] = useState({ 
     productName: '', price: '', category: 'General', discount: 0, offerPrice: 0 
@@ -15,19 +15,27 @@ export default function Products() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Updated fetch to accept page number
-  const fetchProducts = async (page = 1) => {
+  // FETCH: Loads products and appends them to the existing list
+  const fetchProducts = async (pageNumber = 1) => {
     setLoading(true);
     try {
-      const res = await adminApi.get(`/products?page=${page}&limit=10`);
-      setProducts(res.data.products);
-      setTotalPages(res.data.totalPages);
-      setCurrentPage(res.data.currentPage);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+      const res = await adminApi.get(`/products?page=${pageNumber}&limit=10`);
+      const newProducts = res.data.products;
+
+      // If page is 1, replace products. If page > 1, append new products.
+      setProducts(prev => pageNumber === 1 ? newProducts : [...prev, ...newProducts]);
+      
+      // If we got fewer than 10 products, we've reached the end
+      setHasMore(newProducts.length === 10);
+      setPage(pageNumber);
+    } catch (err) { 
+      console.error(err); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { fetchProducts(1); }, []);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -43,7 +51,7 @@ export default function Products() {
       else await adminApi.put(`/products?id=${editingId}`, payload);
       
       setView('list');
-      fetchProducts(currentPage); // Refresh current page
+      fetchProducts(1); // Reset to page 1 to refresh the list
     } catch (err) { 
       alert(err.response?.data?.error || "Failed to save product"); 
     }
@@ -64,7 +72,7 @@ export default function Products() {
   const handleDelete = async (id) => {
     if (confirm("Are you sure?")) {
       await adminApi.delete(`/products?id=${id}`);
-      fetchProducts(currentPage);
+      fetchProducts(1); // Reset to page 1 to refresh the list
     }
   };
 
@@ -94,7 +102,7 @@ export default function Products() {
         <button onClick={() => { setFormData({ productName: '', price: '', category: 'General', discount: 0, offerPrice: 0 }); setView('add'); }}>+ Add New</button>
       </div>
 
-      {loading ? <p>Loading...</p> : (
+      {loading && products.length === 0 ? <p>Loading...</p> : (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -116,12 +124,18 @@ export default function Products() {
               ))}
             </tbody>
           </table>
-          {/* Pagination Navigation */}
-          <div style={{ marginTop: '20px' }}>
-            <button disabled={currentPage === 1} onClick={() => fetchProducts(currentPage - 1)}>Prev</button>
-            <span> Page {currentPage} of {totalPages} </span>
-            <button disabled={currentPage === totalPages} onClick={() => fetchProducts(currentPage + 1)}>Next</button>
-          </div>
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div style={{ marginTop: '20px', textAlign: 'center' }}>
+              <button 
+                disabled={loading} 
+                onClick={() => fetchProducts(page + 1)}
+              >
+                {loading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
