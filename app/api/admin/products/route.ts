@@ -7,8 +7,8 @@ import {
   updateProduct, 
   deleteProduct 
 } from "@/controllers/productController";
+import { generateUploadUrl } from "@/lib/r2Service"; // Import the service
 
-// Helper to ensure DB is connected before any logic
 const ensureDB = async () => await dbConnect();
 
 export async function GET() { 
@@ -17,12 +17,19 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await ensureDB(); // Connection happens here first
   const body = await req.json();
-  
+
+  // NEW: Handle R2 Upload URL Request
+  if (body.action === 'get-upload-url') {
+    const { fileName, fileType } = body;
+    const uniqueKey = `products/${Date.now()}-${fileName.replace(/\s+/g, '-')}`;
+    const signedUrl = await generateUploadUrl(uniqueKey, fileType);
+    return NextResponse.json({ signedUrl, uniqueKey });
+  }
+
+  // EXISTING: Handle Search
+  await ensureDB();
   if (body.hasOwnProperty('search')) {
-    // Note: Creating a new Request object is clever, but make sure
-    // your searchProducts logic can handle the cloned request.
     return await searchProducts(new Request(req.url, {
       method: 'POST',
       body: JSON.stringify(body),
@@ -30,6 +37,7 @@ export async function POST(req: Request) {
     }));
   }
   
+  // EXISTING: Handle Add Product
   return await addProduct(new Request(req.url, {
     method: 'POST',
     body: JSON.stringify(body),

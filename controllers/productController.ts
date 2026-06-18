@@ -3,29 +3,24 @@ import { NextResponse } from "next/server";
 import dbConnect from '@/db/db';
 
 // 1. ADD PRODUCT
+// controllers/productController.ts
+
 export const addProduct = async (req: Request) => {
   try {
     await dbConnect();
     const body = await req.json();
 
-    // 1. Sanitize the data
-    // If imageUrl is empty string, convert to null so Zod doesn't fail
+    // Sanitization layer
     const sanitizedData = {
       ...body,
       imageUrl: (body.imageUrl === "" || body.imageUrl === undefined) ? null : body.imageUrl,
-      // Ensure numeric fields are numbers, default to 0 if missing
       price: parseFloat(body.price) || 0,
       discount: parseFloat(body.discount) || 0,
       offerPrice: parseFloat(body.offerPrice) || 0,
-      // Coerce date if it exists
       offertime: body.offertime ? new Date(body.offertime) : null
     };
 
-    // 2. Create the model instance
-    // The pre('validate') hook will trigger here automatically
     const newProduct = new Product(sanitizedData);
-    
-    // 3. Save to DB
     await newProduct.save();
 
     return NextResponse.json({ 
@@ -35,13 +30,7 @@ export const addProduct = async (req: Request) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Failed to add product";
-    console.error("Add Product Error:", errorMessage);
-    
-    // Return a 400 status so the frontend knows to display the specific error
-    return NextResponse.json({ 
-      success: false, 
-      error: errorMessage 
-    }, { status: 400 });
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });
   }
 };
 
@@ -109,11 +98,21 @@ export const getProducts = async (
 };
 
 // 4. UPDATE PRODUCT
+// controllers/productController.ts
+
 export const updateProduct = async (req: Request) => {
   try {
+    await dbConnect();
+    
+    // Extract ID from URL
     const url = new URL(req.url);
-    const id = url.searchParams.get("id"); // Extract from URL
-    const body = await req.json(); // Get the rest of the data
+    const id = url.searchParams.get("id"); 
+    
+    if (!id) {
+      return NextResponse.json({ error: "ID missing in URL" }, { status: 400 });
+    }
+
+    const body = await req.json();
     
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
@@ -121,13 +120,15 @@ export const updateProduct = async (req: Request) => {
       { new: true, runValidators: true }
     );
     
-    if (!updatedProduct) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    if (!updatedProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+    
     return NextResponse.json({ message: "Updated", product: updatedProduct }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 };
-
 // 5. DELETE PRODUCT
 export const deleteProduct = async (req: Request) => {
   try {

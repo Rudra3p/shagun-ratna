@@ -11,6 +11,7 @@ export default function Products() {
   const [formData, setFormData] = useState({ 
     productName: '', price: '', category: 'General', discount: 0, offerPrice: 0 
   });
+  const [imageFile, setImageFile] = useState(null);
   
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,21 +40,52 @@ export default function Products() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    const payload = {
-      ...formData,
-      price: parseFloat(formData.price),
-      discount: parseFloat(formData.discount),
-      offerPrice: parseFloat(formData.offerPrice)
-    };
+    setLoading(true);
 
     try {
-      if (view === 'add') await adminApi.post('/products', payload);
-      else await adminApi.put(`/products?id=${editingId}`, payload);
+      let imageUrl = formData.imageUrl || null;
+
+      // 1. Upload to R2 if a new file is selected
+      if (imageFile) {
+        // Request signed URL from your backend
+        const { data } = await adminApi.post('/products', {
+          action: 'get-upload-url',
+          fileName: imageFile.name,
+          fileType: imageFile.type
+        });
+
+        // Upload file directly to R2
+        await fetch(data.signedUrl, {
+          method: 'PUT',
+          body: imageFile,
+          headers: { 'Content-Type': imageFile.type }
+        });
+
+        imageUrl = data.publicUrl; // Or your specific CDN path
+      }
+
+      // 2. Save product to DB
+      const payload = {
+        ...formData,
+        imageUrl,
+        price: parseFloat(formData.price),
+        discount: parseFloat(formData.discount),
+        offerPrice: parseFloat(formData.offerPrice)
+      };
+
+      if (view === 'add') {
+        await adminApi.post('/products', { action: 'create', ...payload });
+      } else {
+        await adminApi.put(`/products?id=${editingId}`, payload);
+      }
       
       setView('list');
-      fetchProducts(1); // Reset to page 1 to refresh the list
+      fetchProducts(1);
     } catch (err) { 
-      alert(err.response?.data?.error || "Failed to save product"); 
+      console.error(err);
+      alert(err.response?.data?.error || "Save failed"); 
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,7 +95,8 @@ export default function Products() {
       price: product.price,
       category: product.category,
       discount: product.discount,
-      offerPrice: product.offerPrice
+      offerPrice: product.offerPrice,
+      imageUrl: product.imageUrl || '' // Preserve existing image
     });
     setEditingId(product._id);
     setView('edit');
@@ -86,6 +119,12 @@ export default function Products() {
           <input placeholder="Category" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} />
           <input type="number" placeholder="Discount" value={formData.discount} onChange={(e) => setFormData({...formData, discount: e.target.value})} />
           <input type="number" placeholder="Offer Price" value={formData.offerPrice} onChange={(e) => setFormData({...formData, offerPrice: e.target.value})} />
+          <label>Product Image:</label>
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={(e) => setImageFile(e.target.files[0])} 
+          />
           <div style={{ display: 'flex', gap: '10px' }}>
             <button type="submit">Save</button>
             <button type="button" onClick={() => setView('list')}>Cancel</button>
