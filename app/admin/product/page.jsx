@@ -45,26 +45,27 @@ export default function Products() {
     try {
       let imageUrl = formData.imageUrl || null;
 
-      // 1. Upload to R2 if a new file is selected
       if (imageFile) {
-        // Request signed URL from your backend
+        console.log("1. Requesting signed URL for:", imageFile.name);
+        
         const { data } = await adminApi.post('/products', {
           action: 'get-upload-url',
           fileName: imageFile.name,
           fileType: imageFile.type
         });
+        
+        console.log("2. Received signed URL, starting R2 upload...");
 
-        // Upload file directly to R2
         await fetch(data.signedUrl, {
           method: 'PUT',
           body: imageFile,
           headers: { 'Content-Type': imageFile.type }
         });
 
-        imageUrl = data.publicUrl; // Or your specific CDN path
+        console.log("3. R2 upload successful");
+        imageUrl = data.publicUrl;
       }
 
-      // 2. Save product to DB
       const payload = {
         ...formData,
         imageUrl,
@@ -73,16 +74,19 @@ export default function Products() {
         offerPrice: parseFloat(formData.offerPrice)
       };
 
+      console.log("4. Sending payload to database:", payload);
+
       if (view === 'add') {
         await adminApi.post('/products', { action: 'create', ...payload });
       } else {
         await adminApi.put(`/products?id=${editingId}`, payload);
       }
       
+      console.log("5. Save successful!");
       setView('list');
       fetchProducts(1);
     } catch (err) { 
-      console.error(err);
+      console.error("6. ERROR caught:", err); // THIS IS THE MOST IMPORTANT LOG
       alert(err.response?.data?.error || "Save failed"); 
     } finally {
       setLoading(false);
