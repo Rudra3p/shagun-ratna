@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminMiddleware } from './middlewares/adminMiddleware';
 import { userMiddleware } from './middlewares/userMiddleware';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. SECURE ADMIN APIs (LOCKED)
