@@ -23,28 +23,54 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="py-24 px-6 bg-[#faf3e5]">
-      <div className="max-w-5xl mx-auto">
-        <motion.h2 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          className="text-center font-serif text-4xl text-[#1a1a1a] mb-16 uppercase tracking-[0.2em]"
-        >
-          Patron Experiences
-        </motion.h2>
+    <section className="py-32 px-12 bg-[#FDFBF7]">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col items-center mb-20 text-center">
+          {/* Self-drawing vertical line */}
+          <motion.div 
+            initial={{ height: 0 }}
+            whileInView={{ height: 50 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+            className="w-[1px] bg-[#C5A059]/60 mb-6"
+          />
+          <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3">
+            Words from our Patrons
+          </span>
+          <h2 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light">
+            Patron Experiences
+          </h2>
+          <motion.div 
+            initial={{ width: 0 }}
+            whileInView={{ width: 96 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="h-[1px] bg-[#C5A059] mt-6" 
+          />
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((t, i) => (
             <motion.div 
               key={i}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2 }}
-              className="border-l border-[#C5A059] pl-6"
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ delay: i * 0.15, duration: 0.8 }}
+              className="bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col justify-between"
             >
-              <p className="text-[#1a1a1a]/80 italic mb-6 leading-relaxed">"{t.quote}"</p>
-              <h4 className="font-serif text-[#90060c]">{t.name}</h4>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#1a1a1a]/60 mt-1">{t.role}</p>
+              <div>
+                {/* Large Decorative Quote Mark */}
+                <span className="font-brand text-7xl text-[#C5A059]/30 select-none block h-4 leading-none mb-6">“</span>
+                <p className="font-sans text-[#1a1a1a]/80 italic text-sm leading-relaxed mb-8 tracking-[0.04em]">
+                  {t.quote}
+                </p>
+              </div>
+              <div>
+                <div className="h-[1px] w-8 bg-[#C5A059]/40 mb-4" />
+                <h4 className="font-brand text-2xl text-[#90060c] font-normal">{t.name}</h4>
+                <p className="text-[9px] uppercase tracking-[0.25em] text-[#C5A059] mt-2 font-bold">{t.role}</p>
+              </div>
             </motion.div>
           ))}
         </div>

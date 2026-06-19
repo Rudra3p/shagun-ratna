@@ -30,9 +30,10 @@ export default function PhilosophySection() {
             className="relative w-[80%] md:w-[70%] aspect-[4/5] shadow-2xl"
           >
             <Image 
-              src="/philosophy-main.jpg" 
+              src="/philosophy-main.png" 
               alt="Our Philosophy" 
               fill 
+              sizes="(max-width: 768px) 80vw, 35vw"
               className="object-cover border border-[#C5A059]/30"
             />
             {/* Decorative Border */}

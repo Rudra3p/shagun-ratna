@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function HeritageSection() {
   return (
-    <section className="py-20 px-6 bg-[#faf3e5] text-[#90060c]">
+    <section className="py-20 px-6 bg-white text-[#90060c]">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         
         {/* Image Grid - Moved to the Left */}
@@ -14,6 +14,7 @@ export default function HeritageSection() {
               src="/heritage-tall.jpg" 
               alt="Heritage Craftsmanship" 
               fill 
+              sizes="(max-width: 1024px) 100vw, 33vw"
               className="object-cover"
               priority
             />
@@ -26,6 +27,7 @@ export default function HeritageSection() {
                 src="/heritage-square-1.jpg" 
                 alt="Detailed Work" 
                 fill 
+                sizes="(max-width: 1024px) 50vw, 17vw"
                 className="object-cover"
                 priority
               />
@@ -35,6 +37,7 @@ export default function HeritageSection() {
                 src="/heritage-square-2.jpg" 
                 alt="Legacy Detail" 
                 fill 
+                sizes="(max-width: 1024px) 50vw, 17vw"
                 className="object-cover"
                 priority
               />

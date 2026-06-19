@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export default function BoutiqueVisit() {
   return (
-    <section className="relative py-24 px-6 bg-[#faf3e5] text-[#90060c]">
+    <section className="relative py-24 px-6 bg-white text-[#90060c]">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
         
         {/* Visual Content - Editorial Style */}
@@ -14,6 +14,7 @@ export default function BoutiqueVisit() {
               src="/boutique-interior.jpg" 
               alt="Visit our Boutique" 
               fill 
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"
             />
           </div>

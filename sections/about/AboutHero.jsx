@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
 const images = [
-  "/about-1.jpg", 
+  "/about-1.png", 
   "/about-2.jpg",
   "/about-3.jpg",
   "/about-4.jpg",
@@ -40,6 +40,7 @@ export default function AboutHero() {
               src={images[index]}
               alt="Shagun Ratna Legacy"
               fill
+              sizes="100vw"
               priority
               className="object-cover object-center"
             />
