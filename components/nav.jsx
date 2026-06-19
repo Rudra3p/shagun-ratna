@@ -20,7 +20,7 @@ const Navbar = () => {
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-700 ${
       isScrolled 
-        ? 'bg-[#faf3e5]/90 backdrop-blur-md h-14 border-b border-[#90060c]/20' 
+        ? 'bg-white/95 backdrop-blur-md h-14 border-b border-[#90060c]/20' 
         : 'bg-transparent h-16 border-b border-[#90060c]/10'
     } flex items-center justify-between px-12 text-[#90060c]`}>
       
