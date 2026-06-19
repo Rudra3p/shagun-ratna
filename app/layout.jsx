@@ -63,7 +63,7 @@ export default function RootLayout({ children }) {
   // 2. Add the variable to the className
   return (
     <html lang="en" className={`${cormorant.variable}`}>
-      <body className="bg-[#faf3e5] font-sans">
+      <body className="bg-[#FDFBF7] font-sans">
         <LayoutWrapper>
           {children}
         </LayoutWrapper>
