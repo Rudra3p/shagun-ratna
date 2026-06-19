@@ -14,7 +14,7 @@ export const metadata = {
 
 export default function About() {
   return (
-    <main className="bg-[#faf3e5]">
+    <main className="bg-[#faf3e5] mt-5">
       <AboutHero />
       
       <PageDivider />
