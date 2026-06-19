@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { 
   ClipboardList, User, LayoutGrid, History, Package, 
-  Home, LogOut 
+  LayoutDashboard, LogOut 
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -29,7 +29,7 @@ const AdminSidebar = () => {
 
       {/* Main Nav */}
       <nav className="flex flex-col gap-8 flex-grow">
-        <SidebarItem href="/admin" label="Dashboard" icon={<Home size={18} />} active={pathname === '/admin'} />
+        <SidebarItem href="/admin" label="Dashboard" icon={<LayoutDashboard size={18} />} active={pathname === '/admin'} />
         <SidebarItem href="/admin/profile" label="Profile" icon={<User size={18} />} active={pathname.includes('/profile')} />
         <SidebarItem href="/admin/product" label="Products" icon={<Package size={18} />} active={pathname.includes('/product')} />
         <SidebarItem href="/admin/history" label="History" icon={<History size={18} />} active={pathname.includes('/history')} />
