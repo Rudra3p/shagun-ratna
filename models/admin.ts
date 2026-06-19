@@ -24,7 +24,7 @@ export const AdminZodSchema = z.object({
   loginAttempts: z.number().default(0),
   lockUntil: z.date().nullable().optional(),
   lastOtpSentAt: z.date().nullable().optional(), 
-  refreshToken: z.string().optional(),           
+  refreshToken: z.string().nullable().optional(),          
 });
 
 // 2. Define the Mongoose Schema
