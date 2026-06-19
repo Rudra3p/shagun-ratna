@@ -3,20 +3,18 @@
 import { useState, useEffect } from 'react';
 import { 
   ClipboardList, User, LayoutGrid, History, Package, 
-  Home, LogOut, LogIn, ChevronRight 
+  Home, LogOut 
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const AdminSidebar = () => {
-  const [userName, setUserName] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
-    setUserName(localStorage.getItem("shagun_user_name"));
   }, []);
 
   if (!isMounted) return null;
@@ -31,27 +29,16 @@ const AdminSidebar = () => {
 
       {/* Main Nav */}
       <nav className="flex flex-col gap-8 flex-grow">
-        <SidebarItem href="/admin" label="Home" icon={<Home size={18} />} active={pathname === '/admin'} />
-        
-        {/* Admin Specific Links */}
-        {userName && (
-          <div className="flex flex-col gap-4">
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase opacity-50 px-2">Admin Panel</p>
-            <SidebarItem href="/admin/profile" label="Profile" icon={<User size={18} />} active={pathname.includes('/profile')} />
-            <SidebarItem href="/admin/product" label="Products" icon={<Package size={18} />} active={pathname.includes('/product')} />
-            <SidebarItem href="/admin/history" label="History" icon={<History size={18} />} active={pathname.includes('/history')} />
-            <SidebarItem href="/admin/inquiry" label="Inquiries" icon={<ClipboardList size={18} />} active={pathname.includes('/inquiry')} />
-          </div>
-        )}
+        <SidebarItem href="/admin" label="Dashboard" icon={<Home size={18} />} active={pathname === '/admin'} />
+        <SidebarItem href="/admin/profile" label="Profile" icon={<User size={18} />} active={pathname.includes('/profile')} />
+        <SidebarItem href="/admin/product" label="Products" icon={<Package size={18} />} active={pathname.includes('/product')} />
+        <SidebarItem href="/admin/history" label="History" icon={<History size={18} />} active={pathname.includes('/history')} />
+        <SidebarItem href="/admin/inquiry" label="Inquiries" icon={<ClipboardList size={18} />} active={pathname.includes('/inquiry')} />
       </nav>
 
       {/* Footer Auth */}
       <div className="pt-8 border-t border-[#C5A059]/10">
-        {userName ? (
           <SidebarItem href="/admin/logout" label="Logout" icon={<LogOut size={18} />} />
-        ) : (
-          <SidebarItem href="/admin/login" label="Login" icon={<LogIn size={18} />} />
-        )}
       </div>
     </aside>
   );
