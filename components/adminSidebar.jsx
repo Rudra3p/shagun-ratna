@@ -25,13 +25,13 @@ const AdminSidebar = () => {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-[#C5A059]/20 flex flex-col py-10 px-6 text-[#90060c] z-50">
       
       {/* Logo */}
-      <Link href="/" className="h-[60px] w-full relative block mb-12">
+      <Link href="/admin" className="h-[60px] w-full relative block mb-12">
         <Image src="/shagunratnalogo.png" alt="Logo" fill className="object-contain" priority />
       </Link>
 
       {/* Main Nav */}
       <nav className="flex flex-col gap-8 flex-grow">
-        <SidebarItem href="/" label="Home" icon={<Home size={18} />} active={pathname === '/'} />
+        <SidebarItem href="/admin" label="Home" icon={<Home size={18} />} active={pathname === '/admin'} />
         
         {/* Admin Specific Links */}
         {userName && (
