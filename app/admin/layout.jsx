@@ -1,4 +1,6 @@
 // This goes in: app/admin/layout.js
+import AdminSidebar from '@/components/adminSidebar';
+
 export const metadata = {
   title: 'Admin Dashboard', // Becomes "Admin Dashboard | Shagun Ratna"
   description: 'Internal business management system for Shagun Ratna.',
@@ -9,5 +11,10 @@ export const metadata = {
 };
 
 export default function AdminLayout({ children }) {
-  return <section>{children}</section>;
+  return (
+  <main className="flex flex-row min-h-screen">
+    <AdminSidebar />
+    <section>{children}</section>
+  </main>
+  )
 }
