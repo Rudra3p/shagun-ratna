@@ -1,722 +1,466 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  MapPin, 
+  Phone, 
+  Mail, 
+  Clock, 
+  Sparkles,
+  Send,
+  CheckCircle2
+} from 'lucide-react';
 import PageDivider from '@/components/PageDivider';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const mockProducts = [
-  { id: 1, name: "Royal Heritage Necklace", category: "Gold", karat: "22K" },
-  { id: 2, name: "Bridal Diamond Ring", category: "Bridal", karat: "PT950" },
-  { id: 3, name: "Emerald Halo Studs", category: "Heirloom", karat: "18K" },
-  { id: 4, name: "Royal Ruby Bangle", category: "Heirloom", karat: "22K" },
-  { id: 5, name: "Classic Platinum Chain", category: "Contemporary", karat: "PT950" },
-  { id: 6, name: "Premium Pearl Set", category: "Contemporary", karat: "18K" },
-];
+const InstagramIcon = ({ size = 20, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    stroke="currentColor"
+    strokeWidth="1.75"
+    fill="none"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
 
-// Zodiac & birthstone calculator
-const getGemstoneAndZodiac = (dobString) => {
-  if (!dobString) return null;
-  const date = new Date(dobString);
-  const month = date.getMonth() + 1; // 1-indexed
-  const day = date.getDate();
+const FacebookIcon = ({ size = 20, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    stroke="currentColor"
+    strokeWidth="1.75"
+    fill="none"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
 
-  let zodiac = "";
-  let gemstone = "";
-  let description = "";
+const WhatsAppIcon = ({ size = 20, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M12.004 2C6.48 2 2 6.48 2 12.004c0 1.764.462 3.486 1.341 5.011l-1.428 5.215 5.337-1.4a9.96 9.96 0 0 0 4.754 1.178c5.524 0 10.004-4.48 10.004-10.004C22.012 6.48 17.528 2 12.004 2zm0 1.636c4.615 0 8.368 3.753 8.368 8.368 0 4.615-3.753 8.368-8.368 8.368-1.573 0-3.04-.438-4.305-1.196l-.309-.184-3.197.839.854-3.118-.202-.32a8.318 8.318 0 0 1-1.209-4.389c0-4.615 3.753-8.368 8.368-8.368zm-3.693 4.148c-.143 0-.36.054-.548.26-.188.207-.718.702-.718 1.711s.735 1.986.837 2.124c.102.138 1.447 2.21 3.506 3.097.49.21.872.337 1.17.432.493.156.942.134 1.296.082.395-.058 1.21-.495 1.38-.973.058-.09.207-.09.384-.141-.475-.052-.09-.188-.144-.395-.248-.207-.103-1.21-.597-1.397-.666-.188-.069-.324-.103-.46.103-.137.207-.53.666-.649.803-.12.138-.24.155-.447.052-.207-.103-.874-.322-1.664-1.026-.615-.549-1.03-1.226-1.15-1.433-.12-.207-.013-.32.09-.422.094-.092.207-.242.31-.362.104-.12.138-.207.207-.345.069-.138.035-.259-.017-.363-.052-.103-.46-1.109-.63-1.517-.165-.4-.347-.346-.46-.352-.105-.005-.226-.006-.347-.006z" />
+  </svg>
+);
 
-  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) {
-    zodiac = "Aries";
-    gemstone = "Diamond";
-    description = "Symbolizes strength, clarity, and eternal love. Amplifies energy and focus.";
-  } else if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) {
-    zodiac = "Taurus";
-    gemstone = "Emerald";
-    description = "The stone of wisdom, growth, and patience. Nurtures the heart and brings prosperity.";
-  } else if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) {
-    zodiac = "Gemini";
-    gemstone = "Pearl";
-    description = "Represents purity, balance, and wisdom. Calms the mind and enhances intuition.";
-  } else if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) {
-    zodiac = "Cancer";
-    gemstone = "Ruby";
-    description = "Stone of passion, courage, and vitality. Ignites enthusiasm and protects the heart.";
-  } else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {
-    zodiac = "Leo";
-    gemstone = "Peridot";
-    description = "Brings light, joy, and spiritual protection. Instills confidence and attracts good fortune.";
-  } else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {
-    zodiac = "Virgo";
-    gemstone = "Blue Sapphire";
-    description = "Symbolizes loyalty, truth, and mental clarity. Brings inner peace and spiritual insight.";
-  } else if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) {
-    zodiac = "Libra";
-    gemstone = "Opal";
-    description = "Stone of inspiration, hope, and love. Enhances creativity and amplifies emotions.";
-  } else if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) {
-    zodiac = "Scorpio";
-    gemstone = "Topaz";
-    description = "Brings healing, strength, and manifestation. Calms anger and promotes forgiveness.";
-  } else if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) {
-    zodiac = "Sagittarius";
-    gemstone = "Tanzanite";
-    description = "Promotes spiritual growth, truth, and transformation. Stimulates intuition.";
-  } else if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) {
-    zodiac = "Capricorn";
-    gemstone = "Garnet";
-    description = "Brings grounding energy, security, and vitality. Ignites passion and dedication.";
-  } else if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) {
-    zodiac = "Aquarius";
-    gemstone = "Amethyst";
-    description = "A powerful meditative stone. Promotes spiritual wisdom, sobriety, and tranquility.";
-  } else {
-    zodiac = "Pisces";
-    gemstone = "Aquamarine";
-    description = "The stone of the sea. Calms fears, enhances communication, and brings eternal youth.";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
   }
-
-  return { zodiac, gemstone, description };
 };
 
-const isRecommended = (productName, gemstone) => {
-  if (!gemstone) return false;
-  const name = productName.toLowerCase();
-  const gem = gemstone.toLowerCase();
-
-  // Match exact name parts
-  if (name.includes(gem)) return true;
-
-  // Fallbacks
-  if (gem === "diamond" && (name.includes("diamond") || name.includes("platinum"))) return true;
-  if (gem === "ruby" && name.includes("ruby")) return true;
-  if (gem === "pearl" && name.includes("pearl")) return true;
-
-  // For other stones (e.g. Sapphire, Opal, Amethyst, Aquamarine), suggest high-value cosmic gold and emerald items
-  if (["aquamarine", "amethyst", "opal", "topaz", "tanzanite", "garnet", "peridot", "blue sapphire"].includes(gem)) {
-    return name.includes("heritage") || name.includes("emerald");
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } 
   }
-
-  return false;
 };
 
-const getLevenshteinDistance = (a, b) => {
-  const tmp = [];
-  let i, j;
-  for (i = 0; i <= a.length; i++) {
-    tmp[i] = [i];
-  }
-  for (j = 0; j <= b.length; j++) {
-    tmp[0][j] = j;
-  }
-  for (i = 1; i <= a.length; i++) {
-    for (j = 1; j <= b.length; j++) {
-      tmp[i][j] = Math.min(
-        tmp[i - 1][j] + 1, // deletion
-        tmp[i][j - 1] + 1, // insertion
-        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1) // substitution
-      );
-    }
-  }
-  return tmp[a.length][b.length];
-};
-
-const isFuzzyMatch = (productName, searchQuery) => {
-  const cleanName = productName.toLowerCase();
-  const cleanQuery = searchQuery.trim().toLowerCase();
-  
-  if (!cleanQuery) return true;
-  
-  // 1. Direct match check
-  if (cleanName.includes(cleanQuery)) return true;
-  
-  // 2. Split query and product name into words
-  const queryWords = cleanQuery.split(/\s+/);
-  const nameWords = cleanName.split(/\s+/);
-  
-  // For each query word, find if there is a highly similar word in the product name
-  return queryWords.every(qWord => {
-    // Direct substring check for this word
-    if (nameWords.some(nWord => nWord.includes(qWord) || qWord.includes(nWord))) return true;
-    
-    // Levenshtein distance check (allow 1 error for short words <= 5 chars, and 2 errors for longer words)
-    const threshold = qWord.length <= 5 ? 1 : 2;
-    
-    return nameWords.some(nWord => {
-      const distance = getLevenshteinDistance(qWord, nWord);
-      return distance <= threshold;
-    });
+export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    productName: 'General Inquiry',
+    customizationNotes: ''
   });
-};
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-export default function MyCollectionPage() {
-  const [user, setUser] = useState({ name: "", dob: "" });
-  const [alignment, setAlignment] = useState(null);
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [search, setSearch] = useState("");
-  const [showOnlyRecommended, setShowOnlyRecommended] = useState(false);
-
-  // Carousel slider refs
-  const zodiacScrollRef = useRef(null);
-  const newLaunchScrollRef = useRef(null);
-  const mothersScrollRef = useRef(null);
-  const lovableScrollRef = useRef(null);
-
-  useEffect(() => {
-    const name = localStorage.getItem("shagun_user_name") || "";
-    const dob = localStorage.getItem("shagun_user_dob") || "";
-    setUser({ name, dob });
-
-    if (dob) {
-      const align = getGemstoneAndZodiac(dob);
-      setAlignment(align);
-    }
-  }, []);
-
-  const categories = ["Gold", "Bridal", "Heirloom", "Contemporary"];
-
-  const toggleFilter = (cat) => {
-    setActiveFilters(prev => 
-      prev.includes(cat) ? prev.filter(f => f !== cat) : [...prev, cat]
-    );
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogout = async () => {
-    localStorage.removeItem("shagun_user_name");
-    localStorage.removeItem("shagun_user_dob");
-    try {
-      await fetch('/api/user/logout', { method: 'POST' });
-    } catch (err) {
-      console.error(err);
-    }
-    window.location.href = '/';
-  };
-
-  const handleViewAllDestiny = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowOnlyRecommended(true);
-    // Smooth scroll to the main grid
-    const mainGrid = document.getElementById('destiny-grid-anchor');
-    if (mainGrid) {
-      mainGrid.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const scrollSlider = (ref, direction) => {
-    if (ref.current) {
-      const { scrollLeft, clientWidth } = ref.current;
-      const scrollAmount = clientWidth * 0.6; // Scroll 60% of visible slider width
-      ref.current.scrollTo({
-        left: direction === 'left' ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesCategory = activeFilters.length === 0 || activeFilters.includes(product.category);
-    const matchesSearch = isFuzzyMatch(product.name, search);
-    const matchesRecommended = !showOnlyRecommended || (alignment && isRecommended(product.name, alignment.gemstone));
-    return matchesCategory && matchesSearch && matchesRecommended;
-  });
-
-  // Calculate dynamic products specifically matching their suggested zodiac gemstone
-  const getZodiacProducts = () => {
-    if (!alignment || !alignment.gemstone) return [];
+    setIsSubmitting(true);
+    setErrorMessage('');
     
-    // Filter products matching the gemstone
-    const matches = mockProducts.filter(p => isRecommended(p.name, alignment.gemstone));
-    const list = [...matches];
-
-    // Include the signature emerald choker if their stone is Emerald
-    if (alignment.gemstone.toLowerCase() === 'emerald') {
-      const exists = list.some(item => item.id === "new-launch");
-      if (!exists) {
-        list.unshift({ id: "new-launch", name: "The Aadya Emerald Choker", category: "Heirloom", karat: "22K", customImage: "/new-launch.png" });
-      }
+    // Quick validation
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setErrorMessage('Please fill in your name and phone number.');
+      setIsSubmitting(false);
+      return;
     }
 
-    // Fallback: If we have fewer than 3 products, append general masterworks to complete the slider view
-    if (list.length < 3) {
-      mockProducts.forEach(p => {
-        if (!list.some(item => item.id === p.id) && list.length < 3) {
-          list.push(p);
-        }
+    try {
+      const response = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          productName: formData.productName,
+          customizationNotes: formData.customizationNotes
+        })
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsSuccess(true);
+        setFormData({
+          name: '',
+          phone: '',
+          productName: 'General Inquiry',
+          customizationNotes: ''
+        });
+      } else {
+        setErrorMessage(data.error || 'Failed to submit. Please try again.');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      setErrorMessage('A network error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
-    return list;
   };
-
-  const zodiacProducts = getZodiacProducts();
-
-  // Curated lists for special sliders
-  const newLaunchProducts = [
-    { id: "new-launch", name: "The Aadya Emerald Choker", category: "Heirloom", karat: "22K", customImage: "/new-launch.png" },
-    mockProducts[0], // Royal Heritage Necklace (Gold)
-    mockProducts[1], // Bridal Diamond Ring (Bridal)
-    mockProducts[2], // Emerald Halo Studs (Heirloom)
-    mockProducts[3], // Royal Ruby Bangle (Heirloom)
-  ];
-
-  const mothersGiftProducts = [
-    mockProducts[0], // Royal Heritage Necklace (Gold)
-    mockProducts[3], // Royal Ruby Bangle (Heirloom)
-    mockProducts[5], // Premium Pearl Set (Contemporary)
-    mockProducts[4], // Classic Platinum Chain (Contemporary)
-    mockProducts[2], // Emerald Halo Studs (Heirloom)
-  ];
-
-  const lovableOnesProducts = [
-    mockProducts[1], // Bridal Diamond Ring (Bridal)
-    mockProducts[2], // Emerald Halo Studs (Heirloom)
-    mockProducts[4], // Classic Platinum Chain (Contemporary)
-    mockProducts[0], // Royal Heritage Necklace (Gold)
-    mockProducts[5], // Premium Pearl Set (Contemporary)
-  ];
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926]">
-      {/* Hide scrollbar utility styles */}
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+    <div className="min-h-screen bg-[#FDFBF7] relative overflow-hidden pt-28 pb-20 px-6 md:px-12 lg:px-24">
+      {/* Background luxury dotted matrix */}
+      <div className="absolute inset-0 bg-[radial-gradient(#C5A059_1px,transparent_1px)] [background-size:32px_32px] opacity-10 pointer-events-none z-0" />
 
-      <div className="max-w-[1400px] mx-auto px-8 py-16">
+      {/* Decorative Rotating Gold Ring */}
+      <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full border border-[#C5A059]/10 pointer-events-none z-0 select-none hidden lg:block" />
+      <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full border border-dashed border-[#C5A059]/15 pointer-events-none z-0 select-none hidden lg:block" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
         
-        {/* User Greeting & Astrological Summary Banner */}
-        <div className="mb-12 bg-white/60 backdrop-blur-md border border-[#C5A059]/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm relative overflow-hidden">
-          {/* Gold Decorative Corner Trim */}
-          <div className="absolute top-3 left-3 w-2.5 h-2.5 border-t border-l border-[#C5A059]/40" />
-          <div className="absolute top-3 right-3 w-2.5 h-2.5 border-t border-r border-[#C5A059]/40" />
-          
-          <div>
-            <span className="text-[#90060c] font-bold tracking-[0.3em] uppercase text-[9px] block mb-1">
-              Personalized Boutique
+        {/* Header Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center max-w-2xl mx-auto mb-16"
+        >
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="font-sans text-[10px] tracking-[0.4em] uppercase text-[#C5A059] font-bold">
+              EST. 1980
             </span>
-            <h2 className="font-brand text-3xl text-[#1a1a1a] font-light tracking-[0.05em]">
-              Welcome, {user.name || "Patron"}
-            </h2>
-            {alignment && (
-              <p className="font-sans text-xs text-[#1a1a1a]/70 mt-2 tracking-[0.05em] flex items-center gap-1.5 flex-wrap">
-                Your Cosmic Sign: <strong className="text-[#90060C] font-semibold">{alignment.zodiac}</strong> · 
-                Suggested Destiny Stone: <strong className="text-[#90060C] font-semibold">{alignment.gemstone}</strong> 
-                <span className="text-[10px] text-[#C5A059]">✧</span>
-              </p>
-            )}
+            <div className="h-[1px] w-8 bg-[#90060c]/30" />
+            <Sparkles size={12} className="text-[#C5A059] animate-pulse" />
           </div>
+          <h1 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] uppercase font-light leading-tight mb-4">
+            Contact Our <span className="text-[#90060c] font-normal">Concierge</span>
+          </h1>
+          <p className="font-brand text-md md:text-lg text-[#C5A059] tracking-[0.1em] italic font-light">
+            Schedule a private boutique viewing or coordinate a bespoke commission.
+          </p>
+        </motion.div>
 
-          <div className="flex gap-4 items-center">
-            {alignment && (
-              <button 
-                onClick={() => setShowOnlyRecommended(!showOnlyRecommended)}
-                className={`text-xs uppercase tracking-[0.15em] px-6 py-3 rounded-full transition-all duration-300 font-sans font-bold border ${
-                  showOnlyRecommended 
-                    ? "bg-[#90060c] text-white border-[#90060c] shadow-md" 
-                    : "bg-transparent border-[#C5A059]/40 text-[#90060c] hover:border-[#90060c]"
-                }`}
-              >
-                ✦ Show Suggested
-              </button>
-            )}
+        {/* Page Divider */}
+        <PageDivider />
 
-            <button 
-              onClick={handleLogout}
-              className="text-xs uppercase tracking-[0.15em] text-[#1a1a1a]/70 hover:text-[#90060C] transition-colors font-sans font-bold border border-[#1a1a1a]/20 hover:border-[#90060C]/40 px-6 py-3 rounded-full"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-
-        {/* Header */}
-        <div id="destiny-grid-anchor" className="mb-12 scroll-mt-24">
-          <h1 className="text-4xl font-brand text-[#90060C] mb-8 font-light tracking-[0.05em]">Your Destiny Collection</h1>
-          <input 
-            type="text"
-            placeholder="Search matching heritage pieces..."
-            className="w-full max-w-xl bg-transparent border-b-2 border-[#DED5C4] py-3 focus:outline-none focus:border-[#90060C] transition-colors text-[#2D2926] font-sans"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap items-center gap-4 mb-16">
-          <button 
-            onClick={() => setActiveFilters([])}
-            className={`px-8 py-3 border transition-all duration-300 font-sans text-xs tracking-widest ${
-              activeFilters.length === 0 
-                ? "bg-[#90060C] text-white border-[#90060C]" 
-                : "bg-transparent border-[#DED5C4] hover:border-[#90060c] text-[#2D2926]"
-            }`}
-          >
-            ALL PIECES
-          </button>
-          {categories.map(cat => (
-            <button 
-              key={cat}
-              onClick={() => toggleFilter(cat)}
-              className={`px-8 py-3 border transition-all duration-300 font-sans text-xs tracking-widest ${
-                activeFilters.includes(cat) 
-                  ? "bg-[#90060C] text-white border-[#90060C]" 
-                  : "bg-transparent border-[#DED5C4] hover:border-[#90060C] text-[#2D2926]"
-              }`}
-            >
-              {cat.toUpperCase()}
-            </button>
-          ))}
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12">
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((product) => {
-              const recommended = alignment && isRecommended(product.name, alignment.gemstone);
-              return (
-                <div key={product.id} className="group cursor-pointer">
-                  <div className="relative aspect-[3/4] w-full mb-6 border border-[#EBE3D5] group-hover:border-[#90060C] transition-colors overflow-hidden rounded-xl bg-[#F5EFE6]">
-                    <Image 
-                      src={`/product-${product.id}.jpg`} 
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
-                    
-                    {recommended && (
-                      <div className="absolute top-3 right-3 z-10 bg-[#faf3e5] border border-[#C5A059] text-[#90060c] px-3 py-1 rounded-full shadow-md">
-                        <p className="text-[8px] font-bold uppercase tracking-widest">
-                          ✦ SUGGESTED
-                        </p>
-                      </div>
-                    )}
+        {/* Main Content Grid */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8"
+        >
+          
+          {/* Left Column: Contact Details & Map */}
+          <motion.div variants={itemVariants} className="lg:col-span-5 space-y-10">
+            
+            {/* Contact Details Card */}
+            <div className="bg-[#FAF7F2]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 rounded-2xl shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-[#C5A059]/5 to-transparent rounded-full pointer-events-none" />
+              
+              <h2 className="font-brand text-2xl tracking-[0.12em] text-[#90060c] uppercase font-light mb-8 pb-3 border-b border-[#C5A059]/20">
+                Boutique Details
+              </h2>
+              
+              <div className="space-y-6 font-sans text-xs tracking-[0.08em] text-[#333]">
+                {/* Location */}
+                <div className="flex gap-4 items-start">
+                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
+                    <MapPin size={16} />
                   </div>
-                  <h3 className="text-lg font-brand mb-1 text-[#1a1a1a] font-light group-hover:text-[#90060C] transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-xs tracking-widest text-[#A8A196] font-sans font-medium">
-                    {product.category.toUpperCase()} · {product.karat}
-                  </p>
-                </div>
-              );
-            })
-          ) : (
-            <p className="col-span-full text-[#A8A196] font-brand text-lg">No pieces found matching your selection.</p>
-          )}
-        </div>
-        
-      </div>
-
-      {/* 1. Destiny Gemstone Sliding Section */}
-      {alignment && (
-        <>
-          <PageDivider />
-          <section className="py-24 px-12 bg-[#FDFBF7]">
-            <div className="max-w-7xl mx-auto">
-              {/* Header Row with Navigation Controls & View All */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-                <div className="text-left max-w-xl">
-                  <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3 block">
-                    Cosmic Alignment
-                  </span>
-                  <h2 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.05em] font-light">
-                    Your Destiny Stone: {alignment.gemstone}
-                  </h2>
-                  <p className="font-sans text-xs tracking-wider text-[#A8A196] mt-4 leading-relaxed">
-                    Exclusive selections aligning with your astrological birth chart to amplify positive energy, clarity, and harmony.
-                  </p>
-                </div>
-
-                {/* Slider controls & View All */}
-                <div className="flex items-center gap-6">
-                  <button 
-                    onClick={handleViewAllDestiny} 
-                    className="text-xs uppercase tracking-[0.2em] text-[#90060C] hover:text-[#1a1a1a] transition-all duration-300 font-bold border-b border-[#90060C]/30 pb-0.5 hover:border-[#90060c] cursor-pointer"
-                  >
-                    View All
-                  </button>
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={() => scrollSlider(zodiacScrollRef, 'left')}
-                      className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button 
-                      onClick={() => scrollSlider(zodiacScrollRef, 'right')}
-                      className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Destiny Gemstone Horizontal Slider */}
-              <div 
-                ref={zodiacScrollRef}
-                className="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth pb-8"
-              >
-                {zodiacProducts.map((product, idx) => (
-                  <div 
-                    key={`zod-${product.id}-${idx}`} 
-                    className="group cursor-pointer min-w-[280px] sm:min-w-[320px] max-w-[320px]"
-                  >
-                    <div className="relative aspect-[3/4] w-full mb-6 border border-[#EBE3D5] group-hover:border-[#90060C] transition-colors overflow-hidden rounded-xl bg-[#F5EFE6]">
-                      <Image 
-                        src={product.customImage || `/product-${product.id}.jpg`} 
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 640px) 280px, 320px"
-                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                      />
-                      <div className="absolute top-3 right-3 z-10 bg-[#faf3e5] border border-[#C5A059] text-[#90060c] px-3 py-1 rounded-full shadow-md">
-                        <p className="text-[8px] font-bold uppercase tracking-widest">
-                          ✦ MATCH
-                        </p>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-brand mb-1 text-[#1a1a1a] font-light group-hover:text-[#90060C] transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-xs tracking-widest text-[#A8A196] font-sans font-medium">
-                      {product.category.toUpperCase()} · {product.karat}
+                  <div>
+                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Flagship Boutique</h4>
+                    <p className="leading-relaxed text-gray-600">
+                      Shagun Ratna, 102 Heritage Mansion,<br />
+                      MG Road, Kala Ghoda, Fort,<br />
+                      Mumbai, Maharashtra 400001
                     </p>
                   </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </>
-      )}
-
-      {/* 2. New Launch Sliding Section */}
-      <PageDivider />
-      <section className="py-24 px-12 bg-[#FDFBF7]">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Row with Navigation Controls & View All */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-            <div className="text-left max-w-xl">
-              <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3 block">
-                The New Debut
-              </span>
-              <h2 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.05em] font-light">
-                New Launches
-              </h2>
-              <p className="font-sans text-xs tracking-wider text-[#A8A196] mt-4 leading-relaxed">
-                Explore our latest debuts, showcasing hand-selected emeralds, architectural symmetry, and mastercrafted gold silhouettes.
-              </p>
-            </div>
-
-            {/* Slider controls & View All */}
-            <div className="flex items-center gap-6">
-              <Link 
-                href="/collection" 
-                className="text-xs uppercase tracking-[0.2em] text-[#90060C] hover:text-[#1a1a1a] transition-all duration-300 font-bold border-b border-[#90060C]/30 pb-0.5 hover:border-[#90060c]"
-              >
-                View All
-              </Link>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => scrollSlider(newLaunchScrollRef, 'left')}
-                  className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button 
-                  onClick={() => scrollSlider(newLaunchScrollRef, 'right')}
-                  className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* New Launch Horizontal Slider */}
-          <div 
-            ref={newLaunchScrollRef}
-            className="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth pb-8"
-          >
-            {newLaunchProducts.map((product, idx) => (
-              <div 
-                key={`new-${product.id}-${idx}`} 
-                className="group cursor-pointer min-w-[280px] sm:min-w-[320px] max-w-[320px]"
-              >
-                <div className="relative aspect-[3/4] w-full mb-6 border border-[#EBE3D5] group-hover:border-[#90060C] transition-colors overflow-hidden rounded-xl bg-[#F5EFE6]">
-                  <Image 
-                    src={product.customImage || `/product-${product.id}.jpg`} 
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 280px, 320px"
-                    className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
                 </div>
-                <h3 className="text-lg font-brand mb-1 text-[#1a1a1a] font-light group-hover:text-[#90060C] transition-colors">
-                  {product.name}
-                </h3>
-                <p className="text-xs tracking-widest text-[#A8A196] font-sans font-medium">
-                  {product.category.toUpperCase()} · {product.karat}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* 3. For Mother's Gift Sliding Section */}
-      <PageDivider />
-      <section className="py-24 px-12 bg-[#FDFBF7]">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Row with Navigation Controls & View All */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-            <div className="text-left max-w-xl">
-              <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3 block">
-                Honor & Legacy
-              </span>
-              <h2 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.05em] font-light">
-                For Mother&apos;s Gift
-              </h2>
-              <p className="font-sans text-xs tracking-wider text-[#A8A196] mt-4 leading-relaxed">
-                Celebrate the enduring warmth of maternal love with curated heirloom masterpieces featuring timeless pearls, traditional rubies, and handcrafted solid gold arches.
-              </p>
-            </div>
-
-            {/* Slider controls & View All */}
-            <div className="flex items-center gap-6">
-              <Link 
-                href="/collection" 
-                className="text-xs uppercase tracking-[0.2em] text-[#90060C] hover:text-[#1a1a1a] transition-all duration-300 font-bold border-b border-[#90060C]/30 pb-0.5 hover:border-[#90060c]"
-              >
-                View All
-              </Link>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => scrollSlider(mothersScrollRef, 'left')}
-                  className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button 
-                  onClick={() => scrollSlider(mothersScrollRef, 'right')}
-                  className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Mothers Gift Horizontal Slider */}
-          <div 
-            ref={mothersScrollRef}
-            className="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth pb-8"
-          >
-            {mothersGiftProducts.map((product, idx) => (
-              <div 
-                key={`mom-${product.id}-${idx}`} 
-                className="group cursor-pointer min-w-[280px] sm:min-w-[320px] max-w-[320px]"
-              >
-                <div className="relative aspect-[3/4] w-full mb-6 border border-[#EBE3D5] group-hover:border-[#90060C] transition-colors overflow-hidden rounded-xl bg-[#F5EFE6]">
-                  <Image 
-                    src={`/product-${product.id}.jpg`} 
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 280px, 320px"
-                    className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
+                {/* Phones */}
+                <div className="flex gap-4 items-start">
+                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
+                    <Phone size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Direct Lines</h4>
+                    <p className="leading-relaxed">
+                      <a href="tel:+912222829800" className="text-gray-600 hover:text-[#90060c] transition-colors">+91 22 2282 9800</a>
+                    </p>
+                    <p className="leading-relaxed">
+                      <a href="tel:+919876543210" className="text-gray-600 hover:text-[#90060c] transition-colors">+91 98765 43210</a>
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-brand mb-1 text-[#1a1a1a] font-light group-hover:text-[#90060C] transition-colors">
-                  {product.name}
-                </h3>
-                <p className="text-xs tracking-widest text-[#A8A196] font-sans font-medium">
-                  {product.category.toUpperCase()} · {product.karat}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* 4. For Lovable Ones Sliding Section */}
-      <PageDivider />
-      <section className="py-24 px-12 bg-[#FDFBF7] pb-36">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Row with Navigation Controls & View All */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-            <div className="text-left max-w-xl">
-              <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3 block">
-                Devotion & Sparkle
-              </span>
-              <h2 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.05em] font-light">
-                For Lovable Ones
-              </h2>
-              <p className="font-sans text-xs tracking-wider text-[#A8A196] mt-4 leading-relaxed">
-                Commemorate deep bonds and shared dreams with hand-selected brilliant solitaires, contemporary platinum, and glowing emerald studs that celebrate love.
-              </p>
-            </div>
-
-            {/* Slider controls & View All */}
-            <div className="flex items-center gap-6">
-              <Link 
-                href="/collection" 
-                className="text-xs uppercase tracking-[0.2em] text-[#90060C] hover:text-[#1a1a1a] transition-all duration-300 font-bold border-b border-[#90060C]/30 pb-0.5 hover:border-[#90060c]"
-              >
-                View All
-              </Link>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => scrollSlider(lovableScrollRef, 'left')}
-                  className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button 
-                  onClick={() => scrollSlider(lovableScrollRef, 'right')}
-                  className="p-3.5 rounded-full border border-[#C5A059]/40 hover:border-[#90060c] text-[#90060c] hover:bg-[#90060c] hover:text-[#FDFBF7] transition-all duration-500 active:scale-95"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Lovable Ones Horizontal Slider */}
-          <div 
-            ref={lovableScrollRef}
-            className="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth pb-8"
-          >
-            {lovableOnesProducts.map((product, idx) => (
-              <div 
-                key={`love-${product.id}-${idx}`} 
-                className="group cursor-pointer min-w-[280px] sm:min-w-[320px] max-w-[320px]"
-              >
-                <div className="relative aspect-[3/4] w-full mb-6 border border-[#EBE3D5] group-hover:border-[#90060C] transition-colors overflow-hidden rounded-xl bg-[#F5EFE6]">
-                  <Image 
-                    src={`/product-${product.id}.jpg`} 
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 280px, 320px"
-                    className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
+                {/* Email */}
+                <div className="flex gap-4 items-start">
+                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
+                    <Mail size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Client Services</h4>
+                    <p className="leading-relaxed">
+                      <a href="mailto:concierge@shagunratna.com" className="text-gray-600 hover:text-[#90060c] transition-colors">concierge@shagunratna.com</a>
+                    </p>
+                    <p className="leading-relaxed">
+                      <a href="mailto:info@shagunratna.com" className="text-gray-600 hover:text-[#90060c] transition-colors">info@shagunratna.com</a>
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-brand mb-1 text-[#1a1a1a] font-light group-hover:text-[#90060C] transition-colors">
-                  {product.name}
-                </h3>
-                <p className="text-xs tracking-widest text-[#A8A196] font-sans font-medium">
-                  {product.category.toUpperCase()} · {product.karat}
-                </p>
+
+                {/* Hours */}
+                <div className="flex gap-4 items-start">
+                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
+                    <Clock size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Boutique Hours</h4>
+                    <p className="leading-relaxed text-gray-600">Monday – Saturday: 11:00 AM – 8:00 PM</p>
+                    <p className="leading-relaxed text-[#C5A059] italic mt-0.5">Sunday: Private Viewings by Appointment Only</p>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
+              {/* Social Media Links */}
+              <div className="mt-8 pt-8 border-t border-[#C5A059]/20">
+                <h4 className="font-sans text-[10px] tracking-[0.2em] font-bold uppercase text-[#C5A059] mb-4">
+                  Follow Our Journey
+                </h4>
+                <div className="flex gap-4">
+                  <a 
+                    href="https://instagram.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
+                    title="Instagram"
+                  >
+                    <InstagramIcon size={18} />
+                  </a>
+                  <a 
+                    href="https://facebook.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
+                    title="Facebook"
+                  >
+                    <FacebookIcon size={18} />
+                  </a>
+                  <a 
+                    href="https://wa.me/919876543210" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
+                    title="WhatsApp"
+                  >
+                    <WhatsAppIcon size={18} />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Map Frame Card */}
+            <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[260px] relative group bg-[#FAF7F2]">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3773.8427506979207!2d72.8302061759654!3d18.927318056965457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7d1c253d865ab%3A0xe349db82a937a00f!2sKala%20Ghoda%2C%20Fort%2C%20Mumbai%2C%20Maharashtra%20400001!5e0!3m2!1sen!2sin!4v1718784000000!5m2!1sen!2sin"
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen="" 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                className="grayscale contrast-110 opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
+              />
+              <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FAF7F2] rounded-2xl" />
+            </div>
+
+          </motion.div>
+
+          {/* Right Column: Inquiry Form */}
+          <motion.div variants={itemVariants} className="lg:col-span-7">
+            <div className="bg-[#FAF7F2]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 md:p-10 rounded-2xl shadow-sm">
+              <h2 className="font-brand text-2xl tracking-[0.12em] text-[#90060c] uppercase font-light mb-2">
+                Send An Inquiry
+              </h2>
+              <p className="font-sans text-xs tracking-wide text-gray-500 mb-8">
+                Our advisors will connect with you via call or WhatsApp within 24 business hours.
+              </p>
+
+              <AnimatePresence mode="wait">
+                {isSuccess ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center py-16 text-center"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                      className="text-[#90060c] mb-6"
+                    >
+                      <CheckCircle2 size={64} strokeWidth={1.5} />
+                    </motion.div>
+                    <h3 className="font-brand text-2xl tracking-wider text-[#1a1a1a] uppercase font-light mb-4">
+                      Thank You, Beloved Client
+                    </h3>
+                    <p className="font-sans text-xs leading-relaxed text-gray-600 max-w-sm mb-8">
+                      Your inquiry has been logged securely in our registers. A dedicated concierge advisor will contact you shortly.
+                    </p>
+                    <button 
+                      onClick={() => setIsSuccess(false)}
+                      className="font-sans text-[10px] tracking-[0.25em] text-[#C5A059] border border-[#C5A059]/40 hover:bg-[#C5A059]/5 px-8 py-3 rounded-full uppercase transition-all duration-300 font-semibold"
+                    >
+                      Send Another Inquiry
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.form 
+                    key="contact-form"
+                    onSubmit={handleSubmit} 
+                    className="space-y-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {errorMessage && (
+                      <div className="p-4 bg-red-50 border border-red-200 text-red-800 text-xs rounded-lg font-sans">
+                        {errorMessage}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Name */}
+                      <div className="space-y-2">
+                        <label htmlFor="name" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
+                          Full Name *
+                        </label>
+                        <input 
+                          type="text" 
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          placeholder="Lord/Lady Name" 
+                          required
+                          className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400"
+                        />
+                      </div>
+
+                      {/* Phone */}
+                      <div className="space-y-2">
+                        <label htmlFor="phone" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
+                          Phone Number *
+                        </label>
+                        <input 
+                          type="tel" 
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          placeholder="+91 XXXXX XXXXX" 
+                          required
+                          className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Inquiry Interest Dropdown */}
+                    <div className="space-y-2">
+                      <label htmlFor="productName" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
+                        Jewelry Interest *
+                      </label>
+                      <select 
+                        id="productName"
+                        name="productName"
+                        value={formData.productName}
+                        onChange={handleChange}
+                        className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans cursor-pointer"
+                      >
+                        <option value="General Inquiry">General Inquiry</option>
+                        <option value="Bridal & Wedding Sets">Bridal & Wedding Sets</option>
+                        <option value="Gold Heirlooms & Necklaces">Gold Heirlooms & Necklaces</option>
+                        <option value="Solitaire Diamonds & Rings">Solitaire Diamonds & Rings</option>
+                        <option value="Astrological & Rashi Gems">Astrological & Rashi Gems</option>
+                        <option value="Bespoke Commission Design">Bespoke Commission Design</option>
+                      </select>
+                    </div>
+
+                    {/* Customization Notes / Message */}
+                    <div className="space-y-2">
+                      <label htmlFor="customizationNotes" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
+                        Your Message / Customization Request
+                      </label>
+                      <textarea 
+                        id="customizationNotes"
+                        name="customizationNotes"
+                        value={formData.customizationNotes}
+                        onChange={handleChange}
+                        rows={5}
+                        placeholder="Describe details, metal type preferences, or appointment requests..."
+                        className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400 resize-none leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="pt-2">
+                      <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full relative font-sans px-8 py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_25px_rgba(144,6,12,0.25)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          {isSubmitting ? 'Sending...' : 'Transmit Inquiry'}
+                          {!isSubmitting && <Send size={12} />}
+                        </span>
+                        <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100 -z-0" />
+                      </button>
+                    </div>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+
+        </motion.div>
+
+      </div>
     </div>
   );
 }
