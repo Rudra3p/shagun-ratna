@@ -10,6 +10,15 @@ import adminApi from '@/lib/adminApi';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+const handleLogout = async () => {
+  try {
+    await adminApi.post('/logout');
+    window.location.href = '/admin/login'; // Force a full page reload to clear state
+  } catch (error) {
+    console.error("Logout failed", error);
+  }
+};
+
 const AdminSidebar = () => {
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
@@ -40,7 +49,7 @@ const AdminSidebar = () => {
       {/* Footer Auth */}
       <div className="pt-8 border-t border-[#C5A059]/10">
         <button
-          onClick={() => adminApi.post('/logout')}
+          onClick={handleLogout}
             className="flex items-center gap-4 w-full text-left px-3 py-2 rounded-lg hover:bg-[#faf3e5] transition-colors"
         >
           <LogOut size={18} />

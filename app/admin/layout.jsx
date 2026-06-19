@@ -1,16 +1,20 @@
-// This goes in: app/admin/layout.js
+// app/admin/layout.js
 import AdminLayoutWrapper from "@/components/AdminLayoutWrapper";
+
 export const metadata = {
-  title: 'Admin Dashboard', // Becomes "Admin Dashboard | Shagun Ratna"
+  title: 'Admin Dashboard | Shagun Ratna',
   description: 'Internal business management system for Shagun Ratna.',
   robots: {
-    index: false, // CRITICAL: This hides your admin login from Google search
+    index: false,
     follow: false,
   },
 };
 
 export default function AdminLayout({ children }) {
   return (
-    <AdminLayoutWrapper />
-  )
+    // You must pass 'children' to the wrapper so they appear in the main area
+    <AdminLayoutWrapper>
+      {children}
+    </AdminLayoutWrapper>
+  );
 }

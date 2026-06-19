@@ -1,3 +1,4 @@
+// components/LayoutWrapper.js
 "use client";
 
 import Navbar from "@/components/nav";
@@ -9,14 +10,21 @@ export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith('/admin');
 
+  // If we are in the admin section, render ONLY children.
+  // The AdminLayoutWrapper will handle the Sidebar and its own <main> tag.
+  if (isAdminPage) {
+    return <>{children}</>;
+  }
+
+  // Otherwise, render the standard public site layout
   return (
     <>
-      {!isAdminPage && <Navbar />}
-      <main className={isAdminPage ? "pt-0" : "pt-16"}> {/* Adjust top padding for admin */}
+      <Navbar />
+      <main className="pt-16">
         {children}
       </main>
-      {!isAdminPage && <Footer />}
-      {!isAdminPage && <FeedbackForm />}
+      <Footer />
+      <FeedbackForm />
     </>
   );
 }
