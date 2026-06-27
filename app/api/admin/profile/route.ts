@@ -1,20 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getAdminProfile, updateAdminProfile } from "@/controllers/adminController";
+import dbConnect from "@/db/db"; // 👈 Import your exact connection script here
 
-export async function GET(req: NextRequest) {
+// FETCH PROFILE DATA
+export async function GET(req: Request) {
   try {
+    // 1. Force the database pool to wake up first!
+    await dbConnect(); 
+    
+    // 2. Now it is safe to run the controller logic
     return await getAdminProfile(req);
   } catch (error: any) {
-    console.error("GET Profile Route Error:", error);
-    return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
+    console.error("Route Crash Log:", error);
+    return NextResponse.json({ error: "Internal Database Connection Error" }, { status: 500 });
   }
 }
 
-export async function PUT(req: NextRequest) {
+// UPDATE PROFILE DATA
+export async function PUT(req: Request) {
   try {
+    // 1. Force the database pool to wake up first!
+    await dbConnect(); 
+
+    // 2. Execute profile updating logic
     return await updateAdminProfile(req);
   } catch (error: any) {
-    console.error("PUT Profile Route Error:", error);
-    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+    console.error("Route Crash Log:", error);
+    return NextResponse.json({ error: "Internal Database Connection Error" }, { status: 500 });
   }
 }
