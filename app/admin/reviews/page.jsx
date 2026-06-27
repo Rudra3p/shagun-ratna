@@ -15,11 +15,6 @@ export default function ReviewsView() {
   return (
     <div className="animate-in fade-in duration-500 pb-10">
       <header className="mb-10 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-bold text-primary mb-2">Customer Reviews</h2>
-          <p className="text-secondary">Monitor and manage client feedback across all collections.</p>
-        </div>
-        
         <div className="flex flex-wrap items-center gap-4 bg-surface-container-lowest p-2 rounded-xl shadow-sm border border-outline-variant/30">
           <div className="px-4 py-2 flex items-center gap-2 border-r border-outline-variant/50">
             <Filter size={20} className="text-secondary" />

@@ -67,14 +67,9 @@ const AdminSidebar = () => {
               <LayoutDashboard size={20} className="opacity-90" />
             </div>
             <div className="overflow-hidden">
-              <h3 className="font-sans font-bold text-[#540411] truncate text-[20px] leading-tight">Admin Executive</h3>
+              <h3 className="font-sans font-bold text-[#540411] truncate text-[20px] leading-tight">Admin</h3>
               <p className="text-[12px] text-[#5c5f60] truncate font-medium">admin@corporate.com</p>
             </div>
-          </div>
-          <div>
-            <span className="inline-flex items-center justify-center px-3 py-1 bg-[#ffdad9] text-[#80272e] text-[10px] font-bold tracking-wider rounded-full uppercase shadow-sm">
-              Premium Access
-            </span>
           </div>
         </div>
 

@@ -3,23 +3,13 @@ import { Eye, Calendar, Save, Pencil } from 'lucide-react';
 export default function ProfileView() {
   return (
     <div className="animate-in fade-in duration-500 pb-10 h-full">
-      {/* Top Left Title */}
-      <div className="mb-4">
-        <h1 className="text-[20px] font-sans font-medium text-[#721c24] tracking-tight">
-          Executive Admin
-        </h1>
-      </div>
-
       <div className="max-w-[800px] mx-auto space-y-8 pt-8">
         
         {/* Centered Header */}
         <div className="text-center space-y-2">
-          <h2 className="text-[24px] font-sans font-medium text-gray-900 tracking-tight">
+          <h2 className="text-[24px] font-sans font-medium text-[#721c24] tracking-tight">
             Account Profile
           </h2>
-          <p className="text-gray-400 text-[14px] font-sans">
-            Manage your executive administrative credentials
-          </p>
         </div>
 
         {/* Form Card */}

@@ -64,9 +64,6 @@ export default function DashboardView() {
           <h1 className="text-[18px] font-sans font-bold text-[#721c24] tracking-tight leading-tight">
             Dashboard Overview
           </h1>
-          <p className="text-gray-500 mt-1 text-[15px] font-sans">
-            Monitor your corporate performance at a glance.
-          </p>
         </div>
 
         <div className="flex items-center gap-3">
