@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import adminApi from '@/utils/adminApi';
+import adminApi from '@/lib/adminApi';
 import { 
   LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X
 } from 'lucide-react';

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Calendar, Save, Pencil } from 'lucide-react';
-import adminApi from '@/utils/adminApi'; // Adjust this path based on where your axios instance lives
+import adminApi from '@/lib/adminApi'; // Adjust this path based on where your axios instance lives
 
 export default function ProfileView() {
   // State variables for form fields
