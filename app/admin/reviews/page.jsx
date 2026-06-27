@@ -46,21 +46,18 @@ export default function ReviewsView() {
           <div className="w-full sm:w-auto">
             <FilterSelect 
               options={['All Ratings', '5 Stars', '4 Stars']} 
-              className="rounded-full border border-outline-variant/50 px-4 py-2 bg-surface-container-lowest text-sm font-medium shadow-sm transition-all hover:border-secondary focus:ring-2 focus:ring-secondary/20"
             />
           </div>
           
           <div className="w-full sm:w-auto">
             <FilterSelect 
               options={['Most Recent', 'Oldest First', 'Highest Rated']} 
-              className="rounded-full border border-outline-variant/50 px-4 py-2 bg-surface-container-lowest text-sm font-medium shadow-sm transition-all hover:border-secondary focus:ring-2 focus:ring-secondary/20"
             />
           </div>
           
           <div className="w-full sm:w-auto">
             <FilterSelect 
               options={['All Products', 'Rings', 'Pendants']} 
-              className="rounded-full border border-outline-variant/50 px-4 py-2 bg-surface-container-lowest text-sm font-medium shadow-sm transition-all hover:border-secondary focus:ring-2 focus:ring-secondary/20"
             />
           </div>
       </div>
@@ -101,7 +98,7 @@ export default function ReviewsView() {
 
 function FilterSelect({ options }) {
   return (
-    <div className="relative flex items-center group">
+    <div className="text-primary border-primary relative flex items-center group">
       <select className="appearance-none bg-transparent border-none focus:ring-0 text-sm font-semibold text-on-surface-variant cursor-pointer pr-8 py-2 outline-none">
         {options.map((opt) => (
           <option key={opt}>{opt}</option>
