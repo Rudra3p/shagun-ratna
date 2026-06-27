@@ -185,8 +185,7 @@ const getAdminIdFromCookies = (req: Request): string | null => {
   const cookieHeader = req.headers.get("cookie") || "";
   const accessToken = cookieHeader
     .split(";")
-    .find((c) => c.trim().startsWith("shagun_admin_access="))
-    ?.split("=")[1];
+    .find((c) => c.trim().startsWith("shagun_admin_access"))
 
   if (!accessToken) return null;
 
@@ -194,7 +193,7 @@ const getAdminIdFromCookies = (req: Request): string | null => {
     const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!) as { id: string };
     return decoded.id;
   } catch (error) {
-    return null;
+    return console.error("Access Token Verification Failed:", error), null;
   }
 };
 
