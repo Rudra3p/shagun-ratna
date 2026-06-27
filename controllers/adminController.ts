@@ -25,22 +25,30 @@ const generateAlphanumericOTP = (length: number) => {
 
 // Core helper to read the refresh token and extract the admin ID directly
 const getAdminIdFromRefreshToken = (req: Request): string | null => {
-  const cookieHeader = req.headers.get("cookie") || "";
-  
-  // Parse out the refresh token cookie string value
-  const refreshToken = cookieHeader
-    .split(";")
-    .find((c) => c.trim().startsWith("shagun_admin_refresh="))
-    ?.split("=")[1];
-
-  if (!refreshToken) return null;
-
   try {
+    const cookieHeader = req.headers.get("cookie") || "";
+    
+    // Parse out the refresh token cookie string value
+    const refreshToken = cookieHeader
+      .split(";")
+      .find((c) => c.trim().startsWith("shagun_admin_refresh="))
+      ?.split("=")[1];
+
+    if (!refreshToken) return null;
+
+    // Protection logic: prevents an unhandled 500 error if environment loading drops out
+    const secret = process.env.JWT_REFRESH_SECRET;
+    if (!secret) {
+      console.error("❌ Configuration Error: process.env.JWT_REFRESH_SECRET is missing.");
+      return null;
+    }
+
     // Verify the refresh token signature directly using your refresh secret
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as TokenPayload;
+    const decoded = jwt.verify(refreshToken, secret) as TokenPayload;
     return decoded.id;
   } catch (error) {
-    return null; // Token is expired or tampered with
+    console.error("🔐 Session Token Error:", error);
+    return null; // Safe fallback return to prevent runtime crashes
   }
 };
 
