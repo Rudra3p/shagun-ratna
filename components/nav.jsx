@@ -52,7 +52,7 @@ const Navbar = () => {
           <NavLink 
             key={item} 
             label={item} 
-            href={item === 'Collection' && userName ? '/my-collection' : undefined}
+            href={item === 'Collection' && userName ? '/collection' : undefined}
           />
         ))}
       </div>
