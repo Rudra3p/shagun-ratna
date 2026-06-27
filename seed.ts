@@ -1,4 +1,3 @@
-// seed.ts
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
@@ -9,6 +8,7 @@ dotenv.config();
 const AdminSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
+  mobile: { type: Number, required: true }, // Added mobile field configuration
   password: { type: String, required: true },
   loginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date, default: null },
@@ -39,6 +39,7 @@ const seedAdmin = async () => {
     await Admin.create({
       username: 'rudra',
       email: 'rudra090207@gmail.com',
+      mobile: 9876543210, // Added default numeric mobile field value
       password: hashedPassword,
       loginAttempts: 0,
       lockUntil: null,
@@ -49,6 +50,7 @@ const seedAdmin = async () => {
     console.log("-----------------------------------------");
     console.log("✅ SEED SUCCESSFUL: ADMIN CREATED");
     console.log("📧 Email: rudra090207@gmail.com");
+    console.log("📱 Mobile: 9876543210");
     console.log("🔑 Password: 1234567890");
     console.log("-----------------------------------------");
     

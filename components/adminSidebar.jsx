@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import adminApi from '@/utils/adminApi';
 import { 
   LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X
 } from 'lucide-react';
@@ -11,8 +12,18 @@ const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const currentPath = usePathname();
 
-  const handleLogout = async () => {
-    alert("Logging out...");
+const handleLogout = async () => {
+    try {
+      // Hits your app/api/admin/logout/route.ts route
+      await adminApi.post('/logout'); 
+    } catch (error) {
+      console.error("Backend logout failed, clearing local session anyway:", error);
+    } finally {
+      // Always clear local data and redirect, even if the server check fails
+      sessionStorage.clear();
+      localStorage.removeItem('token'); // Clear token if you are storing it here
+      router.push('/admin/login');
+    }
   };
 
   return (

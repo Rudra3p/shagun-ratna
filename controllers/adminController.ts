@@ -4,7 +4,7 @@ import OTP from "@/models/otp";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Resend } from "resend";
-import { LoginSchema, OtpVerifySchema } from "@/schemas/authAdminSchemas";
+import { LoginSchema, OtpVerifySchema, UpdateProfileSchema } from "@/schemas/authAdminSchemas";
 
 export const refreshAccessToken = async (req: Request) => {
   try {
@@ -178,4 +178,77 @@ export const adminLogout = async () => {
   response.cookies.set("shagun_admin_refresh", "", { maxAge: 0, path: "/" });
   
   return response;
+};
+
+const getAdminIdFromHeaders = (req: Request): string | null => {
+  return req.headers.get("x-admin-id");
+};
+
+// FETCH PROFILE DATA
+export const getAdminProfile = async (req: Request) => {
+  try {
+    const adminId = getAdminIdFromHeaders(req);
+    if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const admin = await Admin.findById(adminId).select("-password -refreshToken");
+    if (!admin) return NextResponse.json({ error: "Admin not found" }, { status: 404 });
+
+    return NextResponse.json(admin, { status: 200 });
+  } catch (error) {
+    console.error("Fetch Profile Error:", error);
+    return NextResponse.json({ error: "Server Error" }, { status: 500 });
+  }
+};
+
+// UPDATE PROFILE DATA (No old password verification required)
+export const updateAdminProfile = async (req: Request) => {
+  try {
+    const adminId = getAdminIdFromHeaders(req);
+    if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await req.json();
+    
+    // Validate request inputs using our schema
+    const validation = UpdateProfileSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+    }
+
+    const { username, email, mobile, password } = validation.data;
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) return NextResponse.json({ error: "Admin not found" }, { status: 404 });
+
+    // Check email uniqueness if email is being changed
+    if (email !== admin.email) {
+      const existingEmail = await Admin.findOne({ email });
+      if (existingEmail) return NextResponse.json({ error: "Email already in use" }, { status: 400 });
+    }
+
+    // Direct Updates
+    admin.username = username;
+    admin.email = email;
+    admin.mobile = mobile;
+
+    // Only hash and modify password if they actually typed a new one
+    if (password && password.trim() !== "") {
+      admin.password = await bcrypt.hash(password, 10);
+    }
+
+    await admin.save();
+
+    return NextResponse.json({ 
+      message: "Profile updated successfully",
+      admin: {
+        username: admin.username,
+        email: admin.email,
+        mobile: admin.mobile,
+        updatedAt: admin.updatedAt
+      }
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    return NextResponse.json({ error: "Server Error" }, { status: 500 });
+  }
 };

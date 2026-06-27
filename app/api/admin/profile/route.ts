@@ -1,20 +1,22 @@
-import { 
-  getAdminProfile, 
-  updateName, 
-  updatePassword 
-} from "@/controllers/adminProfileController";
+import { NextResponse } from "next/server";
+import { getAdminProfile, updateAdminProfile } from "@/controllers/adminController";
 
-// GET: Fetch the current admin's profile
+// 1. GET current admin profile data
 export async function GET(req: Request) {
-  return await getAdminProfile(req);
+  try {
+    return await getAdminProfile(req);
+  } catch (error) {
+    console.error("GET Profile Route Error:", error);
+    return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
+  }
 }
 
-// PUT: Update the admin's name
+// 2. PUT updated admin profile data
 export async function PUT(req: Request) {
-  return await updateName(req);
-}
-
-// PATCH: Update the admin's password
-export async function PATCH(req: Request) {
-  return await updatePassword(req);
+  try {
+    return await updateAdminProfile(req);
+  } catch (error) {
+    console.error("PUT Profile Route Error:", error);
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+  }
 }
