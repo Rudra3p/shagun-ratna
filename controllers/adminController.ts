@@ -180,14 +180,33 @@ export const adminLogout = async () => {
   return response;
 };
 
-const getAdminIdFromHeaders = (req: Request): string | null => {
-  return req.headers.get("x-admin-id");
+// Helper function to extract admin ID directly from the browser cookies
+const getAdminIdFromCookies = (req: Request): string | null => {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const accessToken = cookieHeader
+    .split(";")
+    .find((c) => c.trim().startsWith("shagun_admin_access="))
+    ?.split("=")[1];
+
+  if (!accessToken) return null;
+
+  try {
+    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!) as { id: string };
+    return decoded.id;
+  } catch (error) {
+    return null;
+  }
 };
+
+// ==========================================
+// PROFILE MANAGEMENT FUNCTIONS (Headers Removed)
+// ==========================================
 
 // FETCH PROFILE DATA
 export const getAdminProfile = async (req: Request) => {
   try {
-    const adminId = getAdminIdFromHeaders(req);
+    // Replaced header extraction with direct cookie decoding
+    const adminId = getAdminIdFromCookies(req);
     if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const admin = await Admin.findById(adminId).select("-password -refreshToken");
@@ -200,10 +219,11 @@ export const getAdminProfile = async (req: Request) => {
   }
 };
 
-// UPDATE PROFILE DATA (No old password verification required)
+// UPDATE PROFILE DATA 
 export const updateAdminProfile = async (req: Request) => {
   try {
-    const adminId = getAdminIdFromHeaders(req);
+    // Replaced header extraction with direct cookie decoding
+    const adminId = getAdminIdFromCookies(req);
     if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
