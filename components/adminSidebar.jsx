@@ -20,9 +20,7 @@ const handleLogout = async () => {
       console.error("Backend logout failed, clearing local session anyway:", error);
     } finally {
       // Always clear local data and redirect, even if the server check fails
-      sessionStorage.clear();
-      localStorage.removeItem('token'); // Clear token if you are storing it here
-      router.push('/admin/signin'); // Redirect to login page
+      window.location.href = '/admin/login'; // Redirect to login page
     }
   };
 
