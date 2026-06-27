@@ -180,33 +180,42 @@ export const adminLogout = async () => {
   return response;
 };
 
-// Helper function to extract admin ID directly from the browser cookies
-const getAdminIdFromCookies = (req: Request): string | null => {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const accessToken = cookieHeader
-    .split(";")
-    .find((c) => c.trim().startsWith("shagun_admin_access"))
+interface TokenPayload {
+  id: string;
+}
 
-  if (!accessToken) return null;
+// 1. Core utility to read the refresh token and extract the admin ID directly
+const getAdminIdFromRefreshToken = (req: Request): string | null => {
+  const cookieHeader = req.headers.get("cookie") || "";
+  
+  // Parse out the refresh token cookie
+  const refreshToken = cookieHeader
+    .split(";")
+    .find((c) => c.trim().startsWith("shagun_admin_refresh="))
+    ?.split("=")[1];
+
+  if (!refreshToken) return null;
 
   try {
-    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!) as { id: string };
+    // Verify the refresh token signature directly using your refresh secret
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as TokenPayload;
     return decoded.id;
   } catch (error) {
-    return console.error("Access Token Verification Failed:", error), null;
+    return null; // Token is expired or tampered with
   }
 };
 
 // ==========================================
-// PROFILE MANAGEMENT FUNCTIONS (Headers Removed)
+// PROFILE MANAGEMENT FUNCTIONS (Refresh Token Only)
 // ==========================================
 
 // FETCH PROFILE DATA
 export const getAdminProfile = async (req: Request) => {
   try {
-    // Replaced header extraction with direct cookie decoding
-    const adminId = getAdminIdFromCookies(req);
-    if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const adminId = getAdminIdFromRefreshToken(req);
+    if (!adminId) {
+      return NextResponse.json({ error: "Unauthorized: Session expired" }, { status: 401 });
+    }
 
     const admin = await Admin.findById(adminId).select("-password -refreshToken");
     if (!admin) return NextResponse.json({ error: "Admin not found" }, { status: 404 });
@@ -218,38 +227,33 @@ export const getAdminProfile = async (req: Request) => {
   }
 };
 
-// UPDATE PROFILE DATA 
+// UPDATE PROFILE DATA
 export const updateAdminProfile = async (req: Request) => {
   try {
-    // Replaced header extraction with direct cookie decoding
-    const adminId = getAdminIdFromCookies(req);
-    if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const adminId = getAdminIdFromRefreshToken(req);
+    if (!adminId) {
+      return NextResponse.json({ error: "Unauthorized: Session expired" }, { status: 401 });
+    }
 
     const body = await req.json();
-    
-    // Validate request inputs using our schema
     const validation = UpdateProfileSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
     const { username, email, mobile, password } = validation.data;
-
     const admin = await Admin.findById(adminId);
     if (!admin) return NextResponse.json({ error: "Admin not found" }, { status: 404 });
 
-    // Check email uniqueness if email is being changed
     if (email !== admin.email) {
       const existingEmail = await Admin.findOne({ email });
       if (existingEmail) return NextResponse.json({ error: "Email already in use" }, { status: 400 });
     }
 
-    // Direct Updates
     admin.username = username;
     admin.email = email;
     admin.mobile = mobile;
 
-    // Only hash and modify password if they actually typed a new one
     if (password && password.trim() !== "") {
       admin.password = await bcrypt.hash(password, 10);
     }
@@ -258,14 +262,8 @@ export const updateAdminProfile = async (req: Request) => {
 
     return NextResponse.json({ 
       message: "Profile updated successfully",
-      admin: {
-        username: admin.username,
-        email: admin.email,
-        mobile: admin.mobile,
-        updatedAt: admin.updatedAt
-      }
+      admin: { username: admin.username, email: admin.email, mobile: admin.mobile }
     }, { status: 200 });
-
   } catch (error) {
     console.error("Update Profile Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
