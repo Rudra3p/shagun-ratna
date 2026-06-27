@@ -14,19 +14,7 @@ const mockReviews = [
 export default function ReviewsView() {
   return (
     <div className="animate-in fade-in duration-500 pb-10">
-      <header className="mb-10 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        <div className="flex flex-wrap items-center gap-4 bg-surface-container-lowest p-2 rounded-xl shadow-sm border border-outline-variant/30">
-          <div className="px-4 py-2 flex items-center gap-2 border-r border-outline-variant/50">
-            <Filter size={20} className="text-secondary" />
-            <span className="font-label text-xs text-secondary tracking-widest uppercase">Filter By</span>
-          </div>
-          <FilterSelect options={['All Ratings', '5 Stars', '4 Stars']} />
-          <FilterSelect options={['Most Recent', 'Oldest First', 'Highest Rated']} />
-          <FilterSelect options={['All Products', 'Rings', 'Pendants']} />
-        </div>
-      </header>
-
-      <div className="w-full mb-10 bg-primary-container text-on-primary-container p-8 md:p-10 rounded-2xl shadow-md relative overflow-hidden">
+      <header className="w-full mb-10 bg-primary-container text-on-primary-container p-8 md:p-10 rounded-2xl shadow-md relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-64 h-64 border-4 border-white rounded-full -mr-32 -mt-32" />
         </div>
@@ -52,8 +40,30 @@ export default function ReviewsView() {
             </div>
           </div>
         </div>
+      </header>
+      
+      <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full">
+          <div className="w-full sm:w-auto">
+            <FilterSelect 
+              options={['All Ratings', '5 Stars', '4 Stars']} 
+              className="rounded-full border border-outline-variant/50 px-4 py-2 bg-surface-container-lowest text-sm font-medium shadow-sm transition-all hover:border-secondary focus:ring-2 focus:ring-secondary/20"
+            />
+          </div>
+          
+          <div className="w-full sm:w-auto">
+            <FilterSelect 
+              options={['Most Recent', 'Oldest First', 'Highest Rated']} 
+              className="rounded-full border border-outline-variant/50 px-4 py-2 bg-surface-container-lowest text-sm font-medium shadow-sm transition-all hover:border-secondary focus:ring-2 focus:ring-secondary/20"
+            />
+          </div>
+          
+          <div className="w-full sm:w-auto">
+            <FilterSelect 
+              options={['All Products', 'Rings', 'Pendants']} 
+              className="rounded-full border border-outline-variant/50 px-4 py-2 bg-surface-container-lowest text-sm font-medium shadow-sm transition-all hover:border-secondary focus:ring-2 focus:ring-secondary/20"
+            />
+          </div>
       </div>
-
       <div>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-primary">Customer Feedback</h3>
