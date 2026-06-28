@@ -7,7 +7,7 @@ import {
   updateProduct, 
   deleteProduct 
 } from "@/controllers/productController";
-import { generateUploadUrl } from "@/lib/r2Service"; // Import the service
+import { generateUploadUrl } from "@/lib/r2Service";
 
 const ensureDB = async () => await dbConnect();
 
@@ -17,19 +17,28 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  // Read and parse the request stream once here at the entrypoint
   const body = await req.json();
 
-  // NEW: Handle R2 Upload URL Request
+  // 1. Handle R2 Upload URL Requests
   if (body.action === 'get-upload-url') {
     const { fileName, fileType } = body;
     const uniqueKey = `products/${Date.now()}-${fileName.replace(/\s+/g, '-')}`;
     const signedUrl = await generateUploadUrl(uniqueKey, fileType);
-    return NextResponse.json({ signedUrl, uniqueKey });
+    
+    // Construct the public storage endpoint string to complement the upload link
+    const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN; // e.g., https://assets.yourdomain.com
+    const publicUrl = `${r2PublicDomain}/${uniqueKey}`;
+
+    return NextResponse.json({ signedUrl, uniqueKey, publicUrl });
   }
 
-  // EXISTING: Handle Search
+  // Ensure database initialization for downstream operations
   await ensureDB();
+
+  // 2. Handle System Search Pipelines
   if (body.hasOwnProperty('search')) {
+    // Pass the already parsed body directly to prevent stream re-reading issues
     return await searchProducts(new Request(req.url, {
       method: 'POST',
       body: JSON.stringify(body),
@@ -37,7 +46,7 @@ export async function POST(req: Request) {
     }));
   }
   
-  // EXISTING: Handle Add Product
+  // 3. Handle Add Product Entry Tasks
   return await addProduct(new Request(req.url, {
     method: 'POST',
     body: JSON.stringify(body),
