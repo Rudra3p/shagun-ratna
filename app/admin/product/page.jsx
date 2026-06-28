@@ -5,11 +5,9 @@ import adminApi from '@/lib/adminApi';
 import { Search, Filter, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2 } from 'lucide-react';
 
 export default function Products() {
-  const [products, setProducts] = useState([]);
   const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   
   const [formData, setFormData] = useState({ 
     productName: '', price: '', category: 'General', discount: 0, offerPrice: 0 
@@ -18,8 +16,11 @@ export default function Products() {
   const [imagePreview, setImagePreview] = useState(null);
   
   const [editingId, setEditingId] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // FETCH: Loads products and appends them to the existing list
   const fetchProducts = async (pageNumber = 1) => {
@@ -44,6 +45,39 @@ export default function Products() {
   useEffect(() => { 
     fetchProducts(1); 
   }, []);
+
+  // 1. Keep your standard state managers
+
+// 2. The explicit submission event handler
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault(); // Prevents the browser from reloading the entire page
+    
+    // Fallback: If they cleared the box, reload standard page 1 inventory items
+    if (searchQuery.trim() === "") {
+      fetchProducts(1);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log(`Firing explicit network search trigger for: "${searchQuery}"`);
+      
+      const res = await adminApi.post('/products', {
+        search: searchQuery,
+        page: 1,
+        limit: 10
+      });
+
+      // Populate state with your fuzzy-matched, CDN-cached response payload
+      setProducts(res.data.products);
+      setHasMore(res.data.products.length === 10);
+      setPage(1);
+    } catch (err) {
+      console.error("Manual search execution failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle local image preview generation
   const handleFileChange = (e) => {
@@ -289,16 +323,25 @@ export default function Products() {
     <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px]">
       {/* Top Layout Management Search & Filters Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-        <div className="flex-1 max-w-md relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#540411] transition-colors" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search inventory..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 placeholder:text-gray-400 shadow-sm"
-          />
-        </div>
+        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md flex gap-2">
+          <div className="flex-1 relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#540411] transition-colors" size={18} />
+            <input 
+              type="text" 
+              placeholder="Search inventory..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)} // Safe now! Only changes local string state, doesn't hit API.
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 placeholder:text-gray-400 shadow-sm"
+            />
+          </div>
+          <button 
+            type="submit"
+            disabled={loading}
+            className="px-4 bg-[#540411] text-white rounded-lg hover:bg-[#400009] transition-all text-[13px] font-semibold flex items-center justify-center shadow-sm"
+          >
+            {loading ? "Searching..." : "Search"}
+          </button>
+        </form>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-semibold text-[13px] shadow-sm">
             <Filter size={16} />
