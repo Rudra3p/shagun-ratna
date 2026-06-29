@@ -30,12 +30,17 @@ export default function Products() {
       const res = await adminApi.get(`/products?page=${pageNumber}&limit=10`);
       const newProducts = res.data.products || [];
 
-      // If page is 1, replace products. If page > 1, append new products.
-      setProducts(prev => pageNumber === 1 ? newProducts : [...prev, ...newProducts]);
+      setProducts(prev => {
+        // Force complete overwrite on page 1 to discard old layouts cleanly
+        if (pageNumber === 1) {
+          return newProducts;
+        }
+        return [...prev, ...newProducts];
+      });
       
       setHasMore(newProducts.length === 10);
       setPage(pageNumber);
-      setIsSearching(false); // Confirm we are viewing standard pagination pipeline
+      setIsSearching(false); // Confirm we are back to standard view pipeline
     } catch (err) { 
       console.error(err); 
     } finally { 
@@ -52,13 +57,13 @@ export default function Products() {
     const value = e.target.value;
     setSearchQuery(value);
 
-    // If the input box is cleared out completely, instantly clear search and restore regular page 1 items
+    // If the input box is cleared out completely, instantly wipe data and restore standard items
     if (value.trim() === "") {
       fetchProducts(1);
     }
   };
 
-  // 2. The upgraded cache-eligible explicit GET search submission handler
+  // The upgraded cache-eligible explicit GET search submission handler
   const handleSearchSubmit = async (e) => {
     e.preventDefault(); 
     
@@ -71,12 +76,16 @@ export default function Products() {
     try {
       console.log(`Firing cache-eligible HTTP GET query trigger for: "${searchQuery}"`);
       const res = await adminApi.get(`/products?search=${encodeURIComponent(searchQuery)}&page=1&limit=10`);
-
       const foundItems = res.data.products || [];
-      setProducts(foundItems);
+
+      // 🔥 THE CRITICAL OVERWRITE FIX 🔥
+      // This directly overwrites the array state instead of appending.
+      // This physically removes old irrelevant cards from the display instantly.
+      setProducts(foundItems); 
+      
       setHasMore(foundItems.length === 10);
       setPage(1);
-      setIsSearching(true); // Locks interface into search mode view
+      setIsSearching(true); // Locks interface into search view mode
     } catch (err) {
       console.error("Manual search execution failed:", err);
     } finally {
@@ -321,7 +330,7 @@ export default function Products() {
               type="text" 
               placeholder="Search inventory..." 
               value={searchQuery}
-              onChange={handleSearchInputChange} // Changed to support instant clearing response
+              onChange={handleSearchInputChange} 
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 placeholder:text-gray-400 shadow-sm"
             />
           </div>
@@ -424,7 +433,7 @@ export default function Products() {
             </div>
           ))}
           
-          {/* CRITICAL CONDITIONAL FIX: Only render "Add Entry" dash placeholder if NOT actively searching to preserve clean layout */}
+          {/* Conditionally hide the Add button placeholder during active searches */}
           {!isSearching && (
             <button 
               onClick={() => { resetForm(); setView('add'); }}
