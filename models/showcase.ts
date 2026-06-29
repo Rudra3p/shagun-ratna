@@ -1,42 +1,31 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IShowcase extends Document {
-  productRefId: mongoose.Types.ObjectId;
-  isPopularHomepage: boolean; // True if it's one of the 6 featured home cards
-  targetGender: "Male" | "Female" | "Unisex" | "All";
-  targetAgeGroup: "Kids" | "Teens" | "Young Adult" | "Adult" | "Senior" | "All";
+  title: string;
+  gender: string;
+  minAge: number;
+  maxAge: number;
+  homepageZone: string; // 👈 "None" | "Card 1" | "Card 2" | ... | "Card 6"
+  description?: string;
+  productIds: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ShowcaseSchema: Schema = new Schema(
+const ShowcaseSchema: Schema<IShowcase> = new Schema(
   {
-    productRefId: { 
-      type: Schema.Types.ObjectId, 
-      ref: "Product", 
-      required: true,
-      unique: true // One product can only have one configuration entry here
-    },
-    isPopularHomepage: { 
-      type: Boolean, 
-      default: false 
-    },
-    targetGender: { 
-      type: String, 
-      enum: ["Male", "Female", "Unisex", "All"], 
-      default: "All" 
-    },
-    targetAgeGroup: { 
-      type: String, 
-      enum: ["Kids", "Teens", "Young Adult", "Adult", "Senior", "All"], 
-      default: "All" 
-    }
+    title: { type: String, required: true, trim: true },
+    gender: { type: String, required: true, default: "All" },
+    minAge: { type: Number, required: true, default: 18 },
+    maxAge: { type: Number, required: true, default: 60 },
+    homepageZone: { type: String, required: true, default: "None" }, // 👈 Tracking anchor spot
+    description: { type: String, trim: true },
+    productIds: [{ type: Schema.Types.ObjectId, ref: "Product", default: [] }]
   },
   { timestamps: true }
 );
 
-// Indexing for blazing-fast CDN queries later
-ShowcaseSchema.index({ isPopularHomepage: 1 });
-ShowcaseSchema.index({ targetGender: 1, targetAgeGroup: 1 });
+const Showcase: Model<IShowcase> =
+  mongoose.models.Showcase || mongoose.model<IShowcase>("Showcase", ShowcaseSchema);
 
-export default mongoose.models.Showcase || mongoose.model<IShowcase>("Showcase", ShowcaseSchema);
+export default Showcase;

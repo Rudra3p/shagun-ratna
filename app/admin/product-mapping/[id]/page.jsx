@@ -5,39 +5,33 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, CheckCircle, Circle, Trash2, Folder, Save, Loader2 } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function RepositoryDetailView({ params }: PageProps) {
+export default function RepositoryDetailView({ params }) {
   const router = useRouter();
   const { id: folderId } = use(params);
 
-  const [folder, setFolder] = useState<any>(null);
-  const [assignedProducts, setAssignedProducts] = useState<any[]>([]);
-  const [allInventory, setAllInventory] = useState<any[]>([]);
+  const [folder, setFolder] = useState(null);
+  const [assignedProducts, setAssignedProducts] = useState([]);
+  const [allInventory, setAllInventory] = useState([]);
   
   const [showSelectorModal, setShowSelectorModal] = useState(false);
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  // Load Folder Profile Meta and Current Products
   const loadFolderDetails = async () => {
     try {
       const [folderRes, productsRes] = await Promise.all([
         adminApi.get(`/collection/smart?id=${folderId}`),
-        adminApi.get(`/products?limit=100`) // Fetches warehouse stock options
+        adminApi.get(`/products?limit=100`) 
       ]);
       
       const targetFolder = folderRes.data.collection;
       setFolder(targetFolder);
       setAllInventory(productsRes.data.products || []);
       
-      // Filter inventory lists to isolate explicitly assigned collection products
       const assignedIds = targetFolder.productIds || [];
       setSelectedProductIds(assignedIds);
       
-      const matched = (productsRes.data.products || []).filter((p: any) => assignedIds.includes(p._id));
+      const matched = (productsRes.data.products || []).filter((p) => assignedIds.includes(p._id));
       setAssignedProducts(matched);
     } catch (err) {
       console.error("Failed to load sub-repository map:", err);
@@ -48,32 +42,29 @@ export default function RepositoryDetailView({ params }: PageProps) {
     loadFolderDetails();
   }, [folderId]);
 
-  // Visual card checkbox checker toggle controller click listener
-  const toggleProductSelection = (productId: string) => {
-    setSelectedProductIds(prev => 
-      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
+  const toggleProductSelection = (productId) => {
+    setSelectedProductIds((prev) => 
+      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
   };
 
-  // Immediate layout removal trigger function
-  const handleRemoveProduct = async (productId: string) => {
-    const updatedIds = selectedProductIds.filter(id => id !== productId);
+  const handleRemoveProduct = async (productId) => {
+    const updatedIds = selectedProductIds.filter((id) => id !== productId);
     try {
       await adminApi.put(`/collection/smart?id=${folderId}`, { productIds: updatedIds });
       setSelectedProductIds(updatedIds);
-      setAssignedProducts(prev => prev.filter(p => p._id !== productId));
+      setAssignedProducts((prev) => prev.filter((p) => p._id !== productId));
     } catch (err) {
       console.error("Failed to delete mapping entry index:", err);
     }
   };
 
-  // Saves visual checkbox mapping state selections straight to the database
   const handleSaveSelections = async () => {
     setSaving(true);
     try {
       await adminApi.put(`/collection/smart?id=${folderId}`, { productIds: selectedProductIds });
       setShowSelectorModal(false);
-      loadFolderDetails(); // Reload synchronized pipeline lists
+      loadFolderDetails(); 
     } catch (err) {
       console.error("Failed to commit selected mappings array updates:", err);
     } finally {
@@ -86,7 +77,6 @@ export default function RepositoryDetailView({ params }: PageProps) {
   return (
     <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px]">
       
-      {/* Return Header Nav Context Row */}
       <div className="flex items-center gap-4 mb-8">
         <button 
           onClick={() => router.push('/admin/mappings')} 
@@ -105,7 +95,6 @@ export default function RepositoryDetailView({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Repository Assigned Assets Display Control Section Row Header */}
       <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
         <h2 className="text-[15px] font-sans font-bold text-gray-800 uppercase tracking-wider">Assigned Product Deck ({assignedProducts.length})</h2>
         <button 
@@ -117,7 +106,6 @@ export default function RepositoryDetailView({ params }: PageProps) {
         </button>
       </div>
 
-      {/* Assigned Deck Mapping Cards Grid Layout Grid view */}
       {assignedProducts.length === 0 ? (
         <div className="text-center py-20 bg-[#fdfbf7] rounded-[24px] border border-dashed border-gray-200 text-gray-400 font-sans text-[13px]">
           No inventory cards pinned inside this demographic profile directory folder yet.
@@ -135,7 +123,6 @@ export default function RepositoryDetailView({ params }: PageProps) {
                 <h3 className="text-[16px] text-[#222222] font-serif font-medium tracking-wide truncate w-full">{product.productName}</h3>
                 <p className="text-[11px] text-[#888888] font-sans font-semibold uppercase tracking-widest mt-0.5">${parseFloat(product.price).toFixed(2)}</p>
                 
-                {/* Clean, explicit REMOVE button replacement */}
                 <button 
                   onClick={() => handleRemoveProduct(product._id)}
                   className="mt-3 flex items-center justify-center gap-1.5 px-4 py-1.5 border border-gray-200 text-gray-500 hover:text-red-600 hover:bg-red-50/50 transition-all rounded-md text-[12px] font-medium"
@@ -176,7 +163,6 @@ export default function RepositoryDetailView({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Checkable Visual Matrix Grid Scroll List Area Container */}
             <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 gap-4 pb-10">
               {allInventory.map((item) => {
                 const isChecked = selectedProductIds.includes(item._id);
@@ -188,7 +174,6 @@ export default function RepositoryDetailView({ params }: PageProps) {
                       isChecked ? 'border-[#540411] bg-[#ffecec]/10 ring-1 ring-[#540411]' : 'border-gray-100 hover:border-gray-300 bg-white'
                     }`}
                   >
-                    {/* Floating check status overlay pill component mapping toggle check indicator */}
                     <div className="absolute top-5 right-5 z-10">
                       {isChecked ? (
                         <CheckCircle size={22} className="text-[#540411] fill-white" />

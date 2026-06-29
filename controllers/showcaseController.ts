@@ -1,108 +1,70 @@
+// 🧠 Just update the import at the top of controllers/showcaseController.ts to look like this:
 import Showcase from "@/models/showcase";
-import Product from "@/models/product";
 import { NextResponse } from "next/server";
-import dbConnect from '@/db/db';
+import dbConnect from "@/db/db";
 
-// 1. GET SHOWCASE DATA (For Homepage Popular Cards & Age/Gender Filters)
-export const getShowcase = async (req: Request) => {
+// 1. GET: Fetch folders
+export const getSmartCollection = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
-    
-    // Parse the incoming URL filter params
-    const { searchParams } = new URL(req.url);
-    const popular = searchParams.get("popular"); // e.g., ?popular=true
-    const gender = searchParams.get("gender");   // e.g., ?gender=Female
-    const age = searchParams.get("age");         // e.g., ?age=Adult
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
 
-    // Dynamic query building
-    let query: any = {};
-
-    if (popular === "true") {
-      query.isPopularHomepage = true;
-    }
-    if (gender) {
-      query.targetGender = gender;
-    }
-    if (age) {
-      query.targetAgeGroup = age;
+    if (id) {
+      const collection = await Showcase.findById(id); // 👈 Uses new Showcase model
+      if (!collection) return NextResponse.json({ error: "Folder repository not found" }, { status: 404 });
+      return NextResponse.json({ collection }, { status: 200 });
     }
 
-    // Find entries and populate the full product payload from the "products" collection
-    const showcaseItems = await Showcase.find(query)
-      .populate({
-        path: "productRefId",
-        model: Product
-      })
-      .sort({ updatedAt: -1 })
-      .limit(popular === "true" ? 6 : 20); // Cap popular items at exactly 6 cards!
-
-    // Format the response nicely
-    const responseData = showcaseItems.map(item => ({
-      showcaseId: item._id,
-      isPopular: item.isPopularHomepage,
-      gender: item.targetGender,
-      ageGroup: item.targetAgeGroup,
-      product: item.productRefId // This contains the full image, price, title details
-    }));
-
-    const response = NextResponse.json({ success: true, data: responseData }, { status: 200 });
-
-    // 🔥 CRITICAL: Cache this data on Cloudflare CDN for 1 hour
-    // Since these collections don't change every second, caching them saves huge server costs!
-    response.headers.set(
-      "Cache-Control",
-      "public, s-maxage=3600, stale-while-revalidate=60"
-    );
-
-    return response;
-
+    const collections = await Showcase.find().sort({ createdAt: -1 }); // 👈 Uses new Showcase model
+    return NextResponse.json({ collections }, { status: 200 });
   } catch (error) {
-    console.error("Showcase fetch system error:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch showcase items" }, { status: 500 });
+    return NextResponse.json({ error: "Server read failure" }, { status: 500 });
   }
 };
 
-// 2. CONFIGURE / SAVE SHOWCASE ITEM (Admin Dashboard Operations)
-export const configureShowcase = async (req: Request) => {
+// 2. POST: Create a folder
+export const configureShowcase = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
     const body = await req.json();
-    const { productRefId, isPopularHomepage, targetGender, targetAgeGroup } = body;
 
-    if (!productRefId) {
-      return NextResponse.json({ success: false, error: "Product reference link ID missing" }, { status: 400 });
-    }
+    const newCollection = new Showcase({
+      title: body.title,
+      gender: body.gender,
+      minAge: parseInt(body.minAge) || 0,
+      maxAge: parseInt(body.maxAge) || 120,
+      homepageZone: body.homepageZone || "None", // 🧠 Captures homepage spot assignment
+      description: body.description,
+      productIds: []
+    });
 
-    // If setting a popular homepage item, verify we don't exceed the client's 6-card limit
-    if (isPopularHomepage === true) {
-      const activePopularCount = await Showcase.countDocuments({ isPopularHomepage: true, productRefId: { $ne: productRefId } });
-      if (activePopularCount >= 6) {
-        return NextResponse.json({ 
-          success: false, 
-          error: "Limit exceeded! You already have 6 popular cards selected for the home page. Deselect one first." 
-        }, { status: 400 });
-      }
-    }
+    await newCollection.save();
+    return NextResponse.json({ success: true, message: "Folder repository created" }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: "Server write failure" }, { status: 400 });
+  }
+};
 
-    // Upsert mechanism: Create or update configuration parameters atomically
-    const configuredItem = await Showcase.findOneAndUpdate(
-      { productRefId },
-      { 
-        isPopularHomepage, 
-        targetGender: targetGender || "All", 
-        targetAgeGroup: targetAgeGroup || "All" 
-      },
-      { new: true, upsert: true, runValidators: true }
+// 3. PUT: Update checklist array values
+export const updateSmartCollection = async (req: Request): Promise<NextResponse> => {
+  try {
+    await dbConnect();
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
+    const body = await req.json();
+
+    const updatedCollection = await Showcase.findByIdAndUpdate( // 👈 Uses new Showcase model
+      id,
+      { $set: body },
+      { new: true, runValidators: true }
     );
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "Showcase properties saved successfully", 
-      data: configuredItem 
-    }, { status: 200 });
-
+    if (!updatedCollection) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ success: true, collection: updatedCollection }, { status: 200 });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Configuration failed";
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: "Server update failure" }, { status: 500 });
   }
 };

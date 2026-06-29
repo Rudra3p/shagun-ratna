@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Folder, Users, Layers, X, ArrowRight, Loader2 } from 'lucide-react';
+import { Plus, Folder, Users, Home, X, ArrowRight, Loader2 } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 
 export default function ProductMappingDashboard() {
@@ -11,16 +11,15 @@ export default function ProductMappingDashboard() {
   const [loading, setLoading] = useState(false);
   const [collections, setCollections] = useState([]);
   
-  // Modal pop-up field states
   const [modalForm, setModalForm] = useState({
     title: '',
     gender: 'All',
     minAge: '18',
     maxAge: '60',
+    homepageZone: 'None', 
     description: ''
   });
 
-  // Fetch created smart mapping repository collections from database
   const fetchCollections = async () => {
     try {
       const res = await adminApi.get('/collection/smart');
@@ -40,8 +39,8 @@ export default function ProductMappingDashboard() {
     try {
       await adminApi.post('/collection/smart', modalForm);
       setShowModal(false);
-      setModalForm({ title: '', gender: 'All', minAge: '18', maxAge: '60', description: '' });
-      fetchCollections(); // Refresh folder grid mapping list
+      setModalForm({ title: '', gender: 'All', minAge: '18', maxAge: '60', homepageZone: 'None', description: '' });
+      fetchCollections();
     } catch (err) {
       console.error("Creation mapping asset error:", err);
     } finally {
@@ -52,7 +51,6 @@ export default function ProductMappingDashboard() {
   return (
     <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px]">
       
-      {/* Dynamic Sub-Navigation Bar Layout Management Control Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6 mb-8">
         <div>
           <h1 className="text-[22px] font-sans font-bold text-[#540411] tracking-tight">Smart Demographics Repositories</h1>
@@ -67,7 +65,6 @@ export default function ProductMappingDashboard() {
         </button>
       </div>
 
-      {/* Folders Grid UI Dashboard Layout */}
       {collections.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-[24px] border border-dashed border-gray-200 text-gray-400 font-sans text-[14px]">
           No dynamic smart collection folders mapped yet. Click "Create New Mapping" above to spawn your first profile structure folder.
@@ -78,19 +75,28 @@ export default function ProductMappingDashboard() {
             <div 
               key={folder._id}
               onClick={() => router.push(`/admin/mappings/${folder._id}`)}
-              className="bg-white border border-gray-100 rounded-[20px] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_20px_rgba(84,4,17,0.06)] hover:border-[#540411]/20 cursor-pointer group transition-all duration-300 relative flex flex-col min-h-[180px]"
+              className="bg-white border border-gray-100 rounded-[20px] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_20px_rgba(84,4,17,0.06)] hover:border-[#540411]/20 cursor-pointer group transition-all duration-300 relative flex flex-col min-h-[200px]"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="p-3 rounded-xl bg-[#ffecec] text-[#540411] group-hover:bg-[#540411] group-hover:text-white transition-colors duration-300">
                   <Folder size={24} />
                 </div>
-                <div className="flex gap-1.5">
-                  <span className="px-2.5 py-1 bg-gray-50 border border-gray-100 text-gray-600 font-sans text-[11px] font-semibold rounded-md flex items-center gap-1">
-                    <Users size={12} /> {folder.gender}
-                  </span>
-                  <span className="px-2.5 py-1 bg-gray-50 border border-gray-100 text-gray-600 font-sans text-[11px] font-semibold rounded-md">
-                    Age {folder.minAge}-{folder.maxAge}
-                  </span>
+                
+                <div className="flex flex-col items-end gap-1.5">
+                  <div className="flex gap-1.5">
+                    <span className="px-2.5 py-1 bg-gray-50 border border-gray-100 text-gray-600 font-sans text-[11px] font-semibold rounded-md flex items-center gap-1">
+                      <Users size={12} /> {folder.gender}
+                    </span>
+                    <span className="px-2.5 py-1 bg-gray-50 border border-gray-100 text-gray-600 font-sans text-[11px] font-semibold rounded-md">
+                      Age {folder.minAge}-{folder.maxAge}
+                    </span>
+                  </div>
+
+                  {folder.homepageZone && folder.homepageZone !== "None" && (
+                    <span className="px-2.5 py-0.5 bg-[#540411] text-white font-sans text-[10px] font-bold uppercase tracking-wider rounded-md flex items-center gap-1 shadow-sm">
+                      <Home size={10} /> {folder.homepageZone}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -129,6 +135,22 @@ export default function ProductMappingDashboard() {
                   value={modalForm.title} onChange={(e) => setModalForm({...modalForm, title: e.target.value})}
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px]"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Link to Homepage (6 Card Layout)</label>
+                <select 
+                  value={modalForm.homepageZone} onChange={(e) => setModalForm({...modalForm, homepageZone: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px] font-medium text-gray-700"
+                >
+                  <option value="None">None (Standard Collection Folder)</option>
+                  <option value="Card 1">Homepage Feature Spot 1</option>
+                  <option value="Card 2">Homepage Feature Spot 2</option>
+                  <option value="Card 3">Homepage Feature Spot 3</option>
+                  <option value="Card 4">Homepage Feature Spot 4</option>
+                  <option value="Card 5">Homepage Feature Spot 5</option>
+                  <option value="Card 6">Homepage Feature Spot 6</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">
