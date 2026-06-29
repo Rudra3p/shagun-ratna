@@ -11,16 +11,28 @@ import { generateUploadUrl } from "@/lib/r2Service";
 
 const ensureDB = async () => await dbConnect();
 
-export async function GET() { 
+// 1. GET ROUTE: Handles default catalog loading AND active query string searches
+export async function GET(req: Request) { 
   await ensureDB();
+  
+  const url = new URL(req.url);
+  const searchParam = url.searchParams.get("search");
+
+  // 🧠 FIX: If the URL string contains a '?search=' parameter, pipe the request to searchProducts!
+  if (searchParam !== null) {
+    return await searchProducts(req);
+  }
+
+  // Otherwise, fallback to the standard paginated catalog view
   return await getProducts(); 
 }
 
+// 2. POST ROUTE: Handles R2 image uploading operations and data asset insertions
 export async function POST(req: Request) {
   // Read and parse the request stream once here at the entrypoint
   const body = await req.json();
 
-  // 1. Handle R2 Upload URL Requests
+  // Handle R2 Upload URL Requests
   if (body.action === 'get-upload-url') {
     const { fileName, fileType } = body;
     const uniqueKey = `products/${Date.now()}-${fileName.replace(/\s+/g, '-')}`;
@@ -35,18 +47,8 @@ export async function POST(req: Request) {
 
   // Ensure database initialization for downstream operations
   await ensureDB();
-
-  // 2. Handle System Search Pipelines
-  if (body.hasOwnProperty('search')) {
-    // Pass the already parsed body directly to prevent stream re-reading issues
-    return await searchProducts(new Request(req.url, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: req.headers
-    }));
-  }
   
-  // 3. Handle Add Product Entry Tasks
+  // Handle Add Product Entry Tasks (Cleaned up the old dead POST search check)
   return await addProduct(new Request(req.url, {
     method: 'POST',
     body: JSON.stringify(body),
@@ -54,11 +56,13 @@ export async function POST(req: Request) {
   }));
 }
 
+// 3. PUT ROUTE: Handles inventory updates
 export async function PUT(req: Request) { 
   await ensureDB();
   return await updateProduct(req); 
 }
 
+// 4. DELETE ROUTE: Handles inventory entry deletions
 export async function DELETE(req: Request) { 
   await ensureDB();
   return await deleteProduct(req); 

@@ -1,10 +1,10 @@
 import Product from "@/models/product";
-import SearchIndex from "@/models/searchIndex"; // Import our new lightweight index model
+import SearchIndex from "@/models/searchIndex"; 
 import { NextResponse } from "next/server";
 import dbConnect from '@/db/db';
 
 // 💡 CLOUDFLARE CACHE PURGE UTILITY
-async function purgeCDNCache(urlToDelete: string) {
+async function purgeCDNCache(urlToDelete: string): Promise<void> {
   try {
     const zoneId = process.env.CLOUDFLARE_ZONE_ID;
     const token = process.env.CLOUDFLARE_PURGE_TOKEN;
@@ -35,7 +35,7 @@ async function purgeCDNCache(urlToDelete: string) {
 }
 
 // 1. ADD PRODUCT (Dual-write enabled)
-export const addProduct = async (req: Request) => {
+export const addProduct = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
     const body = await req.json();
@@ -73,11 +73,16 @@ export const addProduct = async (req: Request) => {
   }
 };
 
-// 2. SEARCH PRODUCTS (Fuzzy Search + Two-Tier Pipeline with CDN Headers)
-export const searchProducts = async (req: Request) => {
+// 2. SEARCH PRODUCTS (Fuzzy Search Upgraded to parse native GET URL parameters)
+export const searchProducts = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
-    const { search, page = 1, limit = 10 } = await req.json();
+    
+    // Parse parameters straight out of the native HTTP GET request URL string
+    const url = new URL(req.url);
+    const search = url.searchParams.get("search");
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
 
     if (!search || search.trim() === "") {
       return await getProducts(null, 0, page); 
@@ -89,13 +94,13 @@ export const searchProducts = async (req: Request) => {
     const indexResults = await SearchIndex.aggregate([
       {
         $search: {
-          index: "default", // Make sure your Atlas Search Index name matches this
+          index: "default", 
           text: {
             query: search,
             path: ["keyword", "category"],
             fuzzy: {
               maxEdits: 2,       // Allows up to 2 character changes (e.g., "guld" -> "gold")
-              prefixLength: 1,   // Requires first letter to remain steady
+              prefixLength: 0,   // 🔥 FIXED: Changed to 0 so "sliver" maps cleanly to "silver"
             }
           }
         }
@@ -113,7 +118,7 @@ export const searchProducts = async (req: Request) => {
       },
       { $unwind: "$fullProduct" },
       {
-        // Reshape output to mirror standard product structure
+        // Reshape output matrix structure to match client expectations
         $project: {
           _id: "$fullProduct._id",
           productName: "$fullProduct.productName",
@@ -162,12 +167,12 @@ export const searchProducts = async (req: Request) => {
   }
 };
 
-// 3. GET PRODUCTS (The Data Gateway unchanged)
+// 3. GET PRODUCTS (Standard Data Gateway pagination)
 export const getProducts = async (
   products: any[] | null = null, 
   totalPages: number = 0, 
   currentPage: number = 1
-) => {
+): Promise<NextResponse> => {
   try {
     if (products) {
       return NextResponse.json({ products, totalPages, currentPage }, { status: 200 });
@@ -191,7 +196,7 @@ export const getProducts = async (
 };
 
 // 4. UPDATE PRODUCT (Dual-write sync preservation enabled)
-export const updateProduct = async (req: Request) => {
+export const updateProduct = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
     
@@ -230,7 +235,7 @@ export const updateProduct = async (req: Request) => {
 };
 
 // 5. DELETE PRODUCT (Atomic cascade cleanup + CDN Purging enabled)
-export const deleteProduct = async (req: Request) => {
+export const deleteProduct = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
     const url = new URL(req.url);
@@ -240,21 +245,19 @@ export const deleteProduct = async (req: Request) => {
       return NextResponse.json({ error: "ID missing in URL" }, { status: 400 });
     }
 
-    // Delete the product from the main database collection
     const deletedProduct = await Product.findByIdAndDelete(id);
     if (!deletedProduct) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    // Clean up our lightweight index reference collection so orphaned items don't float around
     await SearchIndex.deleteOne({ productRefId: id });
 
-    // 👇 UPDATED: Execute instant Cloudflare CDN Cache purging for text payloads and R2 image assets
+    // Execute instant Cloudflare CDN Cache purging for text payloads and R2 image assets
     const encodedSearch = encodeURIComponent(deletedProduct.productName);
     const cdnSearchUrl = `https://shagunratna.onrender.com/api/products?search=${encodedSearch}&page=1&limit=10`;
     
-    await purgeCDNCache(cdnSearchUrl); // Clear the cached search text payload block
+    await purgeCDNCache(cdnSearchUrl); 
 
     if (deletedProduct.imageUrl) {
-      await purgeCDNCache(deletedProduct.imageUrl); // Clear the cached binary image asset from CDN edge nodes
+      await purgeCDNCache(deletedProduct.imageUrl); 
     }
 
     return NextResponse.json({ message: "Deleted" }, { status: 200 });
