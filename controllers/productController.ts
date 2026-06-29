@@ -3,6 +3,37 @@ import SearchIndex from "@/models/searchIndex"; // Import our new lightweight in
 import { NextResponse } from "next/server";
 import dbConnect from '@/db/db';
 
+// 💡 CLOUDFLARE CACHE PURGE UTILITY
+async function purgeCDNCache(urlToDelete: string) {
+  try {
+    const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+    const token = process.env.CLOUDFLARE_PURGE_TOKEN;
+
+    if (!zoneId || !token) {
+      console.warn("Cloudflare environment variables missing. Skipping cache invalidation.");
+      return;
+    }
+
+    const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ files: [urlToDelete] })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      console.log(`Successfully purged CDN cache for URL: ${urlToDelete}`);
+    } else {
+      console.error("Cloudflare purge error details:", data.errors);
+    }
+  } catch (err) {
+    console.error("Failed to connect to Cloudflare Purge API:", err);
+  }
+}
+
 // 1. ADD PRODUCT (Dual-write enabled)
 export const addProduct = async (req: Request) => {
   try {
@@ -198,18 +229,33 @@ export const updateProduct = async (req: Request) => {
   }
 };
 
-// 5. DELETE PRODUCT (Atomic cascade cleanup enabled)
+// 5. DELETE PRODUCT (Atomic cascade cleanup + CDN Purging enabled)
 export const deleteProduct = async (req: Request) => {
   try {
     await dbConnect();
     const url = new URL(req.url);
     const id = url.searchParams.get("id"); 
     
+    if (!id) {
+      return NextResponse.json({ error: "ID missing in URL" }, { status: 400 });
+    }
+
+    // Delete the product from the main database collection
     const deletedProduct = await Product.findByIdAndDelete(id);
     if (!deletedProduct) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // Clean up our lightweight index reference collection so orphaned items don't float around
     await SearchIndex.deleteOne({ productRefId: id });
+
+    // 👇 UPDATED: Execute instant Cloudflare CDN Cache purging for text payloads and R2 image assets
+    const encodedSearch = encodeURIComponent(deletedProduct.productName);
+    const cdnSearchUrl = `https://shagunratna.onrender.com/api/products?search=${encodedSearch}&page=1&limit=10`;
+    
+    await purgeCDNCache(cdnSearchUrl); // Clear the cached search text payload block
+
+    if (deletedProduct.imageUrl) {
+      await purgeCDNCache(deletedProduct.imageUrl); // Clear the cached binary image asset from CDN edge nodes
+    }
 
     return NextResponse.json({ message: "Deleted" }, { status: 200 });
   } catch (error) {
