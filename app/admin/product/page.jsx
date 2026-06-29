@@ -348,63 +348,74 @@ export default function Products() {
       </div>
 
       {/* Main Grid View Dashboard Container */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
         
         {/* CHANGED: Mapping directly over raw server-validated products collection state to honor typos */}
         {products.map((product) => (
-          <div key={product._id} className="bg-white rounded-[20px] border border-gray-100 overflow-hidden flex flex-col group hover:border-[#540411]/30 transition-all duration-300 shadow-sm hover:shadow-md min-h-[340px]">
+          /* Card Container: Completely removed bg-white, borders, and shadows to match user-side minimalist view */
+          <div key={product._id} className="flex flex-col group transition-all duration-300">
+            
             {/* Asset Image Layer */}
-            <div className="relative h-48 w-full overflow-hidden bg-gray-50">
+            {/* Set to aspect-[3/4] (Taller height, shorter width) with identical user-side rounding */}
+            <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-[#fdfbf7]">
               {product.imageUrl ? (
                 <div 
-                  className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" 
+                  className="w-full h-full bg-cover bg-center group-hover:scale-102 transition-transform duration-700 ease-out" 
                   style={{ backgroundImage: `url(${product.imageUrl})` }} 
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 font-sans text-[12px] font-semibold uppercase tracking-wide">
+                <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 font-sans text-[11px] font-bold uppercase tracking-widest">
                   No Asset Render
                 </div>
               )}
               {product.discount > 0 && (
-                <div className="absolute top-3 right-3">
-                  <span className="px-3 py-1.5 rounded-full backdrop-blur-sm bg-[#ffecec]/95 text-[#b03038] font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
+                <div className="absolute top-4 right-4">
+                  <span className="px-3 py-1.5 rounded-full backdrop-blur-md bg-white/90 text-[#b03038] font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
                     {product.discount}% OFF
                   </span>
                 </div>
               )}
             </div>
             
-            {/* Product description texts */}
-            <div className="p-6 flex flex-col flex-1">
-              <div className="mb-4">
-                <span className="font-sans text-[11px] text-gray-500 font-bold uppercase tracking-widest">{product.category || 'General'}</span>
-                <h3 className="text-[17px] text-gray-900 font-bold truncate mt-1 tracking-tight">{product.productName}</h3>
+            {/* Product description texts: Centered layout with no box framing underneath */}
+            <div className="pt-4 flex flex-col flex-1 text-center">
+              <div className="mb-1.5">
+                <h3 className="text-[17px] text-[#222222] font-serif font-medium tracking-wide group-hover:text-[#540411] transition-colors duration-300 truncate px-1">
+                  {product.productName}
+                </h3>
+                <p className="text-[11px] text-[#888888] font-sans font-semibold uppercase tracking-widest mt-0.5">
+                  {product.category || 'General'}
+                </p>
               </div>
               
               {/* Pricing metrics & Admin Control interfaces */}
-              <div className="flex items-end justify-between mt-auto">
+              <div className="flex flex-col items-center gap-2.5 mt-auto">
                 <div>
                   {product.offerPrice > 0 && product.offerPrice !== product.price ? (
-                    <div className="space-y-0.5">
-                      <p className="text-[12px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</p>
-                      <p className="text-[20px] text-gray-900 font-sans font-bold">${parseFloat(product.offerPrice).toFixed(2)}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-[13px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
+                      <span className="text-[15px] text-[#222222] font-sans font-semibold">${parseFloat(product.offerPrice).toFixed(2)}</span>
                     </div>
                   ) : (
-                    <p className="text-[20px] text-gray-900 font-sans font-bold">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
+                    <p className="text-[15px] text-[#222222] font-sans font-semibold">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
                   )}
                 </div>
-                <div className="flex gap-1.5">
+
+                {/* Admin Controls Area: Positioned beautifully below pricing details */}
+                <div className="flex gap-1.5 pt-0.5 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
                   <button 
                     onClick={() => startEdit(product)}
-                    className="p-2 text-gray-400 hover:text-[#540411] hover:bg-gray-50 transition-colors rounded-lg border border-transparent hover:border-gray-100"
+                    className="flex items-center gap-1 px-2.5 py-1 text-gray-500 hover:text-[#540411] hover:bg-[#ffecec]/40 transition-all rounded-md border border-gray-100 text-[11px] font-medium"
                   >
-                    <Edit2 size={16} />
+                    <Edit2 size={12} />
+                    Edit
                   </button>
                   <button 
                     onClick={() => handleDelete(product._id)}
-                    className="p-2 text-gray-400 hover:text-[#b03038] hover:bg-gray-50 transition-colors rounded-lg border border-transparent hover:border-gray-100"
+                    className="flex items-center gap-1 px-2.5 py-1 text-gray-500 hover:text-[#b03038] hover:bg-red-50/50 transition-all rounded-md border border-gray-100 text-[11px] font-medium"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={12} />
+                    Delete
                   </button>
                 </div>
               </div>
@@ -413,15 +424,15 @@ export default function Products() {
         ))}
         
         {/* "New Product" Dash Button Card placeholder target */}
+        {/* Styled with aspect-[3/4] to run perfectly uniform along with your live listings */}
         <button 
           onClick={() => { resetForm(); setView('add'); }}
-          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 bg-white rounded-[20px] p-8 group hover:border-[#540411] hover:bg-[#ffecec]/50 transition-all duration-300 min-h-[340px]"
+          className="flex flex-col items-center justify-center border border-dashed border-gray-200 bg-white rounded-[24px] aspect-[3/4] group hover:border-[#540411] hover:bg-[#ffecec]/10 transition-all duration-500 w-full"
         >
-          <div className="w-16 h-16 rounded-full bg-[#f1f4f9] flex items-center justify-center group-hover:bg-[#540411] group-hover:text-white text-gray-400 transition-colors mb-4">
-            <Plus size={28} />
+          <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#540411] group-hover:text-white text-gray-400 transition-colors duration-300 mb-2">
+            <Plus size={18} />
           </div>
-          <p className="text-[17px] text-gray-900 font-bold tracking-tight">New Product</p>
-          <p className="text-[14px] text-gray-500 text-center px-4 mt-1">Expand your catalog with a new asset entry.</p>
+          <p className="text-[14px] text-gray-900 font-medium tracking-tight">Add Entry</p>
         </button>
       </div>
 
