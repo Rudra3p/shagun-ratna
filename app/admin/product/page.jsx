@@ -46,9 +46,7 @@ export default function Products() {
     fetchProducts(1); 
   }, []);
 
-  // 1. Keep your standard state managers
-
-// 2. The explicit submission event handler
+  // 2. The upgraded cache-eligible explicit GET search submission handler
   const handleSearchSubmit = async (e) => {
     e.preventDefault(); // Prevents the browser from reloading the entire page
     
@@ -60,17 +58,14 @@ export default function Products() {
 
     setLoading(true);
     try {
-      console.log(`Firing explicit network search trigger for: "${searchQuery}"`);
+      console.log(`Firing cache-eligible HTTP GET query trigger for: "${searchQuery}"`);
       
-      const res = await adminApi.post('/products', {
-        search: searchQuery,
-        page: 1,
-        limit: 10
-      });
+      // Swapped payload submission to an absolute query param format to trigger Cloudflare storage caching
+      const res = await adminApi.get(`/products?search=${encodeURIComponent(searchQuery)}&page=1&limit=10`);
 
       // Populate state with your fuzzy-matched, CDN-cached response payload
-      setProducts(res.data.products);
-      setHasMore(res.data.products.length === 10);
+      setProducts(res.data.products || []);
+      setHasMore((res.data.products || []).length === 10);
       setPage(1);
     } catch (err) {
       console.error("Manual search execution failed:", err);
@@ -175,11 +170,6 @@ export default function Products() {
     setImagePreview(null);
     setEditingId(null);
   };
-
-  const filteredProducts = products.filter(product => 
-    product.productName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   // --- RENDERING FORM VIEW (ADD / EDIT) ---
   if (view === 'add' || view === 'edit') {
@@ -330,7 +320,7 @@ export default function Products() {
               type="text" 
               placeholder="Search inventory..." 
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} // Safe now! Only changes local string state, doesn't hit API.
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 placeholder:text-gray-400 shadow-sm"
             />
           </div>
@@ -360,8 +350,8 @@ export default function Products() {
       {/* Main Grid View Dashboard Container */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         
-        {/* Map database entries directly into structured layout cards */}
-        {filteredProducts.map((product) => (
+        {/* CHANGED: Mapping directly over raw server-validated products collection state to honor typos */}
+        {products.map((product) => (
           <div key={product._id} className="bg-white rounded-[20px] border border-gray-100 overflow-hidden flex flex-col group hover:border-[#540411]/30 transition-all duration-300 shadow-sm hover:shadow-md min-h-[340px]">
             {/* Asset Image Layer */}
             <div className="relative h-48 w-full overflow-hidden bg-gray-50">
@@ -375,7 +365,6 @@ export default function Products() {
                   No Asset Render
                 </div>
               )}
-              {/* Optional: Render discount offer status badge */}
               {product.discount > 0 && (
                 <div className="absolute top-3 right-3">
                   <span className="px-3 py-1.5 rounded-full backdrop-blur-sm bg-[#ffecec]/95 text-[#b03038] font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
