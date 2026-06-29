@@ -5,8 +5,14 @@ import adminApi from '@/lib/adminApi';
 import { Filter, Save, Loader2, Sparkles, User, Calendar, CheckCircle } from 'lucide-react';
 
 export default function ProductMapping() {
-  const [products, setProducts] = useState([]); // List of all products for the selection dropdown
-  const [mappedItems, setMappedItems] = useState([]); // Filtered showcase mappings from server
+  // Products collection state for the selector dropdown
+  const [products, setProducts] = useState([]); 
+  const [selectorPage, setSelectorPage] = useState(1);
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [loadingSelector, setLoadingSelector] = useState(false);
+
+  // Filtered showcase mappings from server (Right panel view)
+  const [mappedItems, setMappedItems] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -25,13 +31,32 @@ export default function ProductMapping() {
     popular: ''
   });
 
-  // 1. Fetch all products to populate the admin dropdown selector
-  const fetchAllProducts = async () => {
+  // 1. Fetch products step-by-step (10 at a time) without duplicates
+  const fetchAllProducts = async (pageToFetch = 1) => {
+    if (loadingSelector || (!hasMoreProducts && pageToFetch > 1)) return;
+    
+    setLoadingSelector(true);
     try {
-      const res = await adminApi.get('/products?limit=100'); // Grab a wide list
-      setProducts(res.data.products || []);
+      // Hits your paginated database route passing page and standard limit of 10
+      const res = await adminApi.get(`/products?page=${pageToFetch}&limit=10`);
+      const newProducts = res.data.products || [];
+      
+      if (newProducts.length < 10) {
+        setHasMoreProducts(false); // Reached the end of the inventory database
+      }
+
+      setProducts((prevProducts) => {
+        // Build a unique tracking set of existing IDs to enforce zero duplication
+        const existingIds = new Set(prevProducts.map(p => p._id));
+        const filteredNew = newProducts.filter(p => !existingIds.has(p._id));
+        return [...prevProducts, ...filteredNew];
+      });
+      
+      setSelectorPage(pageToFetch);
     } catch (err) {
-      console.error("Failed to load products selector list:", err);
+      console.error("Failed to load step-by-step items:", err);
+    } finally {
+      setLoadingSelector(false);
     }
   };
 
@@ -55,10 +80,12 @@ export default function ProductMapping() {
     }
   };
 
+  // Initial step-by-step data load on component mount
   useEffect(() => {
-    fetchAllProducts();
+    fetchAllProducts(1);
   }, []);
 
+  // Sync right panel view automatically when filter drop-downs change
   useEffect(() => {
     fetchMappings();
   }, [viewFilters]);
@@ -70,11 +97,10 @@ export default function ProductMapping() {
 
     setSaving(true);
     try {
-      // Hits the configuration entry point inside showcaseController
       await adminApi.post('/collection/smart/configure', formData);
       alert("Product target demographic mapped successfully!");
       
-      // Reset form selector fields and refresh layout grid lists
+      // Reset form options and refresh lookups
       setFormData({ productRefId: '', isPopularHomepage: false, targetGender: 'All', targetAgeGroup: 'All' });
       fetchMappings();
     } catch (err) {
@@ -106,7 +132,8 @@ export default function ProductMapping() {
           <h2 className="text-[16px] font-bold text-gray-800 mb-5 border-b pb-2">Assign Smart Targets</h2>
           
           <form onSubmit={handleSubmitMapping} className="space-y-5">
-            {/* Dropdown Product Selector */}
+            
+            {/* Step-by-Step Dropdown Product Selector */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Select Product</label>
               <select
@@ -116,9 +143,23 @@ export default function ProductMapping() {
               >
                 <option value="">-- Choose Inventory Item --</option>
                 {products.map((p) => (
-                  <option key={p._id} value={p._id}>{p.productName} ({p.category})</option>
+                  <option key={p._id} value={p._id}>{p.productName} ({p.category || 'General'})</option>
                 ))}
               </select>
+              
+              {/* Inline Step Loader Link Trigger */}
+              {hasMoreProducts && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    disabled={loadingSelector}
+                    onClick={() => fetchAllProducts(selectorPage + 1)}
+                    className="text-[11px] text-[#540411] hover:underline font-semibold disabled:text-gray-400 pt-1"
+                  >
+                    {loadingSelector ? "Loading items..." : "➕ Load Next 10 Products"}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Target Gender Dropdown Selector */}
