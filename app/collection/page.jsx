@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import userApi from '@/lib/api'; // Swapped to your dedicated client instance running on base '/api/user'
+import userApi from '@/lib/userApi'; 
 import { Loader2 } from 'lucide-react';
 
 const getLevenshteinDistance = (a, b) => {
