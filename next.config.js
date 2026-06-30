@@ -1,24 +1,26 @@
 /** @type {import('next').NextConfig} */
+
+// 🧠 Extract just the clean domain string from your full environment URL link
+const getR2Hostname = () => {
+  const envUrl = process.env.R2_PUBLIC_DOMAIN;
+  if (!envUrl) return 'pub-3e6442832e1e4d26bb905e2268326caa.r2.dev'; // Local fallback
+  
+  return envUrl
+    .replace('https://', '')
+    .replace('http://', '')
+    .split('/')[0]; // Removes any accidental trailing slashes
+};
+
 const nextConfig = {
   output: 'standalone',
   poweredByHeader: false, 
   
   images: {
-    // ❌ DEACTIVATED: Comment these out completely right now
-    // loader: 'custom',
-    // loaderFile: './lib/image-loader.js', 
-    
-    // 🚀 OPTION A ACTIVATED: Pull raw files directly from your R2 bucket link
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com', // Keeps external test placeholders safe
-      },
-      {
-        protocol: 'https',
-        // 🧠 Put your exact R2 public domain here (the one from your process.env.R2_PUBLIC_DOMAIN)
-        // e.g., "pub-12345abcde.r2.dev" or "assets.yourbrand.com"
-        hostname: 'your-r2-public-domain.com', 
+        // 🚀 Pulls the dynamically cleaned hostname straight from your Render env!
+        hostname: getR2Hostname(), 
       },
     ],
   },
