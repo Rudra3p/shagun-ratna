@@ -99,7 +99,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
           style={{ y: yOffset }}
-          className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 min-h-[320px] sm:min-h-[400px] lg:min-h-[550px]"
+          className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 h-[350px] sm:h-[450px] lg:h-[550px]"
         >
           {/* Gold aura background glow */}
           <div className="absolute w-[80%] aspect-square rounded-full bg-radial from-[#C5A059]/15 to-transparent blur-3xl -z-10" />
@@ -134,13 +134,13 @@ export default function HeroSection() {
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="relative w-full h-[320px] sm:h-[400px] lg:h-[550px] z-10 flex items-center justify-center select-none pointer-events-none"
+            className="absolute inset-0 z-10 flex items-center justify-center select-none pointer-events-none"
           >
             <Image 
               src="/hero_sec_hand.png" 
               alt="Shagun Ratna Jewelry" 
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 50vw"
+              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 50vw"
               className="object-contain opacity-95 select-none pointer-events-none" 
               priority
             />
@@ -149,7 +149,7 @@ export default function HeroSection() {
 
       </div>
 
-      {/* Luxury Scroll Indicator - Hidden on extra small mobile screen heights to prevent overlap */}
+      {/* Luxury Scroll Indicator */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
