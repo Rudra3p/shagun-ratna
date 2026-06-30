@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi'; 
-import { Loader2, Search, SlidersHorizontal, Heart, Sparkles } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, Heart } from 'lucide-react';
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
@@ -19,13 +19,6 @@ export default function Collection() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const categories = ["Gold", "Bridal", "Heirloom", "Contemporary"];
-
-  // 👤 User Profile: Replace this with your actual Auth hook/data
-  const [userProfile] = useState({
-    name: "Rudra",
-    gender: "male", 
-    age: 24,
-  });
 
   const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCat = "") => {
     if (pageNumber === 1) setLoading(true);
@@ -84,7 +77,7 @@ export default function Collection() {
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-32 pb-24">
         
-        {/* Top Controls Bar */}
+        {/* Top Controls Bar: Search & Filter Categories */}
         <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-8 mb-10">
           <form onSubmit={handleSearchSubmit} className="flex items-center w-full max-w-2xl gap-3">
             <div className="relative flex-grow group">
@@ -129,7 +122,7 @@ export default function Collection() {
           </div>
         </div>
 
-        {/* Product Grid Area */}
+        {/* Product Grid Layout */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
             {[...Array(4)].map((_, i) => (
@@ -152,6 +145,7 @@ export default function Collection() {
               
               return (
                 <div key={product._id} className="group cursor-pointer flex flex-col bg-transparent border-none p-0">
+                  {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
                   <div className="relative aspect-[4/5] w-full mb-3.5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/20">
                     <Image 
                       src={product.imageUrl || "/placeholder-jewelry.jpg"} 
@@ -169,6 +163,7 @@ export default function Collection() {
                     </button>
                   </div>
                   
+                  {/* Clean Product Typography stack info panel */}
                   <div className="flex flex-col flex-grow px-1 pb-1">
                     <h3 className="text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-0.5">
                       {product.productName}
@@ -197,13 +192,15 @@ export default function Collection() {
               );
             })}
             
+            {/* Load More Button Trigger Pagination system */}
             {hasMore && (
               <div className="col-span-full mt-20 text-center">
                 <button 
                   disabled={loadingMore} 
                   onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategory)}
-                  className="px-10 py-4 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full inline-flex items-center gap-2.5 shadow-md"
+                  className="px-10 py-4 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full inline-flex items-center gap-2.5 shadow-md cursor-pointer"
                 >
+                  {loadingMore && <Loader2 size={14} className="animate-spin mr-2" />}
                   {loadingMore ? 'Syncing Vault...' : 'Load More Masterpieces'}
                 </button>
               </div>
