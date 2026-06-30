@@ -21,13 +21,14 @@ export default function Collection() {
 
   const categories = ["Gold", "Bridal", "Heirloom", "Contemporary"];
 
-  // Core Data Fetcher — Only triggers on intentional user actions
+  // Core Data Fetcher — Fetches 10 items per page and appends them
   const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCat = "") => {
     if (pageNumber === 1) setLoading(true);
     else setLoadingMore(true);
 
     try {
-      let endpoint = `/products?page=${pageNumber}&limit=12`;
+      // 🚀 Synced to 10 items per page to match your admin control specs
+      let endpoint = `/products?page=${pageNumber}&limit=10`;
       
       if (currentSearch.trim() !== "") {
         endpoint = `/products?search=${encodeURIComponent(currentSearch.trim())}`;
@@ -38,9 +39,11 @@ export default function Collection() {
       const res = await userApi.get(endpoint);
       const incomingItems = res.data.products || [];
 
+      // If page is 1, set items directly. If loading more, append to existing items seamlessly.
       setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
       
-      setHasMore(currentSearch.trim() !== "" || currentCat !== "" ? false : incomingItems.length === 12);
+      // If we received exactly 10 items, it means there is likely another page waiting
+      setHasMore(currentSearch.trim() !== "" || currentCat !== "" ? false : incomingItems.length === 10);
       setPage(pageNumber);
     } catch (err) {
       console.error("Database connection failure:", err);
@@ -58,7 +61,7 @@ export default function Collection() {
     loadCollectionItems(1, "", "");
   }, []);
 
-  // 1. SEARCH ACTION: Only runs when form is explicitly submitted via button/enter
+  // 1. SEARCH ACTION: Runs when form is explicitly submitted via button or Enter
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setSelectedCategory(""); // Clear category filter to avoid query conflicts
@@ -80,7 +83,7 @@ export default function Collection() {
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-32 pb-24">
         
-        {/* Cleaner Search & Filter Controls Top Bar Section */}
+        {/* Search & Filter Controls Top Bar Section */}
         <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-8 mb-10">
           
           {/* Luxury Search Engine Bar Form */}
@@ -216,7 +219,7 @@ export default function Collection() {
               )}
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination Button Controls */}
             {hasMore && (
               <div className="mt-20 text-center">
                 <button 
