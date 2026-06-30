@@ -1,25 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  poweredByHeader: false, // Security: Hides tech stack details
+  poweredByHeader: false, 
   
-  // Updated Image configuration for Cloudflare R2
-  // images: {
-  //   loader: 'custom',
-  //   loaderFile: './lib/image-loader.js',
-  // },
+  // 🚀 OPTION B ACTIVATED: Custom optimization loader for Cloudflare R2
+  images: {
+    loader: 'custom',
+    loaderFile: './lib/image-loader.js', // 👈 Ensure this matches your file path exactly
+  },
 
   async redirects() {
     return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
+      { source: '/home', destination: '/', permanent: true },
     ];
   },
   experimental: {
-    // Keep this false to save RAM on your Render 512MB tier
     preloadEntriesOnStart: false, 
   },
 };
