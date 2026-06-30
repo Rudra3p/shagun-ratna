@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi'; 
-import { Loader2, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal } from 'lucide-react';
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
@@ -27,13 +27,11 @@ export default function Collection() {
     else setLoadingMore(true);
 
     try {
-      // Build parameters cleanly based on state values passed in
       let endpoint = `/products?page=${pageNumber}&limit=12`;
       
       if (currentSearch.trim() !== "") {
         endpoint = `/products?search=${encodeURIComponent(currentSearch.trim())}`;
       } else if (currentCat !== "") {
-        // Fallback or blend to category queries if your backend handles ?search=Category natively
         endpoint = `/products?search=${encodeURIComponent(currentCat)}`;
       }
 
@@ -42,7 +40,6 @@ export default function Collection() {
 
       setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
       
-      // Server search queries yield complete arrays, turn pagination off during searches
       setHasMore(currentSearch.trim() !== "" || currentCat !== "" ? false : incomingItems.length === 12);
       setPage(pageNumber);
     } catch (err) {
@@ -83,18 +80,10 @@ export default function Collection() {
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-32 pb-24">
         
-        {/* Premium Header Layout */}
-        <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-10 mb-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs tracking-[0.25em] uppercase font-semibold text-[#90060C]">
-              <Sparkles size={12} className="animate-pulse" /> Shagun Ratna Registry
-            </div>
-            <h1 className="text-4xl md:text-5xl font-serif text-[#2D2926] tracking-tight font-light">
-              The Collection
-            </h1>
-          </div>
-
-          {/* Luxury Search Engine Bar Form with Explicit Button */}
+        {/* Cleaner Search & Filter Controls Top Bar Section */}
+        <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-8 mb-10">
+          
+          {/* Luxury Search Engine Bar Form */}
           <form onSubmit={handleSearchSubmit} className="flex items-center w-full max-w-2xl gap-3">
             <div className="relative flex-grow group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={18} />
@@ -103,7 +92,7 @@ export default function Collection() {
                 placeholder="Search our heritage masterworks..."
                 className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-12 pr-4 py-4 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm md:text-base outline-none transition-colors duration-300 shadow-sm"
                 value={typedSearch}
-                onChange={(e) => setTypedSearch(e.target.value)} // Safe tracking state: does NOT fire API requests
+                onChange={(e) => setTypedSearch(e.target.value)}
               />
             </div>
             <button
@@ -113,31 +102,31 @@ export default function Collection() {
               Search
             </button>
           </form>
-        </div>
 
-        {/* Premium Filter Controls */}
-        <div className="mb-12 space-y-4">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-[#A8A196]">
-            <SlidersHorizontal size={12} /> Curate By Category
-          </div>
-          <div className="w-full overflow-x-auto no-scrollbar -mx-6 px-6 sm:mx-0 sm:px-0">
-            <div className="flex items-center gap-2.5 min-w-max pb-1">
-              {categories.map(cat => {
-                const isSelected = selectedCategory === cat;
-                return (
-                  <button 
-                    key={cat}
-                    onClick={() => handleCategoryClick(cat)}
-                    className={`px-6 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer ${
-                      isSelected 
-                        ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20" 
-                        : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
+          {/* Premium Filter Controls Layout */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-[#A8A196]">
+              <SlidersHorizontal size={12} /> Curate By Category
+            </div>
+            <div className="w-full overflow-x-auto no-scrollbar -mx-6 px-6 sm:mx-0 sm:px-0">
+              <div className="flex items-center gap-2.5 min-w-max pb-1">
+                {categories.map(cat => {
+                  const isSelected = selectedCategory === cat;
+                  return (
+                    <button 
+                      key={cat}
+                      onClick={() => handleCategoryClick(cat)}
+                      className={`px-6 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer ${
+                        isSelected 
+                          ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20" 
+                          : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
