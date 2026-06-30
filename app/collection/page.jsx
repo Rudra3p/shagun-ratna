@@ -3,49 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi'; 
-import { Loader2 } from 'lucide-react';
-
-const getLevenshteinDistance = (a, b) => {
-  const tmp = [];
-  let i, j;
-  for (i = 0; i <= a.length; i++) {
-    tmp[i] = [i];
-  }
-  for (j = 0; j <= b.length; j++) {
-    tmp[0][j] = j;
-  }
-  for (i = 1; i <= a.length; i++) {
-    for (j = 1; j <= b.length; j++) {
-      tmp[i][j] = Math.min(
-        tmp[i - 1][j] + 1,
-        tmp[i][j - 1] + 1,
-        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-      );
-    }
-  }
-  return tmp[a.length][b.length];
-};
-
-const isFuzzyMatch = (productName, searchQuery) => {
-  if (!productName) return false;
-  const cleanName = productName.toLowerCase();
-  const cleanQuery = searchQuery.trim().toLowerCase();
-  
-  if (!cleanQuery) return true;
-  if (cleanName.includes(cleanQuery)) return true;
-  
-  const queryWords = cleanQuery.split(/\s+/);
-  const nameWords = cleanName.split(/\s+/);
-  
-  return queryWords.every(qWord => {
-    if (nameWords.some(nWord => nWord.includes(qWord) || qWord.includes(nWord))) return true;
-    const threshold = qWord.length <= 5 ? 1 : 2;
-    return nameWords.some(nWord => {
-      const distance = getLevenshteinDistance(qWord, nWord);
-      return distance <= threshold;
-    });
-  });
-};
+import { Loader2, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
@@ -56,35 +14,39 @@ export default function Collection() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [search, setSearch] = useState("");
+  // Separate states for typed text vs. active applied filters
+  const [typedSearch, setTypedSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const categories = ["Gold", "Bridal", "Heirloom", "Contemporary"];
 
-  // Core Data Fetcher optimized for the /api/user/products routing layout
-  const loadCollectionItems = async (pageNumber = 1, currentSearchQuery = "") => {
+  // Core Data Fetcher — Only triggers on intentional user actions
+  const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCat = "") => {
     if (pageNumber === 1) setLoading(true);
     else setLoadingMore(true);
 
     try {
-      // 🧠 If a search query is active, request via search query logic, otherwise request page limits
+      // Build parameters cleanly based on state values passed in
       let endpoint = `/products?page=${pageNumber}&limit=12`;
-      if (currentSearchQuery.trim() !== "") {
-        endpoint = `/products?search=${encodeURIComponent(currentSearchQuery)}`;
+      
+      if (currentSearch.trim() !== "") {
+        endpoint = `/products?search=${encodeURIComponent(currentSearch.trim())}`;
+      } else if (currentCat !== "") {
+        // Fallback or blend to category queries if your backend handles ?search=Category natively
+        endpoint = `/products?search=${encodeURIComponent(currentCat)}`;
       }
 
       const res = await userApi.get(endpoint);
       const incomingItems = res.data.products || [];
 
-      // Completely replace results if reading page 1, otherwise append rows for continuous scroll
       setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
       
-      // If we are searching, server side typically yields all matches without fixed pagination boundaries
-      setHasMore(currentSearchQuery.trim() !== "" ? false : incomingItems.length === 12);
+      // Server search queries yield complete arrays, turn pagination off during searches
+      setHasMore(currentSearch.trim() !== "" || currentCat !== "" ? false : incomingItems.length === 12);
       setPage(pageNumber);
     } catch (err) {
       console.error("Database connection failure:", err);
-      // Fail silently on 401 interceptors so guests aren't thrown alert errors
       if (err.response?.status !== 401) {
         setError("Unable to sync with our heritage database vault.");
       }
@@ -94,141 +56,184 @@ export default function Collection() {
     }
   };
 
-  // Run catalog baseline build on component mount
+  // Run catalog baseline build once on component mount
   useEffect(() => {
-    loadCollectionItems(1, "");
+    loadCollectionItems(1, "", "");
   }, []);
 
-  // Listen for text input modifications to immediately reset the window matrix if input clears out
-  const handleSearchChange = (e) => {
-    const val = e.target.value;
-    setSearch(val);
-    if (val.trim() === "") {
-      loadCollectionItems(1, "");
-    }
-  };
-
-  // Explicit form submission helper to run backend searches on Enter key trigger
+  // 1. SEARCH ACTION: Only runs when form is explicitly submitted via button/enter
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadCollectionItems(1, search);
+    setSelectedCategory(""); // Clear category filter to avoid query conflicts
+    setAppliedSearch(typedSearch);
+    loadCollectionItems(1, typedSearch, "");
   };
 
-  const toggleFilter = (cat) => {
-    setActiveFilters(prev => 
-      prev.includes(cat) ? prev.filter(f => f !== cat) : [...prev, cat]
-    );
+  // 2. FILTER ACTION: Instantly clear text search and query the category
+  const handleCategoryClick = (cat) => {
+    const nextCategory = selectedCategory === cat ? "" : cat; // Toggle off if clicked again
+    setSelectedCategory(nextCategory);
+    setTypedSearch(""); // Clear search inputs
+    setAppliedSearch("");
+    
+    loadCollectionItems(1, "", nextCategory);
   };
-
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = activeFilters.length === 0 || activeFilters.includes(product.category);
-    const matchesSearch = isFuzzyMatch(product.productName, search);
-    return matchesCategory && matchesSearch;
-  });
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926]">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-8 pt-36 pb-16">
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-32 pb-24">
         
-        {/* Header Search Bar form container */}
-        <div className="mb-10 md:mb-12">
-          <h1 className="text-3xl md:text-4xl font-serif text-[#90060C] mb-6 md:mb-8 uppercase tracking-wide">Our Collection</h1>
-          <form onSubmit={handleSearchSubmit}>
-            <input 
-              type="text"
-              placeholder="Search our heritage pieces and press enter..."
-              className="w-full max-w-xl bg-transparent border-b-2 border-[#DED5C4] py-3 focus:outline-none focus:border-[#90060C] transition-colors text-[#2D2926] text-sm md:text-base rounded-none"
-              value={search}
-              onChange={handleSearchChange}
-            />
+        {/* Premium Header Layout */}
+        <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-10 mb-10">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs tracking-[0.25em] uppercase font-semibold text-[#90060C]">
+              <Sparkles size={12} className="animate-pulse" /> Shagun Ratna Registry
+            </div>
+            <h1 className="text-4xl md:text-5xl font-serif text-[#2D2926] tracking-tight font-light">
+              The Collection
+            </h1>
+          </div>
+
+          {/* Luxury Search Engine Bar Form with Explicit Button */}
+          <form onSubmit={handleSearchSubmit} className="flex items-center w-full max-w-2xl gap-3">
+            <div className="relative flex-grow group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={18} />
+              <input 
+                type="text"
+                placeholder="Search our heritage masterworks..."
+                className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-12 pr-4 py-4 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm md:text-base outline-none transition-colors duration-300 shadow-sm"
+                value={typedSearch}
+                onChange={(e) => setTypedSearch(e.target.value)} // Safe tracking state: does NOT fire API requests
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-[#90060C] hover:bg-[#730509] text-white text-sm font-medium tracking-wider uppercase px-7 py-4 rounded-full transition-colors duration-300 shadow-md cursor-pointer whitespace-nowrap"
+            >
+              Search
+            </button>
           </form>
         </div>
 
-        {/* Filter Swiper */}
-        <div className="w-full overflow-x-auto no-scrollbar mb-12 md:mb-16 -mx-6 px-6 sm:mx-0 sm:px-0">
-          <div className="flex items-center gap-3 md:gap-4 min-w-max pb-2">
-            {categories.map(cat => (
-              <button 
-                key={cat}
-                onClick={() => toggleFilter(cat)}
-                className={`px-6 py-2.5 md:px-8 md:py-3 border text-xs md:text-sm tracking-wider uppercase transition-all duration-300 rounded-none whitespace-nowrap ${
-                  activeFilters.includes(cat) 
-                    ? "bg-[#90060C] text-white border-[#90060C]" 
-                    : "bg-transparent border-[#DED5C4] hover:border-[#90060C] text-[#2D2926]"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+        {/* Premium Filter Controls */}
+        <div className="mb-12 space-y-4">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-[#A8A196]">
+            <SlidersHorizontal size={12} /> Curate By Category
+          </div>
+          <div className="w-full overflow-x-auto no-scrollbar -mx-6 px-6 sm:mx-0 sm:px-0">
+            <div className="flex items-center gap-2.5 min-w-max pb-1">
+              {categories.map(cat => {
+                const isSelected = selectedCategory === cat;
+                return (
+                  <button 
+                    key={cat}
+                    onClick={() => handleCategoryClick(cat)}
+                    className={`px-6 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer ${
+                      isSelected 
+                        ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20" 
+                        : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* Dynamic Display Rendering Pipeline */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse flex flex-col">
-                <div className="aspect-[3/4] w-full bg-[#EBE3D5]/40 rounded-xl mb-4" />
-                <div className="h-4 bg-[#EBE3D5]/40 w-3/4 rounded mb-2" />
-                <div className="h-3 bg-[#EBE3D5]/40 w-1/2 rounded" />
+              <div key={i} className="animate-pulse flex flex-col bg-white border border-[#EBE3D5]/40 rounded-2xl p-3">
+                <div className="aspect-[3/4] w-full bg-[#EBE3D5]/30 rounded-xl mb-4" />
+                <div className="h-4 bg-[#EBE3D5]/30 w-3/4 rounded-md mb-2.5 ml-1" />
+                <div className="h-3 bg-[#EBE3D5]/30 w-1/3 rounded-md ml-1" />
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-[#90060C] font-serif">{error}</div>
+          <div className="text-center py-16 bg-[#90060C]/5 border border-[#90060C]/20 rounded-2xl max-w-xl mx-auto text-[#90060C] font-serif">
+            {error}
+          </div>
         ) : (
           <>
             {/* Real Assets Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <div key={product._id} className="group cursor-pointer flex flex-col">
-                    {/* Image Card Container */}
-                    <div className="relative aspect-[3/4] w-full mb-4 md:mb-6 border border-[#EBE3D5] group-hover:border-[#90060C] transition-colors overflow-hidden rounded-xl bg-[#F5EFE6]">
-                      <Image 
-                        src={product.imageUrl || "/placeholder-jewelry.jpg"} 
-                        alt={product.productName || "Shagun Ratna Masterpiece"}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                      />
-                    </div>
-                    {/* Description Details Block */}
-                    <h3 className="text-base md:text-lg font-serif mb-1 text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300">
-                      {product.productName}
-                    </h3>
-                    
-                    {/* Dynamic Pricing Module */}
-                    <div className="flex items-center gap-2 mt-0.5 mb-1">
-                      {product.offerPrice > 0 && product.offerPrice !== product.price ? (
-                        <>
-                          <span className="text-xs text-gray-400 line-through">${parseFloat(product.price).toFixed(2)}</span>
-                          <span className="text-sm font-sans font-semibold text-[#90060C]">${parseFloat(product.offerPrice).toFixed(2)}</span>
-                        </>
-                      ) : (
-                        <span className="text-sm font-sans font-semibold text-[#1a1a1a]">
-                          {product.price ? `$${parseFloat(product.price).toFixed(2)}` : 'Price on Request'}
-                        </span>
-                      )}
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+              {products.length > 0 ? (
+                products.map((product) => {
+                  const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
+                  
+                  return (
+                    <div 
+                      key={product._id} 
+                      className="group cursor-pointer flex flex-col bg-white border border-[#EBE3D5]/60 hover:border-[#90060C]/40 hover:shadow-[0_12px_32px_-10px_rgba(144,6,12,0.08)] transition-all duration-500 rounded-2xl overflow-hidden p-3"
+                    >
+                      {/* Image Card Container */}
+                      <div className="relative aspect-[3/4] w-full mb-4 md:mb-5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/30">
+                        <Image 
+                          src={product.imageUrl || "/placeholder-jewelry.jpg"} 
+                          alt={product.productName || "Shagun Ratna Masterpiece"}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                        
+                        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+                          {hasDiscount && (
+                            <span className="bg-[#90060C] text-white text-[9px] font-sans font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded-md shadow-sm">
+                              Offer
+                            </span>
+                          )}
+                          {product.category && (
+                            <span className="bg-white/90 backdrop-blur-sm text-[#2D2926] text-[9px] font-sans font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded-md border border-[#EBE3D5]/50 shadow-sm">
+                              {product.category}
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                    <p className="text-[10px] tracking-widest text-[#A8A196] uppercase font-bold">
-                      {product.category || 'General'}
-                    </p>
-                  </div>
-                ))
+                      {/* Description Block */}
+                      <div className="flex flex-col flex-grow px-1 pb-1">
+                        <h3 className="text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-2">
+                          {product.productName}
+                        </h3>
+                        
+                        <div className="flex items-baseline gap-2 mt-auto">
+                          {hasDiscount ? (
+                            <>
+                              <span className="text-sm font-sans font-bold text-[#90060C]">
+                                ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </span>
+                              <span className="text-xs text-[#A8A196] font-medium line-through">
+                                ${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-sans font-bold text-[#2D2926]">
+                              {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               ) : (
-                <p className="col-span-full text-[#A8A196] font-serif py-8 text-center sm:text-left">No pieces found matching your selection.</p>
+                <div className="col-span-full text-center py-20 bg-[#F5EFE6]/10 rounded-2xl border border-dashed border-[#DED5C4]/80 px-4">
+                  <p className="text-[#A8A196] font-serif text-base">No exceptional pieces found matching your criteria.</p>
+                </div>
               )}
             </div>
 
             {/* Pagination Controls */}
             {hasMore && (
-              <div className="mt-16 text-center">
+              <div className="mt-20 text-center">
                 <button 
                   disabled={loadingMore} 
-                  onClick={() => loadCollectionItems(page + 1, search)}
-                  className="px-8 py-3.5 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-[#faf3e5] disabled:bg-gray-100 disabled:text-gray-400 transition-all font-sans text-xs uppercase tracking-widest rounded-full inline-flex items-center gap-2"
+                  onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategory)}
+                  className="px-10 py-4 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white disabled:bg-gray-100 disabled:text-gray-400 font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full inline-flex items-center gap-2.5 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] cursor-pointer"
                 >
                   {loadingMore && <Loader2 size={14} className="animate-spin" />}
                   {loadingMore ? 'Syncing Vault...' : 'Load More Masterpieces'}
