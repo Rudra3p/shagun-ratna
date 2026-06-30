@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi'; 
-import { Loader2, Search, SlidersHorizontal } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, Heart } from 'lucide-react';
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
@@ -14,20 +14,22 @@ export default function Collection() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  // Separate states for typed text vs. active applied filters
+  // Tracks favorited items locally
+  const [favorites, setFavorites] = useState({});
+
+  // Search & Filter state configurations
   const [typedSearch, setTypedSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const categories = ["Gold", "Bridal", "Heirloom", "Contemporary"];
 
-  // Core Data Fetcher — Fetches 10 items per page and appends them
+  // Core Data Fetcher — Syncs to 10 items per page
   const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCat = "") => {
     if (pageNumber === 1) setLoading(true);
     else setLoadingMore(true);
 
     try {
-      // 🚀 Synced to 10 items per page to match your admin control specs
       let endpoint = `/products?page=${pageNumber}&limit=10`;
       
       if (currentSearch.trim() !== "") {
@@ -39,10 +41,8 @@ export default function Collection() {
       const res = await userApi.get(endpoint);
       const incomingItems = res.data.products || [];
 
-      // If page is 1, set items directly. If loading more, append to existing items seamlessly.
       setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
       
-      // If we received exactly 10 items, it means there is likely another page waiting
       setHasMore(currentSearch.trim() !== "" || currentCat !== "" ? false : incomingItems.length === 10);
       setPage(pageNumber);
     } catch (err) {
@@ -56,37 +56,42 @@ export default function Collection() {
     }
   };
 
-  // Run catalog baseline build once on component mount
   useEffect(() => {
     loadCollectionItems(1, "", "");
   }, []);
 
-  // 1. SEARCH ACTION: Runs when form is explicitly submitted via button or Enter
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSelectedCategory(""); // Clear category filter to avoid query conflicts
+    setSelectedCategory(""); 
     setAppliedSearch(typedSearch);
     loadCollectionItems(1, typedSearch, "");
   };
 
-  // 2. FILTER ACTION: Instantly clear text search and query the category
   const handleCategoryClick = (cat) => {
-    const nextCategory = selectedCategory === cat ? "" : cat; // Toggle off if clicked again
+    const nextCategory = selectedCategory === cat ? "" : cat; 
     setSelectedCategory(nextCategory);
-    setTypedSearch(""); // Clear search inputs
+    setTypedSearch(""); 
     setAppliedSearch("");
     
     loadCollectionItems(1, "", nextCategory);
+  };
+
+  const toggleFavorite = (id, e) => {
+    e.stopPropagation(); // Prevents layout card action interference
+    setFavorites(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   };
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-32 pb-24">
         
-        {/* Search & Filter Controls Top Bar Section */}
+        {/* Top Controls: Search Bar & Categories Filter */}
         <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-8 mb-10">
           
-          {/* Luxury Search Engine Bar Form */}
+          {/* Luxury Search Engine Bar */}
           <form onSubmit={handleSearchSubmit} className="flex items-center w-full max-w-2xl gap-3">
             <div className="relative flex-grow group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={18} />
@@ -106,7 +111,7 @@ export default function Collection() {
             </button>
           </form>
 
-          {/* Premium Filter Controls Layout */}
+          {/* Premium Filter Controls */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-[#A8A196]">
               <SlidersHorizontal size={12} /> Curate By Category
@@ -134,12 +139,12 @@ export default function Collection() {
           </div>
         </div>
 
-        {/* Dynamic Display Rendering Pipeline */}
+        {/* Display System Output Area */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse flex flex-col bg-white border border-[#EBE3D5]/40 rounded-2xl p-3">
-                <div className="aspect-[3/4] w-full bg-[#EBE3D5]/30 rounded-xl mb-4" />
+              <div key={i} className="animate-pulse flex flex-col bg-transparent p-0">
+                <div className="aspect-[4/5] w-full bg-[#EBE3D5]/30 rounded-xl mb-4" />
                 <div className="h-4 bg-[#EBE3D5]/30 w-3/4 rounded-md mb-2.5 ml-1" />
                 <div className="h-3 bg-[#EBE3D5]/30 w-1/3 rounded-md ml-1" />
               </div>
@@ -151,19 +156,20 @@ export default function Collection() {
           </div>
         ) : (
           <>
-            {/* Real Assets Product Grid */}
+            {/* Transparent Border-free 4:5 Asset Catalog Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
               {products.length > 0 ? (
                 products.map((product) => {
                   const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
+                  const isFavorited = !!favorites[product._id];
                   
                   return (
                     <div 
                       key={product._id} 
-                      className="group cursor-pointer flex flex-col bg-white border border-[#EBE3D5]/60 hover:border-[#90060C]/40 hover:shadow-[0_12px_32px_-10px_rgba(144,6,12,0.08)] transition-all duration-500 rounded-2xl overflow-hidden p-3"
+                      className="group cursor-pointer flex flex-col bg-transparent border-none transition-all duration-500 rounded-xl overflow-hidden p-0"
                     >
-                      {/* Image Card Container */}
-                      <div className="relative aspect-[3/4] w-full mb-4 md:mb-5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/30">
+                      {/* Image Frame Container (Ratio: 4:5) */}
+                      <div className="relative aspect-[4/5] w-full mb-3.5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/20">
                         <Image 
                           src={product.imageUrl || "/placeholder-jewelry.jpg"} 
                           alt={product.productName || "Shagun Ratna Masterpiece"}
@@ -172,23 +178,41 @@ export default function Collection() {
                           className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
                         />
                         
-                        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+                        {/* Upper Labels */}
+                        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
                           {hasDiscount && (
                             <span className="bg-[#90060C] text-white text-[9px] font-sans font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded-md shadow-sm">
                               Offer
                             </span>
                           )}
                           {product.category && (
-                            <span className="bg-white/90 backdrop-blur-sm text-[#2D2926] text-[9px] font-sans font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded-md border border-[#EBE3D5]/50 shadow-sm">
+                            <span className="bg-white/90 backdrop-blur-sm text-[#2D2926] text-[9px] font-sans font-bold tracking-[0.15em] uppercase px-2.5 py-1 rounded-md border border-[#EBE3D5]/30 shadow-sm">
                               {product.category}
                             </span>
                           )}
                         </div>
+
+                        {/* Collection List Bookmark Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => toggleFavorite(product._id, e)}
+                          className="absolute top-3 right-3 p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#EBE3D5]/20 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 cursor-pointer group/heart active:scale-90"
+                          aria-label="Bookmark asset to collections"
+                        >
+                          <Heart 
+                            size={16} 
+                            className={`transition-all duration-300 ${
+                              isFavorited 
+                                ? "fill-[#90060C] text-[#90060C] scale-110" 
+                                : "text-[#2D2926] group-hover/heart:scale-110"
+                            }`} 
+                          />
+                        </button>
                       </div>
 
-                      {/* Description Block */}
+                      {/* Info Blocks */}
                       <div className="flex flex-col flex-grow px-1 pb-1">
-                        <h3 className="text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-2">
+                        <h3 className="text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
                           {product.productName}
                         </h3>
                         
@@ -219,7 +243,7 @@ export default function Collection() {
               )}
             </div>
 
-            {/* Pagination Button Controls */}
+            {/* Pagination Segment */}
             {hasMore && (
               <div className="mt-20 text-center">
                 <button 
