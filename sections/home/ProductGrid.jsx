@@ -15,9 +15,11 @@ const products = [
 
 export default function ProductGrid() {
   return (
-    <section className="py-32 px-12 bg-[#FDFBF7]">
+    <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7]">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col items-center mb-20 text-center">
+        
+        {/* Section Header */}
+        <div className="flex flex-col items-center mb-12 md:mb-20 text-center">
           {/* Self-drawing vertical pointer line */}
           <motion.div 
             initial={{ height: 0 }}
@@ -29,7 +31,7 @@ export default function ProductGrid() {
           <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3">
             Our Curation
           </span>
-          <h2 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light">
+          <h2 className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase">
             Selected Masterpieces
           </h2>
           <motion.div 
@@ -37,32 +39,33 @@ export default function ProductGrid() {
             whileInView={{ width: 96 }}
             viewport={{ once: true }}
             transition={{ duration: 1, delay: 0.2 }}
-            className="h-[1px] bg-[#C5A059] mt-6" 
+            className="h-[1px] bg-[#C5A059] mt-4 md:mt-6" 
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        {/* Dynamic Responsive Grid Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
           {products.map((product) => (
             <motion.div 
               key={product.id}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: true, margin: "-30px" }}
               transition={{ duration: 0.8 }}
               className="group cursor-pointer bg-transparent"
             >
-              {/* Product Image Card with Hover Overlay */}
-              <div className="relative w-full aspect-[4/5] bg-[#e5e5e5] rounded-2xl border border-[#C5A059]/30 overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-700">
+              {/* Product Image Card with updated aspect-[3/4] ratio */}
+              <div className="relative w-full aspect-[3/4] bg-[#e5e5e5] rounded-2xl border border-[#C5A059]/30 overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-700">
                 <Image 
                   src={`/product-${product.id}.jpg`} 
                   alt={product.name}
                   fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out"
                 />
 
                 {/* Subtle Glassmorphic Category Badge */}
-                <div className="absolute top-5 left-5 z-10 bg-[#FDFBF7]/90 backdrop-blur-sm border border-[#C5A059]/25 text-[#90060c] px-4 py-1.5 rounded-full shadow-sm">
+                <div className="absolute top-4 left-4 md:top-5 md:left-5 z-10 bg-[#FDFBF7]/90 backdrop-blur-sm border border-[#C5A059]/25 text-[#90060c] px-3.5 py-1 md:px-4 md:py-1.5 rounded-full shadow-sm">
                   <p className="text-[9px] uppercase tracking-[0.2em] font-bold">
                     {product.category}
                   </p>
@@ -70,20 +73,20 @@ export default function ProductGrid() {
 
                 {/* Hover Reveal Inquire Overlay */}
                 <div className="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center z-20">
-                  <motion.span 
-                    className="font-sans px-8 py-3 bg-[#FDFBF7] text-[#90060c] border border-[#C5A059] text-[10px] tracking-[0.25em] uppercase font-bold rounded-full opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100 shadow-lg"
+                  <span 
+                    className="font-sans px-8 py-3 bg-[#FDFBF7] text-[#90060c] border border-[#C5A059] text-[10px] tracking-[0.25em] uppercase font-bold rounded-full transform scale-95 group-hover:scale-100 transition-all duration-500 shadow-lg"
                   >
                     Inquire Now
-                  </motion.span>
+                  </span>
                 </div>
               </div>
 
               {/* Bottom Details */}
-              <div className="pt-6 px-2 text-center flex flex-col items-center">
-                <h4 className="font-brand text-2xl text-[#1a1a1a] group-hover:text-[#90060c] transition-colors duration-500 font-light">
+              <div className="pt-4 md:pt-6 px-2 text-center flex flex-col items-center">
+                <h4 className="font-brand text-xl md:text-2xl text-[#1a1a1a] group-hover:text-[#90060c] transition-colors duration-500 font-light">
                   {product.name}
                 </h4>
-                <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[#C5A059] mt-2 font-semibold">
+                <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[#C5A059] mt-1.5 md:mt-2 font-semibold">
                   View Masterpiece
                 </p>
               </div>

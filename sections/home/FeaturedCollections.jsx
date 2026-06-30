@@ -26,7 +26,7 @@ const collections = [
 ];
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 50 },
+  hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 1.2, ease: [0.22, 1, 0.36, 1] } }
 };
 
@@ -34,23 +34,25 @@ export default function FeaturedCollections() {
   return (
     <div className="bg-[#FDFBF7]">
       {collections.map((item, index) => (
-        <section key={index} className="min-h-screen py-28 px-12 flex items-center overflow-hidden">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-0 items-center w-full">
+        <section key={index} className="min-h-screen py-16 md:py-28 px-6 md:px-12 flex items-center overflow-hidden">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-center w-full">
             
-            {/* Image Section - Alternates Order */}
+            {/* Image Section - Alternates Order on Desktop, Stays Top on Mobile */}
             <motion.div 
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true, margin: "-50px" }}
               variants={fadeUp}
-              className={`relative h-[550px] lg:h-[650px] w-full lg:col-span-7 group ${index % 2 !== 0 ? 'lg:order-2' : ''}`}
+              className={`relative h-[360px] sm:h-[480px] lg:h-[650px] w-full lg:col-span-7 group pr-3 pb-3 lg:pr-0 lg:pb-0 ${
+                index % 2 !== 0 ? 'lg:order-2' : ''
+              }`}
             >
               {/* Outer gold-matted layout frame */}
-              <div className="absolute inset-0 border border-[#C5A059]/40 rounded-2xl translate-x-4 translate-y-4 -z-10 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform duration-700" />
+              <div className="absolute inset-0 border border-[#C5A059]/40 rounded-2xl translate-x-3 translate-y-3 lg:translate-x-4 lg:translate-y-4 -z-10 group-hover:translate-x-1.5 group-hover:translate-y-1.5 transition-transform duration-700" />
               
               {/* Accent corner borders */}
-              <div className={`absolute -bottom-4 w-20 h-20 border-b border-[#C5A059]/60 z-10 
-                ${index % 2 !== 0 ? '-right-4 border-r rounded-br-2xl' : '-left-4 border-l rounded-bl-2xl'}`} 
+              <div className={`absolute -bottom-2 lg:-bottom-4 w-16 h-16 lg:w-20 lg:h-20 border-b border-[#C5A059]/60 z-10 
+                ${index % 2 !== 0 ? '-right-2 lg:-right-4 border-r rounded-br-2xl' : '-left-2 lg:-left-4 border-l rounded-bl-2xl'}`} 
               />
               
               <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
@@ -58,8 +60,10 @@ export default function FeaturedCollections() {
                   src={item.image}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                  className="object-cover grayscale hover:grayscale-0 scale-100 group-hover:scale-103 transition-all duration-[1200ms] ease-out"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
+                  // CHANGED: Added `lg:grayscale` so it is beautifully colorful on mobile by default, but stays grayscale on desktop hovers.
+                  className="object-cover lg:grayscale hover:grayscale-0 scale-100 group-hover:scale-103 transition-all duration-[1200ms] ease-out"
+                  priority={index === 0}
                 />
               </div>
             </motion.div>
@@ -68,9 +72,9 @@ export default function FeaturedCollections() {
             <motion.div 
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true, margin: "-50px" }}
               variants={fadeUp}
-              className={`flex flex-col justify-center lg:col-span-5 bg-[#FDFBF7]/70 backdrop-blur-md border border-[#C5A059]/20 p-8 md:p-12 lg:p-14 rounded-2xl shadow-lg z-20 
+              className={`flex flex-col justify-center items-center lg:items-start text-center lg:text-left lg:col-span-5 bg-[#FDFBF7]/90 lg:bg-[#FDFBF7]/70 backdrop-blur-md border border-[#C5A059]/20 p-8 md:p-12 lg:p-14 rounded-2xl shadow-lg z-20 mt-4 lg:mt-0
                 ${index % 2 !== 0 
                   ? 'lg:order-1 lg:-mr-12 lg:translate-x-6' 
                   : 'lg:-ml-12 lg:-translate-x-6'}`}
@@ -81,7 +85,7 @@ export default function FeaturedCollections() {
                 whileInView={{ height: 30 }}
                 viewport={{ once: true }}
                 transition={{ duration: 1 }}
-                className="w-[1px] bg-[#C5A059]/60 mb-4"
+                className="w-[1px] bg-[#C5A059]/60 mb-4 hidden lg:block"
               />
 
               <div className="flex items-center gap-3 mb-4">
@@ -97,11 +101,11 @@ export default function FeaturedCollections() {
                 />
               </div>
               
-              <h2 className="font-brand text-4xl md:text-5xl mb-6 leading-tight text-[#1a1a1a] font-light">
+              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight text-[#1a1a1a] font-light uppercase">
                 {item.title}
               </h2>
               
-              <p className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/80 mb-8">
+              <p className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/80 mb-8 text-left">
                 {item.text}
               </p>
               

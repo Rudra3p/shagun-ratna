@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -25,6 +25,15 @@ const childVariants = {
 
 export default function HeroSection() {
   const containerRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check window width to adjust parallax intensity safely
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Hook into scroll position relative to this container
   const { scrollYProgress } = useScroll({
@@ -32,27 +41,27 @@ export default function HeroSection() {
     offset: ["start start", "end start"]
   });
 
-  // Maps scroll progress to vertical translation for the image
-  const yOffset = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  // Safe Parallax: 0px offset on mobile to prevent overflow; up to 150px on desktop
+  const yOffset = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 0 : 150]);
 
   return (
     <section 
       ref={containerRef} 
-      className="min-h-screen w-full flex items-center bg-[#FDFBF7] relative overflow-hidden px-8 md:px-16 lg:px-24 pt-28 pb-16 antialiased"
+      className="min-h-screen w-full flex items-center bg-[#FDFBF7] relative overflow-hidden px-6 md:px-16 lg:px-24 pt-32 pb-24 lg:py-16 antialiased"
     >
       {/* Background elegant dotted matrix */}
       <div className="absolute inset-0 bg-[radial-gradient(#C5A059_1px,transparent_1px)] [background-size:32px_32px] opacity-15 pointer-events-none z-0" />
       
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full z-10">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full z-10">
         
         {/* Left Column - Brand Title & Explore CTA */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex flex-col items-center lg:items-start text-center lg:text-left justify-center w-full lg:col-span-6 order-2 lg:order-1"
+          className="flex flex-col items-center lg:items-start text-center lg:text-left justify-center w-full lg:col-span-6 order-2 lg:order-1 mt-4 lg:mt-0"
         >
-          <motion.div variants={childVariants} className="flex items-center gap-4 mb-6">
+          <motion.div variants={childVariants} className="flex items-center gap-4 mb-4 lg:mb-6">
             <span className="font-sans text-[10px] tracking-[0.5em] uppercase text-[#C5A059] font-bold">
               Est. 1980
             </span>
@@ -61,7 +70,7 @@ export default function HeroSection() {
 
           <motion.h1 
             variants={childVariants} 
-            className="font-brand text-5xl md:text-6xl text-[#1a1a1a] tracking-[0.15em] leading-tight mb-6 font-light uppercase"
+            className="font-brand text-4xl sm:text-5xl md:text-6xl text-[#1a1a1a] tracking-[0.15em] leading-tight mb-4 lg:mb-6 font-light uppercase"
           >
             Shagun <br className="hidden lg:block"/>
             <span className="text-[#90060c] font-normal">Ratna</span>
@@ -69,14 +78,14 @@ export default function HeroSection() {
 
           <motion.p 
             variants={childVariants} 
-            className="font-brand text-xl md:text-2xl text-[#C5A059] tracking-[0.15em] leading-relaxed mb-10 max-w-lg italic font-light"
+            className="font-brand text-lg sm:text-xl md:text-2xl text-[#C5A059] tracking-[0.15em] leading-relaxed mb-8 lg:mb-10 max-w-lg italic font-light"
           >
             Defining the art of subtlety through timeless, handcrafted elegance.
           </motion.p>
 
           <motion.div variants={childVariants}>
             <Link href="/collection">
-              <button className="relative font-sans px-12 py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_10px_30px_rgba(144,6,12,0.25)] active:scale-[0.98]">
+              <button className="relative font-sans px-10 py-3.5 lg:px-12 lg:py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_10px_30px_rgba(144,6,12,0.25)] active:scale-[0.98]">
                 <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Explore Now</span>
                 <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
               </button>
@@ -90,7 +99,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
           style={{ y: yOffset }}
-          className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 min-h-[450px] lg:min-h-[550px]"
+          className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 min-h-[320px] sm:min-h-[400px] lg:min-h-[550px]"
         >
           {/* Gold aura background glow */}
           <div className="absolute w-[80%] aspect-square rounded-full bg-radial from-[#C5A059]/15 to-transparent blur-3xl -z-10" />
@@ -118,20 +127,20 @@ export default function HeroSection() {
           {/* The hand image itself, floating borderless */}
           <motion.div 
             animate={{
-              y: [0, -15, 0],
+              y: [0, -10, 0],
             }}
             transition={{
-              duration: 7,
+              duration: 6,
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="relative w-full h-[450px] lg:h-[550px] z-10 flex items-center justify-center select-none pointer-events-none"
+            className="relative w-full h-[320px] sm:h-[400px] lg:h-[550px] z-10 flex items-center justify-center select-none pointer-events-none"
           >
             <Image 
               src="/hero_sec_hand.png" 
               alt="Shagun Ratna Jewelry" 
               fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 50vw"
               className="object-contain opacity-95 select-none pointer-events-none" 
               priority
             />
@@ -140,16 +149,16 @@ export default function HeroSection() {
 
       </div>
 
-      {/* Luxury Scroll Indicator */}
+      {/* Luxury Scroll Indicator - Hidden on extra small mobile screen heights to prevent overlap */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.8, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-20 cursor-pointer"
+        className="absolute bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-3 z-20 cursor-pointer"
         onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
       >
         <span className="font-sans text-[9px] tracking-[0.35em] uppercase text-[#C5A059] font-semibold">Scroll</span>
-        <div className="w-[1px] h-12 bg-[#C5A059]/35 relative overflow-hidden">
+        <div className="w-[1px] h-8 lg:h-12 bg-[#C5A059]/35 relative overflow-hidden">
           <motion.div 
             animate={{ 
               y: ["-100%", "100%"] 
