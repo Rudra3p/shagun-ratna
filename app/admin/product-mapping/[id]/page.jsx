@@ -20,7 +20,7 @@ export default function RepositoryDetailView({ params }) {
   const loadFolderDetails = async () => {
     try {
       const [folderRes, productsRes] = await Promise.all([
-        adminApi.get(`/collection/smart?id=${folderId}`),
+        adminApi.get(`/products-mapping?id=${folderId}`),
         adminApi.get(`/products?limit=100`) 
       ]);
       
@@ -39,7 +39,9 @@ export default function RepositoryDetailView({ params }) {
   };
 
   useEffect(() => {
-    loadFolderDetails();
+    if (folderId) {
+      loadFolderDetails();
+    }
   }, [folderId]);
 
   const toggleProductSelection = (productId) => {
@@ -51,7 +53,7 @@ export default function RepositoryDetailView({ params }) {
   const handleRemoveProduct = async (productId) => {
     const updatedIds = selectedProductIds.filter((id) => id !== productId);
     try {
-      await adminApi.put(`/collection/smart?id=${folderId}`, { productIds: updatedIds });
+      await adminApi.put(`/products-mapping?id=${folderId}`, { productIds: updatedIds });
       setSelectedProductIds(updatedIds);
       setAssignedProducts((prev) => prev.filter((p) => p._id !== productId));
     } catch (err) {
@@ -62,7 +64,7 @@ export default function RepositoryDetailView({ params }) {
   const handleSaveSelections = async () => {
     setSaving(true);
     try {
-      await adminApi.put(`/collection/smart?id=${folderId}`, { productIds: selectedProductIds });
+      await adminApi.put(`/products-mapping?id=${folderId}`, { productIds: selectedProductIds });
       setShowSelectorModal(false);
       loadFolderDetails(); 
     } catch (err) {
@@ -75,11 +77,12 @@ export default function RepositoryDetailView({ params }) {
   if (!folder) return <div className="p-10 text-center font-sans text-gray-400 text-[14px]">Syncing secure directory channels...</div>;
 
   return (
-    <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px]">
+    <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px] mx-auto px-4 pt-6">
       
+      {/* Structural Back Navigation & Meta */}
       <div className="flex items-center gap-4 mb-8">
         <button 
-          onClick={() => router.push('/admin/mappings')} 
+          onClick={() => router.push('/admin/product-mapping')} 
           className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
         >
           <ArrowLeft size={20} />
@@ -95,6 +98,7 @@ export default function RepositoryDetailView({ params }) {
         </div>
       </div>
 
+      {/* Grid Subheader Row */}
       <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
         <h2 className="text-[15px] font-sans font-bold text-gray-800 uppercase tracking-wider">Assigned Product Deck ({assignedProducts.length})</h2>
         <button 
@@ -106,26 +110,27 @@ export default function RepositoryDetailView({ params }) {
         </button>
       </div>
 
+      {/* Dynamic Products Display Deck */}
       {assignedProducts.length === 0 ? (
         <div className="text-center py-20 bg-[#fdfbf7] rounded-[24px] border border-dashed border-gray-200 text-gray-400 font-sans text-[13px]">
           No inventory cards pinned inside this demographic profile directory folder yet.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {assignedProducts.map((product) => (
-            <div key={product._id} className="flex flex-col group transition-all duration-300">
-              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-[#fdfbf7]">
+            <div key={product._id} className="flex flex-col group transition-all duration-300 bg-white border border-gray-100 rounded-[24px] p-4 shadow-sm hover:shadow-md">
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[18px] bg-[#fdfbf7]">
                 {product.imageUrl && (
                   <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${product.imageUrl})` }} />
                 )}
               </div>
               <div className="pt-4 flex flex-col flex-1 text-center items-center">
-                <h3 className="text-[16px] text-[#222222] font-serif font-medium tracking-wide truncate w-full">{product.productName}</h3>
-                <p className="text-[11px] text-[#888888] font-sans font-semibold uppercase tracking-widest mt-0.5">${parseFloat(product.price).toFixed(2)}</p>
+                <h3 className="text-[15px] text-[#222222] font-sans font-bold tracking-tight truncate w-full">{product.productName}</h3>
+                <p className="text-[12px] text-gray-500 font-sans mt-0.5">${parseFloat(product.price).toFixed(2)}</p>
                 
                 <button 
                   onClick={() => handleRemoveProduct(product._id)}
-                  className="mt-3 flex items-center justify-center gap-1.5 px-4 py-1.5 border border-gray-200 text-gray-500 hover:text-red-600 hover:bg-red-50/50 transition-all rounded-md text-[12px] font-medium"
+                  className="mt-4 flex items-center justify-center gap-1.5 w-full py-2 border border-gray-100 text-gray-500 hover:text-red-600 hover:bg-red-50/50 hover:border-red-100 transition-all rounded-xl text-[12px] font-semibold"
                 >
                   <Trash2 size={12} />
                   Remove
@@ -136,7 +141,7 @@ export default function RepositoryDetailView({ params }) {
         </div>
       )}
 
-      {/* --- VISUAL PRODUCT GRID CHECKLIST MODAL INJECTOR OVERLAY --- */}
+      {/* Visual Slid-out Selector Drawer overlay */}
       {showSelectorModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-end animate-in fade-in duration-200">
           <div className="bg-white h-full max-w-2xl w-full border-l border-gray-100 p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">

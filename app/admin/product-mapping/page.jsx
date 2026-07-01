@@ -22,7 +22,7 @@ export default function ProductMappingDashboard() {
 
   const fetchCollections = async () => {
     try {
-      const res = await adminApi.get('/collection/smart');
+      const res = await adminApi.get('/products-mapping');
       setCollections(res.data.collections || []);
     } catch (err) {
       console.error("Failed to load repositories:", err);
@@ -37,7 +37,7 @@ export default function ProductMappingDashboard() {
     e.preventDefault();
     setLoading(true);
     try {
-      await adminApi.post('/collection/smart', modalForm);
+      await adminApi.post('/products-mapping', modalForm);
       setShowModal(false);
       setModalForm({ title: '', gender: 'All', minAge: '18', maxAge: '60', homepageZone: 'None', description: '' });
       fetchCollections();
@@ -49,8 +49,9 @@ export default function ProductMappingDashboard() {
   };
 
   return (
-    <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px]">
+    <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px] mx-auto px-4 pt-6">
       
+      {/* Header Panel */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6 mb-8">
         <div>
           <h1 className="text-[22px] font-sans font-bold text-[#540411] tracking-tight">Smart Demographics Repositories</h1>
@@ -65,6 +66,7 @@ export default function ProductMappingDashboard() {
         </button>
       </div>
 
+      {/* Main Grid Deck */}
       {collections.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-[24px] border border-dashed border-gray-200 text-gray-400 font-sans text-[14px]">
           No dynamic smart collection folders mapped yet. Click "Create New Mapping" above to spawn your first profile structure folder.
@@ -74,7 +76,7 @@ export default function ProductMappingDashboard() {
           {collections.map((folder) => (
             <div 
               key={folder._id}
-              onClick={() => router.push(`/admin/mappings/${folder._id}`)}
+              onClick={() => router.push(`/admin/product-mapping/${folder._id}`)}
               className="bg-white border border-gray-100 rounded-[20px] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_20px_rgba(84,4,17,0.06)] hover:border-[#540411]/20 cursor-pointer group transition-all duration-300 relative flex flex-col min-h-[200px]"
             >
               <div className="flex items-start justify-between mb-4">
@@ -112,7 +114,7 @@ export default function ProductMappingDashboard() {
         </div>
       )}
 
-      {/* --- POPUP MODAL CREATION COMPONENT --- */}
+      {/* Pop-up Modal Creation Engine */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-[24px] shadow-2xl max-w-md w-full border border-gray-100 p-8 space-y-6 animate-in zoom-in-95 duration-300">
@@ -138,7 +140,7 @@ export default function ProductMappingDashboard() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Link to Homepage (6 Card Layout)</label>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Link to Homepage Feature Slot</label>
                 <select 
                   value={modalForm.homepageZone} onChange={(e) => setModalForm({...modalForm, homepageZone: e.target.value})}
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px] font-medium text-gray-700"
@@ -154,7 +156,7 @@ export default function ProductMappingDashboard() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Target Gender</label>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Target Audience Segment</label>
                 <select 
                   value={modalForm.gender} onChange={(e) => setModalForm({...modalForm, gender: e.target.value})}
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px]"
@@ -203,7 +205,7 @@ export default function ProductMappingDashboard() {
                 </button>
                 <button 
                   type="submit" disabled={loading}
-                  className="flex items-center gap-2 px-5 py-2 bg-[#540411] text-white rounded-lg hover:bg-[#400009] text-[13px] font-semibold"
+                  className="flex items-center gap-2 px-5 py-2 bg-[#540411] text-white rounded-lg hover:bg-[#400009] text-[13px] font-semibold transition-colors"
                 >
                   {loading && <Loader2 size={14} className="animate-spin" />}
                   Create Folder
