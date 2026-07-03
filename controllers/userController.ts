@@ -1,14 +1,56 @@
-import User from "@/models/user"; 
+import { NextResponse } from "next/server";
+import User from "@/models/user";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { NextResponse } from "next/server";
+import { UserRegisterSchema, UserLoginSchema } from "@/schemas/authUserSchemas";
+
+// ==========================================
+// UTILITY FUNCTIONS
+// ==========================================
+
+// Core helper to extract the user ID safely from the refresh token cookie string value
+export const getUserIdFromRefreshToken = (req: Request): string | null => {
+  try {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const refreshToken = cookieHeader
+      .split(";")
+      .find((c) => c.trim().startsWith("shagun_user_refresh="))
+      ?.split("=")[1];
+
+    if (!refreshToken) return null;
+
+    const secret = process.env.JWT_REFRESH_SECRET;
+    if (!secret) {
+      console.error("❌ Configuration Error: process.env.JWT_REFRESH_SECRET is missing.");
+      return null;
+    }
+
+    const decoded = jwt.verify(refreshToken, secret) as { id: string };
+    return decoded.id;
+  } catch (error) {
+    console.error("🔐 User Session Token Error:", error);
+    return null; 
+  }
+};
+
+// ==========================================
+// USER AUTHENTICATION CONTROLLERS
+// ==========================================
 
 // 1. REGISTER USER
-export const registerUser = async (req: Request) => {
+export const registerUser = async (req: Request): Promise<NextResponse> => {
   try {
-    // UPDATED: name and phone instead of businessName
-    const { name, email, phone, password } = await req.json();
+    const body = await req.json();
 
+    // Zod Validation (The Gatekeeper)
+    const validation = UserRegisterSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+    }
+
+    const { name, email, phone, password, birthdate, gender } = validation.data;
+
+    // Check if account rules conflict with database unique items
     const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
       return NextResponse.json({ error: "Email or Phone already in use" }, { status: 400 });
@@ -21,87 +63,95 @@ export const registerUser = async (req: Request) => {
       name,
       email,
       phone,
+      birthdate,
+      gender,
       password: hashedPassword,
+      loginAttempts: 0 // Match admin-side security schema structure
     });
 
     await newUser.save();
     return NextResponse.json({ message: "Account created successfully" }, { status: 201 });
   } catch (error) {
+    console.error("User Registration Error:", error);
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });
   }
 };
 
 // 2. SIGNIN USER
-export const userSignin = async (req: Request) => {
+export const userSignin = async (req: Request): Promise<NextResponse> => {
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Zod Validation 
+    const validation = UserLoginSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
+    const { email, password } = validation.data;
+    const user = await User.findOne({ email });
+
+    if (!user) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
+      // Track login attempts to match admin tracking layout safely
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      await user.save();
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // --- ACCESS TOKEN (Short lived - 15 mins) ---
-    const accessToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "15m" }
-    );
+    // SUCCESS: Reset security counters completely
+    user.loginAttempts = 0;
+    
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
 
-    // --- REFRESH TOKEN (Long lived - 7 days) ---
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_REFRESH_SECRET as string,
-      { expiresIn: "7d" }
-    );
-
-    // CRITICAL: Save Refresh Token to User Model in DB
     user.refreshToken = refreshToken;
     await user.save();
 
-    const response = NextResponse.json({ message: "Welcome to Shagun Ratna" }, { status: 200 });
+    // Bundled client tracking metadata payload for the frontend state requirements
+    const response = NextResponse.json({ 
+      message: "Welcome to Shagun Ratna",
+      user: {
+        name: user.name,
+        birthdate: user.birthdate,
+        gender: user.gender
+      }
+    }, { status: 200 });
 
-    // SET ACCESS COOKIE
-    response.cookies.set("shagun_user_access", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 15 * 60, // 15 mins
+    // Set HTTP-Only access cookies matching your exact admin layout
+    response.cookies.set("shagun_user_access", accessToken, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "lax", 
+      path: "/", 
+      maxAge: 900 
     });
-
-    // SET REFRESH COOKIE
-    response.cookies.set("shagun_user_refresh", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+    
+    response.cookies.set("shagun_user_refresh", refreshToken, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "lax", 
+      path: "/", 
+      maxAge: 604800 
     });
 
     return response;
   } catch (error) {
+    console.error("User Signin Error:", error);
     return NextResponse.json({ error: "Signin failed" }, { status: 500 });
   }
 };
 
 // 3. LOGOUT USER
-export const userLogout = async (req: Request) => {
-  try {
-    // Ideally, pass the user ID to clear the DB token
-    // For now, we clear the cookies
-    const response = NextResponse.json({ message: "Logged out" }, { status: 200 });
+export const userSignout = async (): Promise<NextResponse> => {
+  const response = NextResponse.json({ message: "Logged out successfully" }, { status: 200 });
 
-    response.cookies.set("shagun_user_access", "", { maxAge: 0, path: "/" });
-    response.cookies.set("shagun_user_refresh", "", { maxAge: 0, path: "/" });
+  // Wipe cookie context paths clean immediately
+  response.cookies.set("shagun_user_access", "", { maxAge: 0, path: "/" });
+  response.cookies.set("shagun_user_refresh", "", { maxAge: 0, path: "/" });
 
-    return response;
-  } catch (error) {
-     return NextResponse.json({ error: "Logout failed" }, { status: 500 });
-  }
+  return response;
 };

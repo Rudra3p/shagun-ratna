@@ -1,41 +1,41 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose from 'mongoose';
 import { z } from 'zod';
 
-export interface IUser extends Document {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  refreshToken?: string;
-  createdAt: Date;
-}
-
-// 1. Zod Schema with specific rules for jewelry buyers
+// 1. Zod Schema with rules for gender and birthdate
 export const UserZodSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").trim(),
   email: z.string().email("Invalid email address"),
-  // Regex to ensure phone number format (e.g., +1234567890)
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"),
+  birthdate: z.string().min(1, "Birthdate is required"),
+  gender: z.enum(["Male", "Female", "Other"]),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 // 2. Mongoose Schema
-const UserSchema: Schema = new Schema({
+const UserSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   phone: { type: String, required: true, unique: true, trim: true },
+  birthdate: { type: String, required: true }, // 🧠 Added birthdate rule
+  gender: { type: String, required: true, enum: ["Male", "Female", "Other"] }, // 🧠 Added dynamic gender mapping field
   password: { type: String, required: true },
+  loginAttempts: { type: Number, default: 0 }, // 🧠 Added tracking for brute-force safety block metrics
   refreshToken: { type: String },
 }, { timestamps: true });
 
-// 3. Gatekeeper Middleware
-UserSchema.pre<IUser>('save', async function (this: IUser) {
-  const result = UserZodSchema.safeParse(this.toObject());
+// 3. Gatekeeper Pre-Save Middleware Hook
+UserSchema.pre('save', async function () {
+  // Convert mongoose doc to standard object for Zod validation check
+  const obj = this.toObject();
+
+  // Validate full schema structure rules using Zod. Throwing an error inside
+  // an async pre hook will abort the save operation in Mongoose.
+  const result = UserZodSchema.safeParse(obj);
   if (!result.success) {
     throw new Error(`User Validation Failed: ${result.error.issues[0]?.message}`);
   }
 });
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
 export default User;
