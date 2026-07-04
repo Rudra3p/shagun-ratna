@@ -10,6 +10,7 @@ import {
   Eye,
   Settings,
   Star,
+  Inbox
 } from "lucide-react";
 import {
   BarChart,
@@ -146,23 +147,23 @@ export default function DashboardView() {
             </div>
           </div>
         </div>
-        {/* Card 4: Average Session Duration */}
+        {/* Card 4: Pending Inquiries */}
         <div className="bg-white rounded-[20px] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-gray-50 flex flex-col justify-between h-[180px]">
           <div className="flex justify-between items-start">
             <h3 className="text-[13px] font-bold text-gray-500 tracking-widest leading-relaxed font-sans uppercase">
-              AVG. SESSION<br />DURATION
+              PENDING<br />INQUIRIES
             </h3>
             <div className="w-10 h-10 rounded-[14px] bg-[#ffecec] flex items-center justify-center text-[#721c24]">
-              <Clock size={20} strokeWidth={2} />
+              <Inbox size={20} strokeWidth={2} />
             </div>
           </div>
           <div>
             <p className="text-[32px] font-sans font-bold text-gray-900 leading-none">
-              {data?.avgSessionDuration || "0m 0s"}
+              {data?.pendingInquiries || "0"}
             </p>
             <div className="flex items-center gap-1.5 mt-3">
-              <span className="text-[12px] font-bold text-emerald-600">
-                +12s <span className="font-medium text-gray-400 ml-1">vs last month</span>
+              <span className="text-[12px] font-bold text-[#d32f2f]">
+                Action needed <span className="font-medium text-gray-400 ml-1">today</span>
               </span>
             </div>
           </div>
