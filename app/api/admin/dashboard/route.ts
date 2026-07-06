@@ -1,6 +1,5 @@
-// import { getDashboardStats } from "@/controllers/adminDashController"; // Ensure your path is correct
+import { getDashboardStats } from "@/controllers/adminDashController";
 
 export async function GET() {
-  return console.log("Dashboard stats endpoint hit");
-  //  await getDashboardStats();
+  return await getDashboardStats();
 }

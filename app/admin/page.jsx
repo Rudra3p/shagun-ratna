@@ -19,6 +19,7 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
+import adminApi from "@/lib/adminApi";
 
 const mockChartData = [
   { name: "1", value: 25 },
@@ -36,17 +37,18 @@ export default function DashboardView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // --- MOCK API FOR PREVIEW ---
-    setTimeout(() => {
-      setData({
-        totalProducts: 1,
-        totalReviews: 482,
-        totalUsers: 124,
-        pendingInquiries: 12,
-        liveVisitors: "15,420",
-      });
-      setLoading(false);
-    }, 600);
+    const fetchDashboard = async () => {
+      try {
+        const { data: res } = await adminApi.get("/dashboard");
+        setData(res.data);
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
   }, []);
 
   if (loading) {
@@ -115,7 +117,7 @@ export default function DashboardView() {
                 {data?.totalReviews}
               </p>
               <div className="flex items-center text-[13px] font-bold text-gray-700">
-                <Star size={14} className="mr-1 fill-transparent" /> 4.8
+                <Star size={14} className="mr-1 fill-transparent" /> {data?.avgRating || "0.0"}
               </div>
             </div>
             <div className="flex items-center gap-1.5 mt-3">
