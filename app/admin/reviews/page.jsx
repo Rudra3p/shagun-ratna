@@ -1,17 +1,47 @@
 "use client";
 
-import { Star, Filter, Upload, ChevronDown } from 'lucide-react';
-
-const mockReviews = [
-  { id: 1, name: 'Marcus Thorne', product: 'Royal Sapphire Halo', text: 'The sapphire halo ring is absolutely stunning. The craftsmanship is world-class.', rating: 5 },
-  { id: 2, name: 'Julianne Moore', product: 'Verdant Aura Emerald', text: 'The emerald cut was perfect. It caught the light beautifully at the gala.', rating: 5 },
-  { id: 3, name: 'Eleanor Laurent', product: 'Crimson Heart Ruby', text: 'The ruby\'s depth of color is mesmerizing. A truly regal piece for my collection.', rating: 5 },
-  { id: 4, name: 'Isabella Thorne', product: 'Midnight Crimson Necklace', text: 'The depth of color in the ruby is breathtaking. Truly a statement piece.', rating: 5 },
-  { id: 5, name: 'Liam Sterling', product: 'Imperial Violet Amethyst', text: 'Outstanding craftsmanship. The stone is even more vibrant in person.', rating: 5 },
-  { id: 6, name: 'Sophia Loren', product: 'Tahitian Midnight Pearls', text: 'Elegant and sophisticated. Exactly what I was looking for.', rating: 5 },
-];
+import { useEffect, useState } from 'react';
+import { Star, Filter, Upload, ChevronDown, Trash2 } from 'lucide-react';
+import adminApi from '@/lib/adminApi';
 
 export default function ReviewsView() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const { data } = await adminApi.get('/reviews?limit=100');
+      setReviews(data.reviews || []);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this review?")) return;
+    try {
+      setDeletingId(id);
+      await adminApi.delete(`/reviews?id=${id}`);
+      setReviews((prev) => prev.filter((r) => r._id !== id));
+    } catch (err) {
+      console.error("Delete failed:", err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const averageRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + Number(r.rating), 0) / reviews.length).toFixed(1)
+    : '0.0';
+
   return (
     <div className="animate-in fade-in duration-500 pb-10">
       <header className="w-full mb-10 bg-primary-container text-on-primary-container p-8 md:p-10 rounded-2xl shadow-md relative overflow-hidden">
@@ -22,42 +52,39 @@ export default function ReviewsView() {
           <h3 className="text-xl font-bold mb-8">Review Insights</h3>
           <div className="flex flex-col md:flex-row md:items-center gap-10">
             <div className="flex items-center gap-6">
-              <span className="text-6xl font-bold">4.8</span>
+              <span className="text-6xl font-bold">{averageRating}</span>
               <div>
                 <p className="text-sm mb-1 opacity-90">Average Rating</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={18} className="fill-current text-on-primary-container" />
+                    <Star key={i} size={18} className="fill-[#C5A059] text-[#C5A059]" />
                   ))}
                 </div>
               </div>
             </div>
             <div className="flex-1 max-w-md">
-              <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden mb-2">
-                <div className="bg-on-primary-container h-full" style={{ width: '92%' }} />
-              </div>
-              <p className="text-xs font-label opacity-80 uppercase tracking-wider">92% of customers recommend our bespoke jewelry services.</p>
+              <p className="text-xs font-label opacity-80 uppercase tracking-wider">{reviews.length} total review{reviews.length === 1 ? '' : 's'} collected.</p>
             </div>
           </div>
         </div>
       </header>
-      
+
       <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full">
           <div className="w-full sm:w-auto">
-            <FilterSelect 
-              options={['All Ratings', '5 Stars', '4 Stars']} 
+            <FilterSelect
+              options={['All Ratings', '5 Stars', '4 Stars']}
             />
           </div>
-          
+
           <div className="w-full sm:w-auto">
-            <FilterSelect 
-              options={['Most Recent', 'Oldest First', 'Highest Rated']} 
+            <FilterSelect
+              options={['Most Recent', 'Oldest First', 'Highest Rated']}
             />
           </div>
-          
+
           <div className="w-full sm:w-auto">
-            <FilterSelect 
-              options={['All Products', 'Rings', 'Pendants']} 
+            <FilterSelect
+              options={['All Products', 'Rings', 'Pendants']}
             />
           </div>
       </div>
@@ -70,27 +97,45 @@ export default function ReviewsView() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {mockReviews.map((review) => (
-            <div key={review.id} className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col gap-4 group hover:shadow-md transition-all hover:border-primary/50 relative">
-              <div className="absolute top-6 right-6">
-                <input type="checkbox" className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary cursor-pointer transition-colors" />
-              </div>
-              <div className="flex justify-between items-start pr-8">
-                <div className="flex flex-col">
-                  <span className="font-bold text-primary">{review.name}</span>
-                  <span className="text-xs text-secondary mt-0.5">{review.product}</span>
+        {loading ? (
+          <p className="text-sm text-on-surface-variant">Loading reviews...</p>
+        ) : reviews.length === 0 ? (
+          <p className="text-sm text-on-surface-variant">No reviews yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {reviews.map((review) => (
+              <div key={review._id} className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col gap-4 group hover:shadow-md transition-all hover:border-primary/50 relative">
+                <div className="absolute top-6 right-6">
+                  <button
+                    onClick={() => handleDelete(review._id)}
+                    disabled={deletingId === review._id}
+                    className="p-1.5 rounded-lg text-secondary hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                    title="Delete review"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
+                <div className="flex justify-between items-start pr-8">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-primary">{review.name}</span>
+                    <span className="text-xs text-secondary mt-0.5">{review.product}</span>
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={16} className={i < review.rating ? "fill-[#C5A059] text-[#C5A059]" : "text-outline-variant"} />
+                  ))}
+                </div>
+                <p className="text-sm italic text-on-surface-variant leading-relaxed">"{review.text}"</p>
+                {!review.approved && (
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-secondary bg-outline-variant/20 self-start px-2 py-0.5 rounded-full">
+                    Pending
+                  </span>
+                )}
               </div>
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={16} className={i < review.rating ? "fill-primary text-primary" : "text-outline-variant"} />
-                ))}
-              </div>
-              <p className="text-sm italic text-on-surface-variant leading-relaxed">"{review.text}"</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
