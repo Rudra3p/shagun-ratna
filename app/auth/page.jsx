@@ -33,7 +33,7 @@ export default function SigninPage() {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('/api/user/signin', {
+      const res = await fetch('/api/user/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
