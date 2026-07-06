@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import adminApi from '@/lib/adminApi';
-import { 
-  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X
+import {
+  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X, Inbox
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -119,11 +119,18 @@ const handleLogout = async () => {
             href="/admin/history" 
             onClick={() => setIsOpen(false)}
           />
-          <SidebarItem 
-            active={currentPath === '/admin/reviews'} 
-            icon={<MessageSquare size={20} />} 
-            label="Reviews" 
-            href="/admin/reviews" 
+          <SidebarItem
+            active={currentPath === '/admin/reviews'}
+            icon={<MessageSquare size={20} />}
+            label="Reviews"
+            href="/admin/reviews"
+            onClick={() => setIsOpen(false)}
+          />
+          <SidebarItem
+            active={currentPath === '/admin/inquiries'}
+            icon={<Inbox size={20} />}
+            label="Inquiries"
+            href="/admin/inquiries"
             onClick={() => setIsOpen(false)}
           />
         </nav>
