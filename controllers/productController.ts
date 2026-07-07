@@ -151,7 +151,7 @@ export const searchProducts = async (req: Request): Promise<NextResponse> => {
     const total = totalResults.length > 0 ? totalResults[0].total : 0;
 
     // Capture the clean gateway response
-    const gatewayResponse = await getProducts(indexResults, Math.ceil(total / limit), page);
+    const gatewayResponse = await getProducts(indexResults, Math.ceil(total / limit), page, total);
 
     // Apply Cloudflare CDN caching instruction headers onto your text payload response
     gatewayResponse.headers.set(
@@ -169,13 +169,14 @@ export const searchProducts = async (req: Request): Promise<NextResponse> => {
 
 // 3. GET PRODUCTS (Standard Data Gateway pagination)
 export const getProducts = async (
-  products: any[] | null = null, 
-  totalPages: number = 0, 
-  currentPage: number = 1
+  products: any[] | null = null,
+  totalPages: number = 0,
+  currentPage: number = 1,
+  total: number = 0
 ): Promise<NextResponse> => {
   try {
     if (products) {
-      return NextResponse.json({ products, totalPages, currentPage }, { status: 200 });
+      return NextResponse.json({ products, totalPages, currentPage, total }, { status: 200 });
     }
 
     const page = currentPage;
@@ -183,12 +184,13 @@ export const getProducts = async (
     const skip = (page - 1) * limit;
 
     const allProducts = await Product.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
-    const total = await Product.countDocuments();
+    const totalCount = await Product.countDocuments();
 
-    return NextResponse.json({ 
-      products: allProducts, 
-      totalPages: Math.ceil(total / limit),
-      currentPage: page 
+    return NextResponse.json({
+      products: allProducts,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage: page,
+      total: totalCount
     }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
