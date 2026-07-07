@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import userApi from '@/lib/userApi'; 
-import { Loader2, Search, SlidersHorizontal, Heart } from 'lucide-react';
+import userApi from '@/lib/userApi';
+import { Loader2, Search, SlidersHorizontal, Heart, SearchX, X, Gem } from 'lucide-react';
+
+const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
@@ -19,6 +22,7 @@ export default function Collection() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const categories = ["Gold", "Bridal", "Heirloom", "Contemporary"];
+  const hasActiveFilter = appliedSearch.trim() !== "" || selectedCategory !== "";
 
   const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCat = "") => {
     if (pageNumber === 1) setLoading(true);
@@ -36,6 +40,7 @@ export default function Collection() {
       const incomingItems = res.data.products || [];
 
       setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
+      setTotalCount(res.data.total || 0);
       setHasMore(currentSearch.trim() !== "" || currentCat !== "" ? false : incomingItems.length === 10);
       setPage(pageNumber);
     } catch (err) {
@@ -51,7 +56,21 @@ export default function Collection() {
 
   useEffect(() => {
     loadCollectionItems(1, "", "");
+
+    try {
+      const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
+      if (stored) setFavorites(JSON.parse(stored));
+    } catch {
+      // localStorage unavailable (e.g. private browsing) — favorites just won't persist
+    }
   }, []);
+
+  const handleClearFilters = () => {
+    setTypedSearch("");
+    setAppliedSearch("");
+    setSelectedCategory("");
+    loadCollectionItems(1, "", "");
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -69,14 +88,38 @@ export default function Collection() {
   };
 
   const toggleFavorite = (id, e) => {
-    e.stopPropagation(); 
-    setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
+    e.stopPropagation();
+    setFavorites(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // localStorage unavailable — favorites just won't persist
+      }
+      return next;
+    });
   };
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-32 pb-24">
-        
+
+        {/* Page Heading */}
+        <div className="mb-10 md:mb-14 text-center md:text-left">
+          <div className="flex items-center gap-3 justify-center md:justify-start mb-4">
+            <span className="text-[#90060C] font-bold tracking-[0.4em] uppercase text-[10px]">
+              Shagun Ratna
+            </span>
+            <div className="h-[1px] w-8 bg-[#C5A059]" />
+          </div>
+          <h1 className="font-brand text-4xl sm:text-5xl text-[#1a1a1a] font-light uppercase tracking-tight">
+            The Collection
+          </h1>
+          <p className="font-sans text-sm text-[#A8A196] mt-3 max-w-md mx-auto md:mx-0">
+            Timeless gold, gemstones, and heirloom craftsmanship, curated for every story.
+          </p>
+        </div>
+
         {/* Top Controls Bar: Search & Filter Categories */}
         <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-8 mb-10">
           <form onSubmit={handleSearchSubmit} className="flex items-center w-full max-w-2xl gap-3">
@@ -120,6 +163,26 @@ export default function Collection() {
               </div>
             </div>
           </div>
+
+          {!loading && (
+            <div className="flex items-center justify-between gap-4 text-xs text-[#A8A196] font-sans">
+              <span>
+                {hasActiveFilter
+                  ? `${products.length} result${products.length === 1 ? '' : 's'}${appliedSearch ? ` for “${appliedSearch}”` : ''}`
+                  : totalCount > 0
+                    ? `${totalCount} piece${totalCount === 1 ? '' : 's'} in the collection`
+                    : null}
+              </span>
+              {hasActiveFilter && (
+                <button
+                  onClick={handleClearFilters}
+                  className="flex items-center gap-1.5 text-[#90060C] hover:text-[#730509] font-medium uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  <X size={12} /> Clear Filters
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Product Grid Layout */}
@@ -137,23 +200,57 @@ export default function Collection() {
           <div className="text-center py-16 bg-[#90060C]/5 border border-[#90060C]/20 rounded-2xl max-w-xl mx-auto text-[#90060C] font-serif">
             {error}
           </div>
+        ) : products.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center py-24 border border-dashed border-[#EBE3D5] rounded-2xl">
+            <div className="w-14 h-14 rounded-full bg-[#F5EFE6] flex items-center justify-center text-[#A8A196] mb-4">
+              <SearchX size={24} />
+            </div>
+            <p className="font-serif text-lg text-[#1a1a1a]">
+              {appliedSearch ? `No pieces match “${appliedSearch}”` : 'No pieces in this category yet'}
+            </p>
+            <p className="text-sm text-[#A8A196] mt-1.5 max-w-xs font-sans">
+              Try a different search term or browse the full collection.
+            </p>
+            <button
+              onClick={handleClearFilters}
+              className="mt-6 px-8 py-3 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full cursor-pointer"
+            >
+              View Full Collection
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
             {products.map((product) => {
               const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
               const isFavorited = !!favorites[product._id];
-              
+
               return (
-                <div key={product._id} className="group cursor-pointer flex flex-col bg-transparent border-none p-0">
+                <div key={product._id} className="group flex flex-col bg-transparent border-none p-0">
                   {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
-                  <div className="relative aspect-[4/5] w-full mb-3.5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/20">
-                    <Image 
-                      src={product.imageUrl || "/placeholder-jewelry.jpg"} 
-                      alt={product.productName}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 25vw"
-                      className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
+                  <div className="relative aspect-[4/5] w-full mb-3.5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/20 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.08)] transition-shadow duration-500">
+                    {product.imageUrl ? (
+                      <Image
+                        src={product.imageUrl}
+                        alt={product.productName}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 25vw"
+                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#C9BFA8]">
+                        <Gem size={28} strokeWidth={1.25} />
+                        <span className="font-sans text-[10px] font-semibold uppercase tracking-widest">Image Coming Soon</span>
+                      </div>
+                    )}
+
+                    {product.discount > 0 && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-[#90060C] font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
+                          {product.discount}% Off
+                        </span>
+                      </div>
+                    )}
+
                     <button
                       type="button"
                       onClick={(e) => toggleFavorite(product._id, e)}
@@ -162,7 +259,7 @@ export default function Collection() {
                       <Heart size={16} className={isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"} />
                     </button>
                   </div>
-                  
+
                   {/* Clean Product Typography stack info panel */}
                   <div className="flex flex-col flex-grow px-1 pb-1">
                     <h3 className="text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-0.5">

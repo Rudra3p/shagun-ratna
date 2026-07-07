@@ -4,17 +4,18 @@ import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
-  CheckCircle2, AlertCircle, PackageSearch
+  CheckCircle2, AlertCircle, PackageSearch, ImageOff
 } from 'lucide-react';
 
 function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col animate-pulse">
-      <div className="aspect-[3/4] w-full rounded-[24px] bg-gray-100" />
-      <div className="pt-4 flex flex-col items-center gap-2">
+    <div className="flex flex-col bg-white rounded-[20px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden animate-pulse">
+      <div className="aspect-[3/4] w-full bg-gray-100" />
+      <div className="p-4 flex flex-col items-center gap-2">
         <div className="h-4 w-2/3 bg-gray-100 rounded" />
         <div className="h-2.5 w-1/3 bg-gray-100 rounded" />
         <div className="h-4 w-1/4 bg-gray-100 rounded mt-1" />
+        <div className="h-8 w-full bg-gray-50 rounded-lg mt-2" />
       </div>
     </div>
   );
@@ -444,23 +445,26 @@ export default function Products() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
           {visibleProducts.map((product) => (
-            <div key={product._id} className="flex flex-col group transition-all duration-300">
-
+            <div
+              key={product._id}
+              className="flex flex-col bg-white rounded-[20px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
+            >
               {/* Asset Image Layer */}
-              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-[#fdfbf7]">
+              <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#fdfbf7]">
                 {product.imageUrl ? (
                   <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-102 transition-transform duration-700 ease-out"
+                    className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     style={{ backgroundImage: `url(${product.imageUrl})` }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 font-sans text-[11px] font-bold uppercase tracking-widest">
-                    No Asset Render
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-50 text-gray-300">
+                    <ImageOff size={22} strokeWidth={1.5} />
+                    <span className="font-sans text-[10px] font-bold uppercase tracking-widest">No Asset</span>
                   </div>
                 )}
                 {product.discount > 0 && (
-                  <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1.5 rounded-full backdrop-blur-md bg-white/90 text-[#b03038] font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
+                  <div className="absolute top-3 left-3">
+                    <span className="px-3 py-1.5 rounded-full bg-[#b03038] text-white font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
                       {product.discount}% OFF
                     </span>
                   </div>
@@ -468,42 +472,41 @@ export default function Products() {
               </div>
 
               {/* Product Description Text */}
-              <div className="pt-4 flex flex-col flex-1 text-center">
-                <div className="mb-1.5">
-                  <h3 className="text-[17px] text-[#222222] font-serif font-medium tracking-wide group-hover:text-[#540411] transition-colors duration-300 truncate px-1">
-                    {product.productName}
-                  </h3>
-                  <p className="text-[11px] text-[#888888] font-sans font-semibold uppercase tracking-widest mt-0.5">
-                    {product.category || 'General'}
-                  </p>
-                </div>
+              <div className="px-4 pt-4 pb-4 flex flex-col flex-1 text-center">
+                <h3 className="text-[15px] text-[#222222] font-serif font-medium tracking-wide truncate group-hover:text-[#540411] transition-colors duration-300">
+                  {product.productName}
+                </h3>
+                <p className="text-[10.5px] text-[#999999] font-sans font-semibold uppercase tracking-widest mt-0.5">
+                  {product.category || 'General'}
+                </p>
 
-                {/* Pricing & Admin Controls */}
-                <div className="flex flex-col items-center gap-2.5 mt-auto">
-                  <div>
+                <div className="mt-auto pt-3">
+                  <div className="mb-3">
                     {product.offerPrice > 0 && product.offerPrice !== product.price ? (
                       <div className="flex items-center justify-center gap-2">
-                        <span className="text-[13px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
-                        <span className="text-[15px] text-[#222222] font-sans font-semibold">${parseFloat(product.offerPrice).toFixed(2)}</span>
+                        <span className="text-[12px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
+                        <span className="text-[15px] text-[#540411] font-sans font-bold">${parseFloat(product.offerPrice).toFixed(2)}</span>
                       </div>
                     ) : (
                       <p className="text-[15px] text-[#222222] font-sans font-semibold">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
                     )}
                   </div>
 
-                  <div className="flex gap-1.5 pt-0.5 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                  {/* Admin Controls */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-50">
                     <button
                       onClick={() => startEdit(product)}
-                      className="flex items-center gap-1 px-2.5 py-1 text-gray-500 hover:text-[#540411] hover:bg-[#ffecec]/40 transition-all rounded-md border border-gray-100 text-[11px] font-medium"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#540411] hover:bg-[#ffecec]/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
                     >
-                      <Edit2 size={12} />
+                      <Edit2 size={13} />
                       Edit
                     </button>
+                    <div className="w-px h-4 bg-gray-100" />
                     <button
                       onClick={() => setDeleteTarget(product)}
-                      className="flex items-center gap-1 px-2.5 py-1 text-gray-500 hover:text-[#b03038] hover:bg-red-50/50 transition-all rounded-md border border-gray-100 text-[11px] font-medium"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#b03038] hover:bg-red-50/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
                     >
-                      <Trash2 size={12} />
+                      <Trash2 size={13} />
                       Delete
                     </button>
                   </div>
@@ -516,7 +519,7 @@ export default function Products() {
           {!isSearching && !showOfferOnly && (
             <button
               onClick={() => { resetForm(); setView('add'); }}
-              className="flex flex-col items-center justify-center border border-dashed border-gray-200 bg-white rounded-[24px] aspect-[3/4] group hover:border-[#540411] hover:bg-[#ffecec]/10 transition-all duration-500 w-full"
+              className="flex flex-col items-center justify-center border border-dashed border-gray-200 bg-white rounded-[20px] aspect-[3/4] group hover:border-[#540411] hover:bg-[#ffecec]/10 transition-all duration-500 w-full"
             >
               <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#540411] group-hover:text-white text-gray-400 transition-colors duration-300 mb-2">
                 <Plus size={18} />
