@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest, NextFetchEvent } from 'next/server';
 import { adminMiddleware } from './middlewares/adminMiddleware';
 import { userMiddleware } from './middlewares/userMiddleware';
+import { trackVisit } from './lib/trackVisit';
 
-export async function proxy(request: NextRequest) {
+const VISIT_COOKIE = 'sr_visit_date';
+
+export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl;
 
   // 1. SECURE ADMIN APIs (LOCKED)
@@ -22,7 +26,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 3. ADMIN UI PROTECTION
+  // 3. ADMIN UI PROTECTION (internal traffic — not counted as a storefront visit)
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login') return NextResponse.next();
     const adminResponse = await adminMiddleware(request);
@@ -30,13 +34,29 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. USER UI PROTECTION
+  let response: NextResponse;
   if (pathname.startsWith('/user')) {
-    if (pathname === '/user/signin' || pathname === '/signin') return NextResponse.next();
-    const userResponse = await userMiddleware(request);
-    return userResponse || NextResponse.next();
+    if (pathname === '/user/signin' || pathname === '/signin') {
+      response = NextResponse.next();
+    } else {
+      response = (await userMiddleware(request)) || NextResponse.next();
+    }
+  } else {
+    response = NextResponse.next();
   }
 
-  return NextResponse.next();
+  // 5. VISITOR TRACKING (storefront pages only, once per visitor per day)
+  const todayKey = new Date().toISOString().slice(0, 10);
+  if (request.cookies.get(VISIT_COOKIE)?.value !== todayKey) {
+    event.waitUntil(trackVisit(todayKey));
+    response.cookies.set(VISIT_COOKIE, todayKey, {
+      path: '/',
+      maxAge: 60 * 60 * 24,
+      sameSite: 'lax',
+    });
+  }
+
+  return response;
 }
 
 export const config = {

@@ -1,82 +1,146 @@
 "use client";
-import { MessageSquare, Users, TrendingUp, Package, Shield, Verified, Trash2, User } from 'lucide-react';
 
-const historyData = [
-  {
-    group: 'Today',
-    items: [
-      { id: 1, title: "Updated 'Royal Sapphire Halo' stock", desc: "Adjusted inventory levels for the Autumn Collection peak demand.", time: "2h ago", author: "Admin Executive", icon: Package },
-      { id: 2, title: "Modified User Permissions", desc: "Elevated 'Sarah Chen' to Moderator status for the Inquiries department.", time: "5h ago", author: "Security Lead", icon: Shield },
-    ]
-  },
-  {
-    group: 'Yesterday',
-    items: [
-      { id: 3, title: "Approved Review #4829", desc: "Validated a 5-star customer testimonial for the 'Midnight Crimson Necklace'.", time: "1d ago", author: "Content Mod", icon: Verified },
-    ]
-  },
-  {
-    group: 'Last Week',
-    items: [
-      { id: 4, title: "Deleted Outdated Product Batch", desc: "Removed 15 inactive SKUs from the 'Summer Solstice' legacy collection.", time: "Oct 24", author: "Admin Executive", icon: Trash2 },
-    ]
-  }
+import { useEffect, useState, useCallback } from 'react';
+import { Eye, Inbox, MessageSquare, UserPlus } from 'lucide-react';
+import adminApi from '@/lib/adminApi';
+
+const parseDateKey = (key) => {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+const formatDay = (key, index) => {
+  if (index === 0) return 'Today';
+  if (index === 1) return 'Yesterday';
+  return parseDateKey(key).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+const formatWeekRange = (startKey, endKey, index) => {
+  const start = parseDateKey(startKey);
+  const end = parseDateKey(endKey);
+  const range = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  return index === 0 ? `This Week (${range})` : range;
+};
+
+const METRICS = [
+  { key: 'visitors', label: 'Visitors', icon: Eye },
+  { key: 'inquiries', label: 'Inquiries', icon: Inbox },
+  { key: 'reviews', label: 'Reviews', icon: MessageSquare },
+  { key: 'newUsers', label: 'New Users', icon: UserPlus },
 ];
 
 export default function HistoryPage() {
+  const [range, setRange] = useState('daily');
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchHistory = useCallback(async (selectedRange) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data: res } = await adminApi.get(`/history?range=${selectedRange}`);
+      setData(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch history stats:', err);
+      setError('Failed to load history. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHistory(range);
+  }, [range, fetchHistory]);
+
   return (
-    <div className="animate-in fade-in duration-500 max-w-4xl mx-auto">
-      <div className="flex flex-wrap items-center gap-3 mb-8">
-        <FilterButton icon={MessageSquare} label="Reviews" />
-        <FilterButton icon={Users} label="Visitors" />
-        <FilterButton icon={TrendingUp} label="Popular Products" />
-        
-        <div className="flex bg-surface-container-high p-1 rounded-lg ml-auto">
-          <button className="px-4 py-1.5 rounded-md bg-surface-container-lowest text-primary font-label text-xs shadow-sm transition-all font-bold">Daily</button>
-          <button className="px-4 py-1.5 rounded-md text-secondary font-label text-xs hover:bg-surface-variant/50 transition-all font-bold">Weekly</button>
+    <div className="animate-in fade-in duration-500 max-w-4xl mx-auto pb-10">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+        <div>
+          <h1 className="text-xl font-bold text-primary">Activity History</h1>
+          <p className="text-sm text-on-surface-variant mt-1">
+            Visitors, inquiries, reviews, and new users over time.
+          </p>
+        </div>
+
+        <div className="flex bg-surface-container-high p-1 rounded-lg">
+          <button
+            onClick={() => setRange('daily')}
+            className={`px-4 py-1.5 rounded-md font-label text-xs font-bold transition-all ${
+              range === 'daily'
+                ? 'bg-surface-container-lowest text-primary shadow-sm'
+                : 'text-secondary hover:bg-surface-variant/50'
+            }`}
+          >
+            Daily
+          </button>
+          <button
+            onClick={() => setRange('weekly')}
+            className={`px-4 py-1.5 rounded-md font-label text-xs font-bold transition-all ${
+              range === 'weekly'
+                ? 'bg-surface-container-lowest text-primary shadow-sm'
+                : 'text-secondary hover:bg-surface-variant/50'
+            }`}
+          >
+            Weekly
+          </button>
         </div>
       </div>
 
-      <div className="space-y-10">
-        {historyData.map((group) => (
-          <div key={group.group} className="space-y-4">
-            <div className="flex items-center gap-4 px-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary">{group.group}</span>
-              <div className="flex-1 h-px bg-outline-variant/30" />
-            </div>
+      {loading ? (
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+        </div>
+      ) : error ? (
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-10 text-center text-on-surface-variant">
+          {error}
+        </div>
+      ) : data.length === 0 ? (
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-10 text-center text-on-surface-variant">
+          No activity recorded yet.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {data.map((period, index) => (
+            <div
+              key={period.date || period.startDate}
+              className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-6 hover:shadow-md transition-all"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-sm font-bold text-on-surface">
+                  {range === 'daily'
+                    ? formatDay(period.date, index)
+                    : formatWeekRange(period.startDate, period.endDate, index)}
+                </span>
+                <div className="flex-1 h-px bg-outline-variant/30" />
+              </div>
 
-            <div className="space-y-4">
-              {group.items.map((item) => (
-                <div key={item.id} className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-6 flex gap-6 items-start hover:shadow-md transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-primary shrink-0">
-                    <item.icon size={24} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-bold text-on-surface truncate pr-4">{item.title}</h3>
-                      <span className="text-xs text-secondary font-label shrink-0">{item.time}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {METRICS.map(({ key, label, icon: Icon }) => (
+                  <div
+                    key={key}
+                    className="flex items-center gap-3 bg-surface-container-low rounded-xl p-4"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+                      <Icon size={18} />
                     </div>
-                    <p className="text-on-surface-variant text-sm mb-4 leading-relaxed">{item.desc}</p>
-                    <div className="flex items-center gap-2">
-                      <User size={16} className="text-secondary" />
-                      <span className="text-xs font-semibold text-secondary">{item.author}</span>
+                    <div className="min-w-0">
+                      <p className="text-lg font-bold text-on-surface leading-none">
+                        {period[key]}
+                      </p>
+                      <p className="text-xs text-secondary font-label mt-1 truncate">{label}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
-  );
-}
-
-function FilterButton({ icon: Icon, label }) {
-  return (
-    <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant/30 rounded-lg hover:bg-surface-variant transition-all text-on-surface-variant group">
-      <Icon size={18} className="text-secondary group-hover:text-primary transition-colors" />
-      <span className="font-label text-xs font-bold">{label}</span>
-    </button>
   );
 }
