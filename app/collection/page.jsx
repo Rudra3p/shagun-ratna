@@ -3,9 +3,15 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
-import { Loader2, Search, Heart, SearchX, X, Gem } from 'lucide-react';
+import { Loader2, Search, Heart, SearchX, X, Gem, SlidersHorizontal } from 'lucide-react';
 
 const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
+
+const CATEGORIES = [
+  "Gold", "Silver", "Platinum", "Diamond", "Gemstone",
+  "Bridal", "Heirloom", "Contemporary", "Traditional",
+  "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
+];
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
@@ -16,15 +22,15 @@ export default function Collection() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [favorites, setFavorites] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [typedSearch, setTypedSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
-  const categories = ["Gold", "Bridal", "Heirloom", "Contemporary"];
-  const hasActiveFilter = appliedSearch.trim() !== "" || selectedCategory !== "";
+  const hasActiveFilter = appliedSearch.trim() !== "" || selectedCategories.length > 0;
 
-  const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCat = "") => {
+  const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCategories = []) => {
     if (pageNumber === 1) setLoading(true);
     else setLoadingMore(true);
 
@@ -32,8 +38,8 @@ export default function Collection() {
       let endpoint = `/products?page=${pageNumber}&limit=10`;
       if (currentSearch.trim() !== "") {
         endpoint = `/products?search=${encodeURIComponent(currentSearch.trim())}`;
-      } else if (currentCat !== "") {
-        endpoint = `/products?search=${encodeURIComponent(currentCat)}`;
+      } else if (currentCategories.length > 0) {
+        endpoint = `/products?search=${encodeURIComponent(currentCategories.join(' '))}`;
       }
 
       const res = await userApi.get(endpoint);
@@ -41,7 +47,7 @@ export default function Collection() {
 
       setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
       setTotalCount(res.data.total || 0);
-      setHasMore(currentSearch.trim() !== "" || currentCat !== "" ? false : incomingItems.length === 10);
+      setHasMore(currentSearch.trim() !== "" || currentCategories.length > 0 ? false : incomingItems.length === 10);
       setPage(pageNumber);
     } catch (err) {
       console.error("Database connection failure:", err);
@@ -55,7 +61,7 @@ export default function Collection() {
   };
 
   useEffect(() => {
-    loadCollectionItems(1, "", "");
+    loadCollectionItems(1, "", []);
 
     try {
       const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
@@ -68,23 +74,25 @@ export default function Collection() {
   const handleClearFilters = () => {
     setTypedSearch("");
     setAppliedSearch("");
-    setSelectedCategory("");
-    loadCollectionItems(1, "", "");
+    setSelectedCategories([]);
+    loadCollectionItems(1, "", []);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSelectedCategory(""); 
+    setSelectedCategories([]);
     setAppliedSearch(typedSearch);
-    loadCollectionItems(1, typedSearch, "");
+    loadCollectionItems(1, typedSearch, []);
   };
 
-  const handleCategoryClick = (cat) => {
-    const nextCategory = selectedCategory === cat ? "" : cat; 
-    setSelectedCategory(nextCategory);
-    setTypedSearch(""); 
+  const handleCategoryToggle = (cat) => {
+    const next = selectedCategories.includes(cat)
+      ? selectedCategories.filter((c) => c !== cat)
+      : [...selectedCategories, cat];
+    setSelectedCategories(next);
+    setTypedSearch("");
     setAppliedSearch("");
-    loadCollectionItems(1, "", nextCategory);
+    loadCollectionItems(1, "", next);
   };
 
   const toggleFavorite = (id, e) => {
@@ -102,54 +110,55 @@ export default function Collection() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-28 pb-24">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-24 pb-24">
 
         {/* Sticky Search + Filter Toolbar */}
-        <div className="sticky top-20 z-20 -mx-6 px-6 md:-mx-10 md:px-10 pt-6 pb-5 mb-10 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-3.5">
-            <form onSubmit={handleSearchSubmit} className="flex items-center w-full lg:w-auto lg:max-w-xs gap-2.5 shrink-0">
+        <div className="sticky top-20 z-20 -mx-6 px-6 md:-mx-10 md:px-10 pt-4 pb-4 mb-10 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60">
+          <div className="flex items-center gap-3">
+            <form onSubmit={handleSearchSubmit} className="flex items-center flex-1 max-w-2xl gap-2.5">
               <div className="relative flex-grow group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={16} />
                 <input
                   type="text"
                   placeholder="Search the collection..."
-                  className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-11 pr-4 py-3 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm outline-none transition-colors duration-300 shadow-sm"
+                  className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-11 pr-4 py-3.5 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm outline-none transition-colors duration-300 shadow-sm"
                   value={typedSearch}
                   onChange={(e) => setTypedSearch(e.target.value)}
                 />
               </div>
               <button
                 type="submit"
-                className="bg-[#90060C] hover:bg-[#730509] text-white text-xs font-semibold tracking-wider uppercase px-5 py-3 rounded-full transition-colors duration-300 shadow-sm cursor-pointer whitespace-nowrap"
+                className="bg-[#90060C] hover:bg-[#730509] text-white text-xs font-semibold tracking-wider uppercase px-5 py-3.5 rounded-full transition-colors duration-300 shadow-sm cursor-pointer whitespace-nowrap"
               >
                 Search
               </button>
             </form>
 
-            <div className="w-full lg:flex-1 overflow-x-auto no-scrollbar">
-              <div className="flex items-center gap-2 min-w-max lg:justify-end">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => handleCategoryClick(cat)}
-                    className={`px-5 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer whitespace-nowrap ${
-                      selectedCategory === cat
-                        ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20"
-                        : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="relative flex items-center gap-2 px-5 py-3.5 rounded-full border border-[#EBE3D5] bg-white hover:border-[#90060C] text-[#2D2926] text-xs font-semibold uppercase tracking-wider transition-colors duration-300 shadow-sm shrink-0 cursor-pointer"
+            >
+              <SlidersHorizontal size={15} />
+              <span className="hidden sm:inline">Filters</span>
+              {selectedCategories.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#90060C] text-white text-[10px] font-bold flex items-center justify-center">
+                  {selectedCategories.length}
+                </span>
+              )}
+            </button>
           </div>
 
           {!loading && (hasActiveFilter || totalCount > 0) && (
-            <div className="flex items-center justify-between gap-4 text-xs text-[#A8A196] font-sans mt-3.5">
+            <div className="flex items-center justify-between gap-4 text-xs text-[#A8A196] font-sans mt-3">
               <span>
                 {hasActiveFilter
-                  ? `${products.length} result${products.length === 1 ? '' : 's'}${appliedSearch ? ` for “${appliedSearch}”` : ''}`
+                  ? `${products.length} result${products.length === 1 ? '' : 's'}${
+                      appliedSearch
+                        ? ` for “${appliedSearch}”`
+                        : selectedCategories.length > 0
+                          ? ` in ${selectedCategories.join(', ')}`
+                          : ''
+                    }`
                   : `${totalCount} piece${totalCount === 1 ? '' : 's'} in the collection`}
               </span>
               {hasActiveFilter && (
@@ -271,9 +280,9 @@ export default function Collection() {
             {/* Load More Button Trigger Pagination system */}
             {hasMore && (
               <div className="col-span-full mt-20 text-center">
-                <button 
-                  disabled={loadingMore} 
-                  onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategory)}
+                <button
+                  disabled={loadingMore}
+                  onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategories)}
                   className="px-10 py-4 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full inline-flex items-center gap-2.5 shadow-md cursor-pointer"
                 >
                   {loadingMore && <Loader2 size={14} className="animate-spin mr-2" />}
@@ -284,6 +293,69 @@ export default function Collection() {
           </div>
         )}
       </div>
+
+      {/* Right-side Filter Drawer */}
+      {isFilterOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-end animate-in fade-in duration-200"
+          onClick={() => setIsFilterOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FDFBF7] h-full w-full sm:max-w-sm border-l border-[#EBE3D5]/60 shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+          >
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#EBE3D5]/60">
+              <div>
+                <h3 className="font-serif text-lg text-[#1a1a1a]">Filter by Category</h3>
+                <p className="text-[11px] text-[#A8A196] mt-0.5">Select as many as you like</p>
+              </div>
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                className="p-2 rounded-full hover:bg-[#EBE3D5]/40 text-[#2D2926] transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="flex flex-wrap gap-2.5">
+                {CATEGORIES.map((cat) => {
+                  const active = selectedCategories.includes(cat);
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => handleCategoryToggle(cat)}
+                      className={`px-5 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer ${
+                        active
+                          ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20"
+                          : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="px-6 py-5 border-t border-[#EBE3D5]/60 flex items-center gap-3">
+              <button
+                onClick={handleClearFilters}
+                disabled={selectedCategories.length === 0}
+                className="flex-1 px-5 py-3 border border-[#EBE3D5] text-[#2D2926] rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-[#EBE3D5]/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                className="flex-1 px-5 py-3 bg-[#90060C] hover:bg-[#730509] text-white rounded-full text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
