@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
-import { Loader2, Search, SlidersHorizontal, Heart, SearchX, X, Gem } from 'lucide-react';
+import { Loader2, Search, Heart, SearchX, X, Gem } from 'lucide-react';
 
 const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
@@ -102,58 +102,39 @@ export default function Collection() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-32 pb-24">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-28 pb-24">
 
-        {/* Page Heading */}
-        <div className="mb-10 md:mb-14 text-center md:text-left">
-          <div className="flex items-center gap-3 justify-center md:justify-start mb-4">
-            <span className="text-[#90060C] font-bold tracking-[0.4em] uppercase text-[10px]">
-              Shagun Ratna
-            </span>
-            <div className="h-[1px] w-8 bg-[#C5A059]" />
-          </div>
-          <h1 className="font-brand text-4xl sm:text-5xl text-[#1a1a1a] font-light uppercase tracking-tight">
-            The Collection
-          </h1>
-          <p className="font-sans text-sm text-[#A8A196] mt-3 max-w-md mx-auto md:mx-0">
-            Timeless gold, gemstones, and heirloom craftsmanship, curated for every story.
-          </p>
-        </div>
+        {/* Sticky Search + Filter Toolbar */}
+        <div className="sticky top-20 z-20 -mx-6 px-6 md:-mx-10 md:px-10 pt-6 pb-5 mb-10 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3.5">
+            <form onSubmit={handleSearchSubmit} className="flex items-center w-full lg:w-auto lg:max-w-xs gap-2.5 shrink-0">
+              <div className="relative flex-grow group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search the collection..."
+                  className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-11 pr-4 py-3 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm outline-none transition-colors duration-300 shadow-sm"
+                  value={typedSearch}
+                  onChange={(e) => setTypedSearch(e.target.value)}
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-[#90060C] hover:bg-[#730509] text-white text-xs font-semibold tracking-wider uppercase px-5 py-3 rounded-full transition-colors duration-300 shadow-sm cursor-pointer whitespace-nowrap"
+              >
+                Search
+              </button>
+            </form>
 
-        {/* Top Controls Bar: Search & Filter Categories */}
-        <div className="flex flex-col gap-6 md:gap-8 border-b border-[#EBE3D5]/60 pb-8 mb-10">
-          <form onSubmit={handleSearchSubmit} className="flex items-center w-full max-w-2xl gap-3">
-            <div className="relative flex-grow group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={18} />
-              <input 
-                type="text"
-                placeholder="Search our heritage masterworks..."
-                className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-12 pr-4 py-4 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm md:text-base outline-none transition-colors duration-300 shadow-sm"
-                value={typedSearch}
-                onChange={(e) => setTypedSearch(e.target.value)}
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-[#90060C] hover:bg-[#730509] text-white text-sm font-medium tracking-wider uppercase px-7 py-4 rounded-full transition-colors duration-300 shadow-md cursor-pointer whitespace-nowrap"
-            >
-              Search
-            </button>
-          </form>
-
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-[#A8A196]">
-              <SlidersHorizontal size={12} /> Curate By Category
-            </div>
-            <div className="w-full overflow-x-auto no-scrollbar -mx-6 px-6 sm:mx-0 sm:px-0">
-              <div className="flex items-center gap-2.5 min-w-max pb-1">
+            <div className="w-full lg:flex-1 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 min-w-max lg:justify-end">
                 {categories.map(cat => (
-                  <button 
+                  <button
                     key={cat}
                     onClick={() => handleCategoryClick(cat)}
-                    className={`px-6 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer ${
-                      selectedCategory === cat 
-                        ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20" 
+                    className={`px-5 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer whitespace-nowrap ${
+                      selectedCategory === cat
+                        ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20"
                         : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
                     }`}
                   >
@@ -164,21 +145,19 @@ export default function Collection() {
             </div>
           </div>
 
-          {!loading && (
-            <div className="flex items-center justify-between gap-4 text-xs text-[#A8A196] font-sans">
+          {!loading && (hasActiveFilter || totalCount > 0) && (
+            <div className="flex items-center justify-between gap-4 text-xs text-[#A8A196] font-sans mt-3.5">
               <span>
                 {hasActiveFilter
                   ? `${products.length} result${products.length === 1 ? '' : 's'}${appliedSearch ? ` for “${appliedSearch}”` : ''}`
-                  : totalCount > 0
-                    ? `${totalCount} piece${totalCount === 1 ? '' : 's'} in the collection`
-                    : null}
+                  : `${totalCount} piece${totalCount === 1 ? '' : 's'} in the collection`}
               </span>
               {hasActiveFilter && (
                 <button
                   onClick={handleClearFilters}
                   className="flex items-center gap-1.5 text-[#90060C] hover:text-[#730509] font-medium uppercase tracking-wider transition-colors cursor-pointer"
                 >
-                  <X size={12} /> Clear Filters
+                  <X size={12} /> Clear
                 </button>
               )}
             </div>
