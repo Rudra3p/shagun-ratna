@@ -15,26 +15,32 @@ import {
 import {
   BarChart,
   Bar,
+  XAxis,
+  YAxis,
   ResponsiveContainer,
   Tooltip,
   Cell,
 } from "recharts";
 import adminApi from "@/lib/adminApi";
 
-const mockChartData = [
-  { name: "1", value: 25 },
-  { name: "2", value: 45 },
-  { name: "3", value: 35 },
-  { name: "4", value: 55 },
-  { name: "5", value: 35 },
-  { name: "6", value: 65 },
-  { name: "7", value: 35 },
-  { name: "8", value: 45 },
-];
+const VISITOR_SYNC_SECONDS = 60;
+
+const parseDateKey = (key) => {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+const formatShortDate = (key) =>
+  parseDateKey(key).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+const formatCompactNumber = (value) =>
+  Intl.NumberFormat('en', { notation: 'compact' }).format(value);
 
 export default function DashboardView() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [visitors, setVisitors] = useState(null);
+  const [countdown, setCountdown] = useState(VISITOR_SYNC_SECONDS);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -49,6 +55,31 @@ export default function DashboardView() {
     };
 
     fetchDashboard();
+  }, []);
+
+  useEffect(() => {
+    const fetchVisitors = async () => {
+      try {
+        const { data: res } = await adminApi.get("/visitors");
+        setVisitors(res);
+      } catch (err) {
+        console.error("Failed to fetch visitor stats:", err);
+      }
+    };
+
+    fetchVisitors();
+
+    const tick = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          fetchVisitors();
+          return VISITOR_SYNC_SECONDS;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(tick);
   }, []);
 
   if (loading) {
@@ -188,14 +219,19 @@ export default function DashboardView() {
           <div className="flex-1 flex flex-col items-center justify-center mt-[-20px]">
             <div className="flex items-center justify-center">
               <p className="text-[48px] font-sans font-bold text-gray-900 leading-none">
-                {data?.liveVisitors}
+                {visitors ? formatCompactNumber(visitors.today.visitors) : "—"}
               </p>
               <div className="w-4 h-4 rounded-full bg-emerald-500 ml-3 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
             </div>
             <div className="mt-4">
-              <span className="text-[13px] font-bold text-emerald-600">
-                +8% <span className="font-medium text-gray-400 ml-1">vs last month</span>
-              </span>
+              {visitors?.changePercent === null || visitors?.changePercent === undefined ? (
+                <span className="text-[13px] font-medium text-gray-400">Awaiting yesterday's data</span>
+              ) : (
+                <span className={`text-[13px] font-bold ${visitors.changePercent >= 0 ? 'text-emerald-600' : 'text-[#d32f2f]'}`}>
+                  {visitors.changePercent >= 0 ? '+' : ''}{visitors.changePercent}%{' '}
+                  <span className="font-medium text-gray-400 ml-1">vs yesterday</span>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -204,21 +240,36 @@ export default function DashboardView() {
         <div className="bg-white rounded-[20px] p-8 shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-gray-50 flex flex-col h-[300px]">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-[16px] font-bold text-[#721c24] font-sans">
-              Visitors
+              Visitors (Last 10 Days)
             </h3>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#540411]"></span>
               <span className="text-[12px] text-gray-500 font-medium font-sans">
-                Projected
+                Powered by Clarity
               </span>
             </div>
           </div>
 
           <div className="flex-1 w-full mt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockChartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+              <BarChart data={visitors?.chart || []} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={formatShortDate}
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tickFormatter={formatCompactNumber}
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={36}
+                />
                 <Tooltip
-                  cursor={{ fill: "transparent" }}
+                  cursor={{ fill: "rgba(114,28,36,0.06)" }}
                   contentStyle={{
                     borderRadius: "8px",
                     border: "none",
@@ -226,15 +277,13 @@ export default function DashboardView() {
                     fontSize: "12px",
                     fontWeight: "bold",
                   }}
+                  labelFormatter={formatShortDate}
                   formatter={(value) => [value, "Visitors"]}
-                  labelStyle={{ display: "none" }}
                 />
-                <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={40}>
-                  {mockChartData.map((entry, index) => {
-                    let fill = "#8b4f56"; // Lighter crimson for regular bars
-                    if (index === 5) fill = "#540411"; // Dark crimson for peak
-                    return <Cell key={`cell-${index}`} fill={fill} />;
-                  })}
+                <Bar dataKey="visitors" radius={[6, 6, 6, 6]} barSize={32}>
+                  {(visitors?.chart || []).map((entry, index, arr) => (
+                    <Cell key={`cell-${index}`} fill={index === arr.length - 1 ? "#540411" : "#8b4f56"} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -254,8 +303,8 @@ export default function DashboardView() {
             Live System Sync
           </h2>
           <p className="text-[#dcc0bf] text-[15px] leading-relaxed font-sans font-medium">
-            System parameters are fetched every minute to display active visitors while
-            maintaining an optimal light server load.
+            Visitor stats refresh from the database every minute. Behind the scenes,
+            Clarity is synced on a slower cadence to stay within its daily API limit.
           </p>
         </div>
 
@@ -266,7 +315,7 @@ export default function DashboardView() {
             </div>
             <div>
               <h4 className="font-bold text-white text-[16px] tracking-wide font-sans">
-                Next Sync: 60s
+                Next Sync: {countdown}s
               </h4>
               <p className="text-[13px] text-[#dcc0bf] mt-0.5 font-medium font-sans">
                 Low Load Protocol

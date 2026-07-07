@@ -26,8 +26,6 @@ export const getDashboardStats = async (): Promise<NextResponse> => {
       pendingInquiries,
       totalReviews,
       avgRating: Number(avgRating.toFixed(1)),
-      // Live visitor tracking requires an analytics/WebSocket source; kept static for now.
-      liveVisitors: "15,420",
     };
 
     return NextResponse.json(
