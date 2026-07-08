@@ -110,7 +110,7 @@ export default function Collection() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-20 pb-24">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 pb-24">
 
         {/* Sticky Search + Filter Toolbar */}
         <div className="sticky top-20 z-20 -mx-6 px-6 md:-mx-10 md:px-10 pt-2 pb-4 mb-10 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60">
