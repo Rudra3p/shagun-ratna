@@ -114,29 +114,32 @@ export default function Collection() {
 
         {/* Sticky Search + Filter Toolbar */}
         <div className="sticky top-20 z-20 -mx-6 px-6 md:-mx-10 md:px-10 pt-4 pb-4 mb-10 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60">
-          <div className="flex items-center gap-3">
-            <form onSubmit={handleSearchSubmit} className="flex items-center flex-1 max-w-2xl gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <form onSubmit={handleSearchSubmit} className="flex items-center flex-1 max-w-2xl gap-2 sm:gap-2.5">
               <div className="relative flex-grow group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={16} />
                 <input
                   type="text"
                   placeholder="Search the collection..."
-                  className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-11 pr-4 py-3.5 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm outline-none transition-colors duration-300 shadow-sm"
+                  className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-11 pr-4 py-3 sm:py-3.5 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm outline-none transition-colors duration-300 shadow-sm"
                   value={typedSearch}
                   onChange={(e) => setTypedSearch(e.target.value)}
                 />
               </div>
               <button
                 type="submit"
-                className="bg-[#90060C] hover:bg-[#730509] text-white text-xs font-semibold tracking-wider uppercase px-5 py-3.5 rounded-full transition-colors duration-300 shadow-sm cursor-pointer whitespace-nowrap"
+                aria-label="Search"
+                className="flex items-center justify-center gap-1.5 bg-[#90060C] hover:bg-[#730509] text-white text-xs font-semibold tracking-wider uppercase px-3.5 sm:px-5 py-3 sm:py-3.5 rounded-full transition-colors duration-300 shadow-sm cursor-pointer whitespace-nowrap shrink-0"
               >
-                Search
+                <Search size={15} className="sm:hidden" />
+                <span className="hidden sm:inline">Search</span>
               </button>
             </form>
 
             <button
               onClick={() => setIsFilterOpen(true)}
-              className="relative flex items-center gap-2 px-5 py-3.5 rounded-full border border-[#EBE3D5] bg-white hover:border-[#90060C] text-[#2D2926] text-xs font-semibold uppercase tracking-wider transition-colors duration-300 shadow-sm shrink-0 cursor-pointer"
+              aria-label="Filters"
+              className="relative flex items-center gap-2 px-3.5 sm:px-5 py-3 sm:py-3.5 rounded-full border border-[#EBE3D5] bg-white hover:border-[#90060C] text-[#2D2926] text-xs font-semibold uppercase tracking-wider transition-colors duration-300 shadow-sm shrink-0 cursor-pointer"
             >
               <SlidersHorizontal size={15} />
               <span className="hidden sm:inline">Filters</span>
@@ -149,7 +152,7 @@ export default function Collection() {
           </div>
 
           {!loading && (hasActiveFilter || totalCount > 0) && (
-            <div className="flex items-center justify-between gap-4 text-xs text-[#A8A196] font-sans mt-3">
+            <div className="flex items-center justify-between gap-4 flex-wrap text-xs text-[#A8A196] font-sans mt-3">
               <span>
                 {hasActiveFilter
                   ? `${products.length} result${products.length === 1 ? '' : 's'}${
@@ -175,7 +178,7 @@ export default function Collection() {
 
         {/* Product Grid Layout */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col bg-transparent p-0">
                 <div className="aspect-[4/5] w-full bg-[#EBE3D5]/30 rounded-xl mb-4" />
@@ -207,7 +210,7 @@ export default function Collection() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
             {products.map((product) => {
               const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
               const isFavorited = !!favorites[product._id];
@@ -215,25 +218,25 @@ export default function Collection() {
               return (
                 <div key={product._id} className="group flex flex-col bg-transparent border-none p-0">
                   {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
-                  <div className="relative aspect-[4/5] w-full mb-3.5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/20 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.08)] transition-shadow duration-500">
+                  <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/20 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.08)] transition-shadow duration-500">
                     {product.imageUrl ? (
                       <Image
                         src={product.imageUrl}
                         alt={product.productName}
                         fill
-                        sizes="(max-width: 640px) 100vw, 25vw"
+                        sizes="(max-width: 640px) 50vw, 25vw"
                         className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#C9BFA8]">
                         <Gem size={28} strokeWidth={1.25} />
-                        <span className="font-sans text-[10px] font-semibold uppercase tracking-widest">Image Coming Soon</span>
+                        <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-center px-2">Image Coming Soon</span>
                       </div>
                     )}
 
                     {product.discount > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-[#90060C] font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
+                      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+                        <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-[#90060C] font-sans text-[9px] sm:text-[10px] font-bold tracking-widest uppercase shadow-sm">
                           {product.discount}% Off
                         </span>
                       </div>
@@ -242,32 +245,33 @@ export default function Collection() {
                     <button
                       type="button"
                       onClick={(e) => toggleFavorite(product._id, e)}
-                      className="absolute top-3 right-3 p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#EBE3D5]/20 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 active:scale-90"
+                      className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#EBE3D5]/20 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 active:scale-90"
                     >
-                      <Heart size={16} className={isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"} />
+                      <Heart size={14} className={`sm:hidden ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
+                      <Heart size={16} className={`hidden sm:block ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
                     </button>
                   </div>
 
                   {/* Clean Product Typography stack info panel */}
-                  <div className="flex flex-col flex-grow px-1 pb-1">
-                    <h3 className="text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-0.5">
+                  <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
+                    <h3 className="text-[13px] sm:text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-0.5">
                       {product.productName}
                     </h3>
-                    <p className="text-[11px] font-sans font-medium tracking-wide text-[#A8A196] mb-2">
+                    <p className="text-[10px] sm:text-[11px] font-sans font-medium tracking-wide text-[#A8A196] mb-1.5 sm:mb-2 line-clamp-1">
                       {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
                     </p>
-                    <div className="flex items-baseline gap-2 mt-auto">
+                    <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
                       {hasDiscount ? (
                         <>
-                          <span className="text-sm font-sans font-bold text-[#90060C]">
+                          <span className="text-xs sm:text-sm font-sans font-bold text-[#90060C]">
                             ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
-                          <span className="text-xs text-[#A8A196] font-medium line-through">
+                          <span className="text-[10px] sm:text-xs text-[#A8A196] font-medium line-through">
                             ${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
                         </>
                       ) : (
-                        <span className="text-sm font-sans font-bold text-[#2D2926]">
+                        <span className="text-xs sm:text-sm font-sans font-bold text-[#2D2926]">
                           {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
                         </span>
                       )}
