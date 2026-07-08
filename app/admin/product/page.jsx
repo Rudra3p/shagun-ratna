@@ -447,7 +447,7 @@ export default function Products() {
           {visibleProducts.map((product) => (
             <div
               key={product._id}
-              className="flex flex-col bg-white rounded-[20px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
+              className="flex flex-col bg-white rounded-[20px] border border-gray-100 hover:border-[#540411]/15 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_32px_rgba(84,4,17,0.1)] hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
             >
               {/* Asset Image Layer */}
               <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#fdfbf7]">
@@ -457,14 +457,14 @@ export default function Products() {
                     style={{ backgroundImage: `url(${product.imageUrl})` }}
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-50 text-gray-300">
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-gray-50 to-gray-100 text-gray-300">
                     <ImageOff size={22} strokeWidth={1.5} />
                     <span className="font-sans text-[10px] font-bold uppercase tracking-widest">No Asset</span>
                   </div>
                 )}
                 {product.discount > 0 && (
                   <div className="absolute top-3 left-3">
-                    <span className="px-3 py-1.5 rounded-full bg-[#b03038] text-white font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
+                    <span className="px-3 py-1.5 rounded-full bg-[#b03038] border border-white/20 text-white font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
                       {product.discount}% OFF
                     </span>
                   </div>
@@ -476,16 +476,16 @@ export default function Products() {
                 <h3 className="text-[15px] text-[#222222] font-serif font-medium tracking-wide truncate group-hover:text-[#540411] transition-colors duration-300">
                   {product.productName}
                 </h3>
-                <p className="text-[10.5px] text-[#999999] font-sans font-semibold uppercase tracking-widest mt-0.5">
+                <span className="self-center max-w-[90%] truncate mt-1.5 px-2.5 py-0.5 rounded-full bg-gray-50 text-[10px] text-[#888888] font-sans font-semibold uppercase tracking-widest">
                   {product.category || 'General'}
-                </p>
+                </span>
 
-                <div className="mt-auto pt-3">
+                <div className="mt-auto pt-3.5">
                   <div className="mb-3">
                     {product.offerPrice > 0 && product.offerPrice !== product.price ? (
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-[12px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
-                        <span className="text-[15px] text-[#540411] font-sans font-bold">${parseFloat(product.offerPrice).toFixed(2)}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-[#ffecec] text-[15px] text-[#540411] font-sans font-bold">${parseFloat(product.offerPrice).toFixed(2)}</span>
                       </div>
                     ) : (
                       <p className="text-[15px] text-[#222222] font-sans font-semibold">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>

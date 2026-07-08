@@ -218,7 +218,7 @@ export default function Collection() {
               return (
                 <div key={product._id} className="group flex flex-col bg-transparent border-none p-0">
                   {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
-                  <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-[#F5EFE6] border border-[#EBE3D5]/20 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.08)] transition-shadow duration-500">
+                  <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/50 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.1)] transition-all duration-500">
                     {product.imageUrl ? (
                       <Image
                         src={product.imageUrl}
@@ -236,7 +236,7 @@ export default function Collection() {
 
                     {product.discount > 0 && (
                       <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
-                        <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-[#90060C] font-sans text-[9px] sm:text-[10px] font-bold tracking-widest uppercase shadow-sm">
+                        <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-white/60 text-[#90060C] font-sans text-[9px] sm:text-[10px] font-bold tracking-widest uppercase shadow-sm">
                           {product.discount}% Off
                         </span>
                       </div>
@@ -245,7 +245,7 @@ export default function Collection() {
                     <button
                       type="button"
                       onClick={(e) => toggleFavorite(product._id, e)}
-                      className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#EBE3D5]/20 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 active:scale-90"
+                      className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/60 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 active:scale-90"
                     >
                       <Heart size={14} className={`sm:hidden ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
                       <Heart size={16} className={`hidden sm:block ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
@@ -254,12 +254,13 @@ export default function Collection() {
 
                   {/* Clean Product Typography stack info panel */}
                   <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
-                    <h3 className="text-[13px] sm:text-base font-serif font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-0.5">
+                    <h3 className="text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
                       {product.productName}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] font-sans font-medium tracking-wide text-[#A8A196] mb-1.5 sm:mb-2 line-clamp-1">
+                    <p className="text-[10px] sm:text-[11px] font-sans font-medium tracking-wide text-[#A8A196] mb-2 sm:mb-2.5 line-clamp-1">
                       {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
                     </p>
+                    <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5" />
                     <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
                       {hasDiscount ? (
                         <>
