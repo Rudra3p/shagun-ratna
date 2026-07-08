@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
-import { Loader2, Search, Heart, SearchX, X, Gem, SlidersHorizontal } from 'lucide-react';
+import { Loader2, Search, Heart, SearchX, X, Gem, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
@@ -12,6 +12,76 @@ const CATEGORIES = [
   "Bridal", "Heirloom", "Contemporary", "Traditional",
   "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
 ];
+
+function ProductCard({ product, isFavorited, onToggleFavorite }) {
+  const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
+
+  return (
+    <div className="group flex flex-col bg-transparent border-none p-0">
+      {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
+      <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/50 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.1)] transition-all duration-500">
+        {product.imageUrl ? (
+          <Image
+            src={product.imageUrl}
+            alt={product.productName}
+            fill
+            sizes="(max-width: 640px) 50vw, 25vw"
+            className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#C9BFA8]">
+            <Gem size={28} strokeWidth={1.25} />
+            <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-center px-2">Image Coming Soon</span>
+          </div>
+        )}
+
+        {product.discount > 0 && (
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+            <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-white/60 text-[#90060C] font-sans text-[9px] sm:text-[10px] font-bold tracking-widest uppercase shadow-sm">
+              {product.discount}% Off
+            </span>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={(e) => onToggleFavorite(product._id, e)}
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/60 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 active:scale-90"
+        >
+          <Heart size={14} className={`sm:hidden ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
+          <Heart size={16} className={`hidden sm:block ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
+        </button>
+      </div>
+
+      {/* Clean Product Typography stack info panel */}
+      <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
+        <h3 className="text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
+          {product.productName}
+        </h3>
+        <p className="text-[10px] sm:text-[11px] font-sans font-medium tracking-wide text-[#A8A196] mb-2 sm:mb-2.5 line-clamp-1">
+          {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
+        </p>
+        <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5" />
+        <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
+          {hasDiscount ? (
+            <>
+              <span className="text-xs sm:text-sm font-sans font-bold text-[#90060C]">
+                ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
+              <span className="text-[10px] sm:text-xs text-[#A8A196] font-medium line-through">
+                ${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
+            </>
+          ) : (
+            <span className="text-xs sm:text-sm font-sans font-bold text-[#2D2926]">
+              {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
@@ -23,6 +93,7 @@ export default function Collection() {
   const [hasMore, setHasMore] = useState(true);
   const [favorites, setFavorites] = useState({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
 
   const [typedSearch, setTypedSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -60,8 +131,21 @@ export default function Collection() {
     }
   };
 
+  const loadRecommendations = async () => {
+    try {
+      const res = await userApi.get('/recommendations');
+      if (res.data.recommended) {
+        setRecommendedProducts(res.data.products || []);
+      }
+    } catch (err) {
+      // Guests and users without a matching collection simply get no recommendations
+      console.error("Failed to load recommendations:", err);
+    }
+  };
+
   useEffect(() => {
     loadCollectionItems(1, "", []);
+    loadRecommendations();
 
     try {
       const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
@@ -176,6 +260,27 @@ export default function Collection() {
           )}
         </div>
 
+        {/* Recommended For You (shown only to signed-in users matching a targeted collection) */}
+        {!hasActiveFilter && recommendedProducts.length > 0 && (
+          <div className="mb-14">
+            <div className="flex items-center gap-2.5 mb-5">
+              <Sparkles size={16} className="text-[#C5A059]" />
+              <h2 className="font-brand text-xl sm:text-2xl text-[#1a1a1a]">Recommended For You</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
+              {recommendedProducts.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  isFavorited={!!favorites[product._id]}
+                  onToggleFavorite={toggleFavorite}
+                />
+              ))}
+            </div>
+            <div className="h-px w-full bg-[#EBE3D5]/60 mt-14" />
+          </div>
+        )}
+
         {/* Product Grid Layout */}
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
@@ -211,77 +316,15 @@ export default function Collection() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-            {products.map((product) => {
-              const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
-              const isFavorited = !!favorites[product._id];
+            {products.map((product) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+                isFavorited={!!favorites[product._id]}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))}
 
-              return (
-                <div key={product._id} className="group flex flex-col bg-transparent border-none p-0">
-                  {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
-                  <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/50 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.1)] transition-all duration-500">
-                    {product.imageUrl ? (
-                      <Image
-                        src={product.imageUrl}
-                        alt={product.productName}
-                        fill
-                        sizes="(max-width: 640px) 50vw, 25vw"
-                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#C9BFA8]">
-                        <Gem size={28} strokeWidth={1.25} />
-                        <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-center px-2">Image Coming Soon</span>
-                      </div>
-                    )}
-
-                    {product.discount > 0 && (
-                      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
-                        <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-white/60 text-[#90060C] font-sans text-[9px] sm:text-[10px] font-bold tracking-widest uppercase shadow-sm">
-                          {product.discount}% Off
-                        </span>
-                      </div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={(e) => toggleFavorite(product._id, e)}
-                      className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/60 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 active:scale-90"
-                    >
-                      <Heart size={14} className={`sm:hidden ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
-                      <Heart size={16} className={`hidden sm:block ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
-                    </button>
-                  </div>
-
-                  {/* Clean Product Typography stack info panel */}
-                  <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
-                    <h3 className="text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
-                      {product.productName}
-                    </h3>
-                    <p className="text-[10px] sm:text-[11px] font-sans font-medium tracking-wide text-[#A8A196] mb-2 sm:mb-2.5 line-clamp-1">
-                      {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
-                    </p>
-                    <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5" />
-                    <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
-                      {hasDiscount ? (
-                        <>
-                          <span className="text-xs sm:text-sm font-sans font-bold text-[#90060C]">
-                            ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </span>
-                          <span className="text-[10px] sm:text-xs text-[#A8A196] font-medium line-through">
-                            ${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-xs sm:text-sm font-sans font-bold text-[#2D2926]">
-                          {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            
             {/* Load More Button Trigger Pagination system */}
             {hasMore && (
               <div className="col-span-full mt-20 text-center">
