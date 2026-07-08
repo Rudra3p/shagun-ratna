@@ -115,7 +115,7 @@ export default function Collection() {
         {/* Sticky Search + Filter Toolbar */}
         <div className="sticky top-20 z-20 -mx-6 px-6 md:-mx-10 md:px-10 pt-2 pb-4 mb-10 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <form onSubmit={handleSearchSubmit} className="flex items-center w-full sm:flex-1 sm:max-w-2xl gap-2 sm:gap-2.5">
+            <form onSubmit={handleSearchSubmit} className="flex items-center w-full sm:w-auto sm:flex-1 sm:max-w-md gap-2 sm:gap-2.5">
               <div className="relative flex-grow group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={16} />
                 <input
@@ -139,7 +139,7 @@ export default function Collection() {
             <button
               onClick={() => setIsFilterOpen(true)}
               aria-label="Filters"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3.5 rounded-full border border-[#EBE3D5] bg-white hover:border-[#90060C] text-[#2D2926] text-xs font-semibold uppercase tracking-wider transition-colors duration-300 shadow-sm shrink-0 cursor-pointer"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto sm:ml-auto px-5 py-3.5 rounded-full border border-[#EBE3D5] bg-white hover:border-[#90060C] text-[#2D2926] text-xs font-semibold uppercase tracking-wider transition-colors duration-300 shadow-sm shrink-0 cursor-pointer"
             >
               <SlidersHorizontal size={16} />
               <span>Filters</span>
