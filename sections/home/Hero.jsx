@@ -84,7 +84,7 @@ export default function HeroSection() {
           </motion.p>
 
           <motion.div variants={childVariants}>
-            <Link href="/collection">
+            <Link href="/my-collection">
               <button className="relative font-sans px-10 py-3.5 lg:px-12 lg:py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_10px_30px_rgba(144,6,12,0.25)] active:scale-[0.98]">
                 <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Explore Now</span>
                 <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />

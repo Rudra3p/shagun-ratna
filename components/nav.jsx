@@ -41,7 +41,7 @@ const Navbar = () => {
       } flex items-center justify-between px-6 md:px-16 text-[#90060c]`}>
         
         {/* Brand Name on the Left */}
-        <Link href="/" className="h-[45px] w-[90px] md:h-[55px] md:w-[110px] relative transition-transform duration-500 hover:scale-[1.03]">
+        <Link href="/my-collection" className="h-[45px] w-[90px] md:h-[55px] md:w-[110px] relative transition-transform duration-500 hover:scale-[1.03]">
           <Image 
             src="/shagunratnalogo.png" 
             alt="Shagun Ratna Logo" 
@@ -58,7 +58,7 @@ const Navbar = () => {
             <NavLink 
               key={item} 
               label={item} 
-              href={item === 'Collection' && !userName ? undefined : (item === 'Collection' ? '/collection' : undefined)}
+              href={item === 'Collection' ? '/my-collection' : undefined}
             />
           ))}
         </div>
@@ -116,7 +116,7 @@ const Navbar = () => {
           <NavLink 
             key={item} 
             label={item} 
-            href={item === 'Collection' && !userName ? undefined : (item === 'Collection' ? '/collection' : undefined)}
+            href={item === 'Collection' ? '/my-collection' : undefined}
             className="text-sm py-2 block border-b border-[#90060c]/10"
           />
         ))}

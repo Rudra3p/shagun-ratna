@@ -18,7 +18,7 @@ export default function Footer() {
         <div>
           <h4 className="uppercase text-xs tracking-[0.2em] text-[#C5A059] mb-6">Explore</h4>
           <ul className="space-y-4 text-sm opacity-90">
-            <li><Link href="/collections" className="hover:text-[#C5A059] transition-colors">Collections</Link></li>
+            <li><Link href="/my-collection" className="hover:text-[#C5A059] transition-colors">Collections</Link></li>
             <li><Link href="/about" className="hover:text-[#C5A059] transition-colors">Our Story</Link></li>
             <li><Link href="/craftsmanship" className="hover:text-[#C5A059] transition-colors">Craftsmanship</Link></li>
           </ul>
