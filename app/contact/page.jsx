@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, 
@@ -88,6 +88,14 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Pre-fill from a product detail page's "Inquire About This Piece" link (?product=...)
+  useEffect(() => {
+    const productParam = new URLSearchParams(window.location.search).get('product');
+    if (productParam) {
+      setFormData((prev) => ({ ...prev, productName: productParam }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
