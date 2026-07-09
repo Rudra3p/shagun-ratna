@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
+import Badge, { isNewArrival } from '@/components/Badge';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
   CheckCircle2, AlertCircle, PackageSearch, ImageOff
@@ -16,6 +17,82 @@ function ProductCardSkeleton() {
         <div className="h-2.5 w-1/3 bg-gray-100 rounded" />
         <div className="h-4 w-1/4 bg-gray-100 rounded mt-1" />
         <div className="h-8 w-full bg-gray-50 rounded-lg mt-2" />
+      </div>
+    </div>
+  );
+}
+
+function ProductCard({ product, onEdit, onDelete }) {
+  const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
+  const isNew = isNewArrival(product);
+
+  return (
+    <div className="flex flex-col bg-white rounded-[20px] border border-gray-100 hover:border-[#540411]/15 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_32px_rgba(84,4,17,0.1)] hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+      {/* Asset Image Layer */}
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#fdfbf7]">
+        {product.imageUrl ? (
+          <div
+            className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 ease-out"
+            style={{ backgroundImage: `url(${product.imageUrl})` }}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-gray-50 to-gray-100 text-gray-300">
+            <ImageOff size={22} strokeWidth={1.5} />
+            <span className="font-sans text-[10px] font-bold uppercase tracking-widest">No Asset</span>
+          </div>
+        )}
+        {product.discount > 0 && (
+          <div className="absolute top-3 left-3">
+            <Badge variant="discount">{product.discount}% Off</Badge>
+          </div>
+        )}
+        {isNew && (
+          <div className="absolute top-3 right-3">
+            <Badge variant="new">New</Badge>
+          </div>
+        )}
+      </div>
+
+      {/* Product Description Text */}
+      <div className="px-4 pt-4 pb-4 flex flex-col flex-1 text-center">
+        <h3 className="text-[15px] text-[#222222] font-serif font-medium tracking-wide truncate group-hover:text-[#540411] transition-colors duration-300">
+          {product.productName}
+        </h3>
+        <div className="self-center mt-1.5 max-w-[90%]">
+          <Badge variant="category" className="truncate max-w-full">{product.category || 'General'}</Badge>
+        </div>
+
+        <div className="mt-auto pt-3.5">
+          <div className="mb-3">
+            {hasDiscount ? (
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-[12px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
+                <span className="px-2 py-0.5 rounded-md bg-[#ffecec] text-[15px] text-[#540411] font-sans font-bold">${parseFloat(product.offerPrice).toFixed(2)}</span>
+              </div>
+            ) : (
+              <p className="text-[15px] text-[#222222] font-sans font-semibold">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
+            )}
+          </div>
+
+          {/* Admin Controls */}
+          <div className="flex items-center gap-2 pt-3 border-t border-gray-50">
+            <button
+              onClick={() => onEdit(product)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#540411] hover:bg-[#ffecec]/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
+            >
+              <Edit2 size={13} />
+              Edit
+            </button>
+            <div className="w-px h-4 bg-gray-100" />
+            <button
+              onClick={() => onDelete(product)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#b03038] hover:bg-red-50/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
+            >
+              <Trash2 size={13} />
+              Delete
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -445,74 +522,12 @@ export default function Products() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
           {visibleProducts.map((product) => (
-            <div
+            <ProductCard
               key={product._id}
-              className="flex flex-col bg-white rounded-[20px] border border-gray-100 hover:border-[#540411]/15 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_32px_rgba(84,4,17,0.1)] hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
-            >
-              {/* Asset Image Layer */}
-              <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#fdfbf7]">
-                {product.imageUrl ? (
-                  <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                    style={{ backgroundImage: `url(${product.imageUrl})` }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-gray-50 to-gray-100 text-gray-300">
-                    <ImageOff size={22} strokeWidth={1.5} />
-                    <span className="font-sans text-[10px] font-bold uppercase tracking-widest">No Asset</span>
-                  </div>
-                )}
-                {product.discount > 0 && (
-                  <div className="absolute top-3 left-3">
-                    <span className="px-3 py-1.5 rounded-full bg-[#b03038] border border-white/20 text-white font-sans text-[10px] font-bold tracking-widest uppercase shadow-sm">
-                      {product.discount}% OFF
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Product Description Text */}
-              <div className="px-4 pt-4 pb-4 flex flex-col flex-1 text-center">
-                <h3 className="text-[15px] text-[#222222] font-serif font-medium tracking-wide truncate group-hover:text-[#540411] transition-colors duration-300">
-                  {product.productName}
-                </h3>
-                <span className="self-center max-w-[90%] truncate mt-1.5 px-2.5 py-0.5 rounded-full bg-gray-50 text-[10px] text-[#888888] font-sans font-semibold uppercase tracking-widest">
-                  {product.category || 'General'}
-                </span>
-
-                <div className="mt-auto pt-3.5">
-                  <div className="mb-3">
-                    {product.offerPrice > 0 && product.offerPrice !== product.price ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-[12px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
-                        <span className="px-2 py-0.5 rounded-md bg-[#ffecec] text-[15px] text-[#540411] font-sans font-bold">${parseFloat(product.offerPrice).toFixed(2)}</span>
-                      </div>
-                    ) : (
-                      <p className="text-[15px] text-[#222222] font-sans font-semibold">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
-                    )}
-                  </div>
-
-                  {/* Admin Controls */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-gray-50">
-                    <button
-                      onClick={() => startEdit(product)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#540411] hover:bg-[#ffecec]/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
-                    >
-                      <Edit2 size={13} />
-                      Edit
-                    </button>
-                    <div className="w-px h-4 bg-gray-100" />
-                    <button
-                      onClick={() => setDeleteTarget(product)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#b03038] hover:bg-red-50/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
-                    >
-                      <Trash2 size={13} />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+              product={product}
+              onEdit={startEdit}
+              onDelete={setDeleteTarget}
+            />
           ))}
 
           {/* Conditionally hide the Add button placeholder during active searches/filters */}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
+import Badge, { isNewArrival } from '@/components/Badge';
 import { Loader2, Search, Heart, SearchX, X, Gem, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
@@ -13,8 +14,9 @@ const CATEGORIES = [
   "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
 ];
 
-function ProductCard({ product, isFavorited, onToggleFavorite }) {
+function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = false }) {
   const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
+  const isNew = isNewArrival(product);
 
   return (
     <div className="group flex flex-col bg-transparent border-none p-0">
@@ -35,11 +37,14 @@ function ProductCard({ product, isFavorited, onToggleFavorite }) {
           </div>
         )}
 
-        {product.discount > 0 && (
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
-            <span className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-white/60 text-[#90060C] font-sans text-[9px] sm:text-[10px] font-bold tracking-widest uppercase shadow-sm">
-              {product.discount}% Off
-            </span>
+        {(isRecommended || isNew || product.discount > 0) && (
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col items-start gap-1.5">
+            {isRecommended ? (
+              <Badge variant="recommended">For You</Badge>
+            ) : isNew ? (
+              <Badge variant="new">New</Badge>
+            ) : null}
+            {product.discount > 0 && <Badge variant="discount">{product.discount}% Off</Badge>}
           </div>
         )}
 
@@ -274,6 +279,7 @@ export default function Collection() {
                   product={product}
                   isFavorited={!!favorites[product._id]}
                   onToggleFavorite={toggleFavorite}
+                  isRecommended
                 />
               ))}
             </div>
