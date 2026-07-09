@@ -27,12 +27,12 @@ function ProductCard({ product, onEdit, onDelete }) {
   const isNew = isNewArrival(product);
 
   return (
-    <div className="flex flex-col bg-white rounded-[20px] border border-gray-100 hover:border-[#540411]/15 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_14px_32px_rgba(84,4,17,0.1)] hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+    <div className="flex flex-col bg-white rounded-[20px] border border-gray-100 hover:border-[#540411]/15 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_18px_38px_rgba(84,4,17,0.13)] hover:-translate-y-1.5 transition-all duration-300 overflow-hidden group">
       {/* Asset Image Layer */}
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#fdfbf7]">
         {product.imageUrl ? (
           <div
-            className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="w-full h-full bg-cover bg-center group-hover:scale-[1.07] transition-transform duration-700 ease-out"
             style={{ backgroundImage: `url(${product.imageUrl})` }}
           />
         ) : (
@@ -41,6 +41,10 @@ function ProductCard({ product, onEdit, onDelete }) {
             <span className="font-sans text-[10px] font-bold uppercase tracking-widest">No Asset</span>
           </div>
         )}
+
+        {/* Bottom scrim keeps the info panel feeling tied to the image */}
+        <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
         {product.discount > 0 && (
           <div className="absolute top-3 left-3">
             <Badge variant="discount">{product.discount}% Off</Badge>
@@ -63,7 +67,7 @@ function ProductCard({ product, onEdit, onDelete }) {
         </div>
 
         <div className="mt-auto pt-3.5">
-          <div className="mb-3">
+          <div className="mb-3.5">
             {hasDiscount ? (
               <div className="flex items-center justify-center gap-2">
                 <span className="text-[12px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
@@ -75,18 +79,17 @@ function ProductCard({ product, onEdit, onDelete }) {
           </div>
 
           {/* Admin Controls */}
-          <div className="flex items-center gap-2 pt-3 border-t border-gray-50">
+          <div className="flex items-center gap-2 pt-3.5 border-t border-gray-50">
             <button
               onClick={() => onEdit(product)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#540411] hover:bg-[#ffecec]/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[#540411] bg-[#540411]/[0.05] hover:bg-[#540411]/10 active:scale-[0.97] transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide cursor-pointer"
             >
               <Edit2 size={13} />
               Edit
             </button>
-            <div className="w-px h-4 bg-gray-100" />
             <button
               onClick={() => onDelete(product)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 text-gray-600 hover:text-[#b03038] hover:bg-red-50/50 transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[#b03038] bg-red-50/70 hover:bg-red-100/80 active:scale-[0.97] transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide cursor-pointer"
             >
               <Trash2 size={13} />
               Delete

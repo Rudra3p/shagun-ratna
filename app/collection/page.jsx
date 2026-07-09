@@ -19,16 +19,16 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
   const isNew = isNewArrival(product);
 
   return (
-    <div className="group flex flex-col bg-transparent border-none p-0">
+    <div className="group flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">
       {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
-      <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/50 shadow-sm group-hover:shadow-[0_18px_36px_rgba(0,0,0,0.1)] transition-all duration-500">
+      <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/60 shadow-sm group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.14)] transition-all duration-500">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
             alt={product.productName}
             fill
             sizes="(max-width: 640px) 50vw, 25vw"
-            className="object-cover scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="object-cover scale-100 group-hover:scale-[1.08] transition-transform duration-700 ease-out"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#C9BFA8]">
@@ -36,6 +36,9 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
             <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-center px-2">Image Coming Soon</span>
           </div>
         )}
+
+        {/* Soft scrim so floating controls stay legible over any image */}
+        <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {(isRecommended || isNew || product.discount > 0) && (
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col items-start gap-1.5">
@@ -47,28 +50,34 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
             {product.discount > 0 && <Badge variant="discount">{product.discount}% Off</Badge>}
           </div>
         )}
+
+        {/* Floating favorite control */}
+        <button
+          type="button"
+          onClick={(e) => onToggleFavorite(product._id, e)}
+          aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-black/[0.04] shadow-sm hover:bg-white hover:scale-110 active:scale-90 transition-all duration-300 cursor-pointer"
+        >
+          <Heart
+            size={13}
+            className={`sm:hidden transition-colors duration-300 ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`}
+          />
+          <Heart
+            size={15}
+            className={`hidden sm:block transition-colors duration-300 ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`}
+          />
+        </button>
       </div>
 
       {/* Clean Product Typography stack info panel */}
       <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="min-w-0 flex-1 text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
-            {product.productName}
-          </h3>
-          <button
-            type="button"
-            onClick={(e) => onToggleFavorite(product._id, e)}
-            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-            className="shrink-0 -mt-0.5 -mr-1 p-1.5 text-[#C9BFA8] hover:text-[#90060C] transition-all duration-300 active:scale-90 cursor-pointer"
-          >
-            <Heart size={14} className={`sm:hidden ${isFavorited ? "fill-[#90060C] text-[#90060C]" : ""}`} />
-            <Heart size={16} className={`hidden sm:block ${isFavorited ? "fill-[#90060C] text-[#90060C]" : ""}`} />
-          </button>
-        </div>
+        <h3 className="text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
+          {product.productName}
+        </h3>
         <p className="text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-2 sm:mb-2.5 line-clamp-1">
           {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
         </p>
-        <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5" />
+        <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5 group-hover:w-10 transition-all duration-500" />
         <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
           {hasDiscount ? (
             <>
