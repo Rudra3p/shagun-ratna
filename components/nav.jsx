@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, Menu, X } from 'lucide-react'; // Added Menu and X icons
+import { Heart, Menu, X } from 'lucide-react'; // Added Menu and X icons
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -80,23 +80,23 @@ const Navbar = () => {
               noUnderline 
             />
           )}
-          <Link 
-            href="/my-inquiry" 
+          <Link
+            href="/liked-collection"
             className="hover:text-[#C5A059] transition-colors duration-500 flex items-center gap-1.5"
-            title="My Inquiries"
+            title="Liked Collection"
           >
-            <ClipboardList size={22} strokeWidth={1.25} />
+            <Heart size={22} strokeWidth={1.25} />
           </Link>
         </div>
 
-        {/* Mobile Toggle & Inquiry Icon Container */}
+        {/* Mobile Toggle & Liked Collection Icon Container */}
         <div className="flex md:hidden items-center gap-4">
-          <Link 
-            href="/my-inquiry" 
+          <Link
+            href="/liked-collection"
             className="hover:text-[#C5A059] transition-colors duration-500 flex items-center"
-            title="My Inquiries"
+            title="Liked Collection"
           >
-            <ClipboardList size={22} strokeWidth={1.25} />
+            <Heart size={22} strokeWidth={1.25} />
           </Link>
           <button 
             onClick={() => setIsOpen(!isOpen)} 
