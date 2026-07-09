@@ -10,14 +10,10 @@ import {
 
 function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col bg-white rounded-[20px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden animate-pulse">
-      <div className="aspect-[3/4] w-full bg-gray-100" />
-      <div className="p-4 flex flex-col items-center gap-2">
-        <div className="h-4 w-2/3 bg-gray-100 rounded" />
-        <div className="h-2.5 w-1/3 bg-gray-100 rounded" />
-        <div className="h-4 w-1/4 bg-gray-100 rounded mt-1" />
-        <div className="h-8 w-full bg-gray-50 rounded-lg mt-2" />
-      </div>
+    <div className="flex flex-col bg-transparent p-0 animate-pulse">
+      <div className="aspect-[3/4] w-full bg-gray-100 rounded-xl mb-3" />
+      <div className="h-4 bg-gray-100 w-3/4 rounded-md mb-2.5 ml-0.5" />
+      <div className="h-3 bg-gray-100 w-1/3 rounded-md ml-0.5" />
     </div>
   );
 }
@@ -27,9 +23,9 @@ function ProductCard({ product, onEdit, onDelete }) {
   const isNew = isNewArrival(product);
 
   return (
-    <div className="flex flex-col bg-white rounded-[20px] border border-gray-100 hover:border-[#540411]/15 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_18px_38px_rgba(84,4,17,0.13)] hover:-translate-y-1.5 transition-all duration-300 overflow-hidden group">
+    <div className="group flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">
       {/* Asset Image Layer */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#fdfbf7]">
+      <div className="relative aspect-[3/4] w-full mb-3 overflow-hidden rounded-xl bg-gradient-to-b from-[#fdfbf7] to-[#f5efe6] ring-1 ring-gray-100 group-hover:ring-[#540411]/25 shadow-sm group-hover:shadow-[0_18px_38px_rgba(84,4,17,0.14)] transition-all duration-500">
         {product.imageUrl ? (
           <div
             className="w-full h-full bg-cover bg-center group-hover:scale-[1.07] transition-transform duration-700 ease-out"
@@ -42,59 +38,55 @@ function ProductCard({ product, onEdit, onDelete }) {
           </div>
         )}
 
-        {/* Bottom scrim keeps the info panel feeling tied to the image */}
-        <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        {/* Soft scrim so the floating controls stay legible over any image */}
+        <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-        {product.discount > 0 && (
-          <div className="absolute top-3 left-3">
-            <Badge variant="discount">{product.discount}% Off</Badge>
+        {(product.discount > 0 || isNew) && (
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col items-start gap-1.5">
+            {product.discount > 0 && <Badge variant="discount">{product.discount}% Off</Badge>}
+            {isNew && <Badge variant="new">New</Badge>}
           </div>
         )}
-        {isNew && (
-          <div className="absolute top-3 right-3">
-            <Badge variant="new">New</Badge>
-          </div>
-        )}
+
+        {/* Floating admin controls (icon-only) */}
+        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onEdit(product)}
+            aria-label="Edit product"
+            className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-black/[0.04] shadow-sm text-gray-600 hover:text-[#540411] hover:bg-white hover:scale-110 active:scale-90 transition-all duration-300 cursor-pointer"
+          >
+            <Edit2 size={13} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(product)}
+            aria-label="Delete product"
+            className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-black/[0.04] shadow-sm text-gray-600 hover:text-[#b03038] hover:bg-white hover:scale-110 active:scale-90 transition-all duration-300 cursor-pointer"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
       </div>
 
       {/* Product Description Text */}
-      <div className="px-4 pt-4 pb-4 flex flex-col flex-1 text-center">
-        <h3 className="text-[15px] text-[#222222] font-serif font-medium tracking-wide truncate group-hover:text-[#540411] transition-colors duration-300">
+      <div className="flex flex-col flex-grow px-0.5">
+        <h3 className="text-sm sm:text-base font-serif font-medium text-[#222222] group-hover:text-[#540411] transition-colors duration-300 truncate mb-1">
           {product.productName}
         </h3>
-        <div className="self-center mt-1.5 max-w-[90%]">
-          <Badge variant="category" className="truncate max-w-full">{product.category || 'General'}</Badge>
-        </div>
-
-        <div className="mt-auto pt-3.5">
-          <div className="mb-3.5">
-            {hasDiscount ? (
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-[12px] text-gray-400 line-through font-medium">${parseFloat(product.price).toFixed(2)}</span>
-                <span className="px-2 py-0.5 rounded-md bg-[#ffecec] text-[15px] text-[#540411] font-sans font-bold">${parseFloat(product.offerPrice).toFixed(2)}</span>
-              </div>
-            ) : (
-              <p className="text-[15px] text-[#222222] font-sans font-semibold">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
-            )}
-          </div>
-
-          {/* Admin Controls */}
-          <div className="flex items-center gap-2 pt-3.5 border-t border-gray-50">
-            <button
-              onClick={() => onEdit(product)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[#540411] bg-[#540411]/[0.05] hover:bg-[#540411]/10 active:scale-[0.97] transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide cursor-pointer"
-            >
-              <Edit2 size={13} />
-              Edit
-            </button>
-            <button
-              onClick={() => onDelete(product)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[#b03038] bg-red-50/70 hover:bg-red-100/80 active:scale-[0.97] transition-all rounded-lg text-[11px] font-bold uppercase tracking-wide cursor-pointer"
-            >
-              <Trash2 size={13} />
-              Delete
-            </button>
-          </div>
+        <p className="text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-gray-400 mb-2 truncate">
+          {product.category || 'General'}
+        </p>
+        <div className="h-px w-6 bg-[#540411]/25 mb-2 group-hover:w-10 transition-all duration-500" />
+        <div className="flex items-baseline gap-2 mt-auto">
+          {hasDiscount ? (
+            <>
+              <span className="text-sm font-sans font-bold text-[#540411]">${parseFloat(product.offerPrice).toFixed(2)}</span>
+              <span className="text-xs text-gray-400 font-medium line-through">${parseFloat(product.price).toFixed(2)}</span>
+            </>
+          ) : (
+            <span className="text-sm font-sans font-bold text-[#222222]">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</span>
+          )}
         </div>
       </div>
     </div>
