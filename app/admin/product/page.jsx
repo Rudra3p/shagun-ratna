@@ -93,13 +93,22 @@ function ProductCard({ product, onEdit, onDelete }) {
   );
 }
 
+// Converts a stored ISO date into the local "YYYY-MM-DDTHH:mm" shape <input type="datetime-local"> expects
+function toDatetimeLocalValue(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function Products() {
   const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
   const [formData, setFormData] = useState({
-    productName: '', price: '', category: 'General', discount: 0, offerPrice: 0
+    productName: '', price: '', category: 'General', discount: 0, offerPrice: 0, offertime: ''
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -234,7 +243,8 @@ export default function Products() {
         imageUrl,
         price: parseFloat(formData.price),
         discount: parseFloat(formData.discount),
-        offerPrice: parseFloat(formData.offerPrice)
+        offerPrice: parseFloat(formData.offerPrice),
+        offertime: formData.offertime ? new Date(formData.offertime).toISOString() : null
       };
 
       const wasAdding = view === 'add';
@@ -264,6 +274,7 @@ export default function Products() {
       category: product.category,
       discount: product.discount,
       offerPrice: product.offerPrice,
+      offertime: toDatetimeLocalValue(product.offertime),
       imageUrl: product.imageUrl || ''
     });
     setImagePreview(product.imageUrl || null);
@@ -288,7 +299,7 @@ export default function Products() {
   };
 
   const resetForm = () => {
-    setFormData({ productName: '', price: '', category: 'General', discount: 0, offerPrice: 0 });
+    setFormData({ productName: '', price: '', category: 'General', discount: 0, offerPrice: 0, offertime: '' });
     setImageFile(null);
     setImagePreview(null);
     setEditingId(null);
@@ -377,6 +388,17 @@ export default function Products() {
                 className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Offer Ends At (optional)</label>
+            <input
+              type="datetime-local"
+              value={formData.offertime}
+              onChange={(e) => setFormData({...formData, offertime: e.target.value})}
+              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
+            />
+            <p className="text-[11px] text-gray-400">Shows a live countdown badge on the storefront card until this time. Leave blank for no countdown.</p>
           </div>
 
           <div className="space-y-1.5">

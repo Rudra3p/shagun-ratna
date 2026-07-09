@@ -1,4 +1,4 @@
-import { Tag, Sparkles, Star } from 'lucide-react';
+import { Tag, Sparkles, Star, Clock } from 'lucide-react';
 
 const NEW_ARRIVAL_DAYS = 14;
 
@@ -21,6 +21,10 @@ const VARIANTS = {
   new: {
     icon: Sparkles,
     wrap: 'bg-[#1a1a1a] text-white shadow-[0_4px_14px_rgba(0,0,0,0.25)]',
+  },
+  urgency: {
+    icon: Clock,
+    wrap: 'bg-[#3A2C0F] text-[#F5EFE6] shadow-[0_4px_14px_rgba(58,44,15,0.35)]',
   },
   category: {
     icon: null,

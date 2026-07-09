@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
 import Badge, { isNewArrival } from '@/components/Badge';
@@ -14,9 +14,53 @@ const CATEGORIES = [
   "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
 ];
 
+// Real, admin-set expiry only — never a fabricated countdown. Ticks fast near the
+// deadline (loss-aversion urgency), slow otherwise, so idle cards don't re-render every second.
+function useOfferCountdown(offertime) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!offertime) return;
+    const msLeft = new Date(offertime).getTime() - Date.now();
+    if (msLeft <= 0) return;
+    const tickMs = msLeft < 3600000 ? 1000 : 60000;
+    const id = setInterval(() => setNow(Date.now()), tickMs);
+    return () => clearInterval(id);
+  }, [offertime]);
+
+  if (!offertime) return null;
+  const diff = new Date(offertime).getTime() - now;
+  if (diff <= 0) return null;
+
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  if (minutes > 0) return `${minutes}m ${seconds}s left`;
+  return `${seconds}s left`;
+}
+
 function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = false }) {
   const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
   const isNew = isNewArrival(product);
+  const countdownLabel = useOfferCountdown(product.offertime);
+  const savings = hasDiscount ? product.price - product.offerPrice : 0;
+
+  // Heart "burst" micro-reward: a brief ping the moment a piece is favorited.
+  const [burst, setBurst] = useState(false);
+  const wasFavorited = useRef(isFavorited);
+  useEffect(() => {
+    if (isFavorited && !wasFavorited.current) {
+      setBurst(true);
+      const t = setTimeout(() => setBurst(false), 500);
+      wasFavorited.current = isFavorited;
+      return () => clearTimeout(t);
+    }
+    wasFavorited.current = isFavorited;
+  }, [isFavorited]);
 
   return (
     <div className="group flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">
@@ -40,7 +84,7 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
         {/* Soft scrim so floating controls stay legible over any image */}
         <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-        {(isRecommended || isNew || product.discount > 0) && (
+        {(isRecommended || isNew || product.discount > 0 || countdownLabel) && (
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col items-start gap-1.5">
             {isRecommended ? (
               <Badge variant="recommended">For You</Badge>
@@ -48,6 +92,7 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
               <Badge variant="new">New</Badge>
             ) : null}
             {product.discount > 0 && <Badge variant="discount">{product.discount}% Off</Badge>}
+            {countdownLabel && <Badge variant="urgency">{countdownLabel}</Badge>}
           </div>
         )}
 
@@ -58,6 +103,7 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
           aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-black/[0.04] shadow-sm hover:bg-white hover:scale-110 active:scale-90 transition-all duration-300 cursor-pointer"
         >
+          {burst && <span className="absolute inset-0 rounded-full bg-[#90060C]/50 animate-ping" />}
           <Heart
             size={13}
             className={`sm:hidden transition-colors duration-300 ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`}
@@ -94,6 +140,12 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
             </span>
           )}
         </div>
+        {/* Concrete dollar savings reads stronger than a bare percentage (loss-aversion framing) */}
+        {hasDiscount && savings > 0 && (
+          <span className="text-[10px] sm:text-[11px] font-sans font-semibold text-[#9C8253] mt-1">
+            You save ${savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </span>
+        )}
       </div>
     </div>
   );
