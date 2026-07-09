@@ -18,18 +18,15 @@ const Navbar = () => {
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    const name = localStorage.getItem("shagun_user_name");
-    if (name) {
-      setUserName(name);
-    }
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Close mobile menu when shifting pages
+  // Re-check sign-in state on every route change — the navbar persists across
+  // client-side navigations, so a mount-only check would miss a sign-in/out
+  // that happened on the page you're navigating away from (e.g. /auth).
   useEffect(() => {
     setIsOpen(false);
+    setUserName(localStorage.getItem("shagun_user_name"));
   }, [pathname]);
 
   return (
@@ -68,14 +65,14 @@ const Navbar = () => {
           {userName ? (
             <NavLink 
               label="Profile"
-              href="/my-profile" 
+              href="/profile"
               className="border border-[#90060c] text-[#90060c] px-5 py-2.5 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-[11px] tracking-[0.25em]" 
               noUnderline 
             />
           ) : (
             <NavLink 
               label="Sign In"
-              href="/signin" 
+              href="/auth"
               className="border border-[#90060c] text-[#90060c] px-5 py-2.5 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-[11px] tracking-[0.25em]" 
               noUnderline 
             />
@@ -125,14 +122,14 @@ const Navbar = () => {
           {userName ? (
             <NavLink 
               label="Profile"
-              href="/my-profile" 
+              href="/profile"
               className="border border-[#90060c] text-center text-[#90060c] px-6 py-3 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-xs justify-center" 
               noUnderline 
             />
           ) : (
             <NavLink 
               label="Sign In"
-              href="/signin" 
+              href="/auth"
               className="border border-[#90060c] text-center text-[#90060c] px-6 py-3 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-xs justify-center" 
               noUnderline 
             />

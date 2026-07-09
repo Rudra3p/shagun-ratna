@@ -47,7 +47,7 @@ export default function SigninPage() {
         localStorage.setItem("shagun_user_name", data.user.name);
         localStorage.setItem("shagun_user_dob", data.user.birthdate);
       }
-      window.location.href = '/my-collection';
+      window.location.href = '/collection';
     } catch (err) {
       console.error(err);
       setError('An error occurred. Please try again.');
@@ -121,7 +121,7 @@ export default function SigninPage() {
               </h2>
 
               <div className="flex flex-col gap-4">
-                <Link href="/my-collection">
+                <Link href="/collection">
                   <button className="relative w-full font-sans py-4 text-xs tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.25)] active:scale-[0.98]">
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       Go To My Collection <ArrowRight size={14} />

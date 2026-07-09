@@ -69,8 +69,39 @@ export const registerUser = async (req: Request): Promise<NextResponse> => {
       loginAttempts: 0 // Match admin-side security schema structure
     });
 
+    const accessToken = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
+    const refreshToken = jwt.sign({ id: newUser._id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
+    newUser.refreshToken = refreshToken;
+
     await newUser.save();
-    return NextResponse.json({ message: "Account created successfully" }, { status: 201 });
+
+    // Registering also signs the user in immediately, same as the signin flow
+    const response = NextResponse.json({
+      message: "Account created successfully",
+      user: {
+        name: newUser.name,
+        birthdate: newUser.birthdate,
+        gender: newUser.gender
+      }
+    }, { status: 201 });
+
+    response.cookies.set("shagun_user_access", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 900
+    });
+
+    response.cookies.set("shagun_user_refresh", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 604800
+    });
+
+    return response;
   } catch (error) {
     console.error("User Registration Error:", error);
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });

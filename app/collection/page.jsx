@@ -13,7 +13,6 @@ const CATEGORIES = [
 
 export default function Collection() {
   const [products, setProducts] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
@@ -45,7 +44,6 @@ export default function Collection() {
       const incomingItems = res.data.products || [];
 
       setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
-      setTotalCount(res.data.total || 0);
       setHasMore(currentSearch.trim() !== "" || currentCategories.length > 0 ? false : incomingItems.length === 10);
       setPage(pageNumber);
     } catch (err) {
@@ -163,27 +161,23 @@ export default function Collection() {
             </button>
           </div>
 
-          {!loading && (hasActiveFilter || totalCount > 0) && (
+          {!loading && hasActiveFilter && (
             <div className="flex items-center justify-between gap-4 flex-wrap text-xs text-[#A8A196] font-sans mt-3">
               <span>
-                {hasActiveFilter
-                  ? `${products.length} result${products.length === 1 ? '' : 's'}${
-                      appliedSearch
-                        ? ` for “${appliedSearch}”`
-                        : selectedCategories.length > 0
-                          ? ` in ${selectedCategories.join(', ')}`
-                          : ''
-                    }`
-                  : `${totalCount} piece${totalCount === 1 ? '' : 's'} in the collection`}
+                {`${products.length} result${products.length === 1 ? '' : 's'}${
+                  appliedSearch
+                    ? ` for “${appliedSearch}”`
+                    : selectedCategories.length > 0
+                      ? ` in ${selectedCategories.join(', ')}`
+                      : ''
+                }`}
               </span>
-              {hasActiveFilter && (
-                <button
-                  onClick={handleClearFilters}
-                  className="flex items-center gap-1.5 text-[#90060C] hover:text-[#730509] font-medium uppercase tracking-wider transition-colors cursor-pointer"
-                >
-                  <X size={12} /> Clear
-                </button>
-              )}
+              <button
+                onClick={handleClearFilters}
+                className="flex items-center gap-1.5 text-[#90060C] hover:text-[#730509] font-medium uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                <X size={12} /> Clear
+              </button>
             </div>
           )}
         </div>
