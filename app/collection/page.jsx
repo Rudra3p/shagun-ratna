@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
 import { Loader2, Search, SearchX, X, SlidersHorizontal, Sparkles } from 'lucide-react';
@@ -25,8 +25,30 @@ export default function Collection() {
   const [typedSearch, setTypedSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [toolbarHidden, setToolbarHidden] = useState(false);
 
   const hasActiveFilter = appliedSearch.trim() !== "" || selectedCategories.length > 0;
+
+  const lastScrollY = useRef(0);
+
+  // Hide the search/filter toolbar while scrolling down (gives the grid more room),
+  // reveal it again on any upward scroll or near the top of the page.
+  useEffect(() => {
+    lastScrollY.current = window.scrollY;
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY < 140) {
+        setToolbarHidden(false);
+      } else if (currentY > lastScrollY.current + 4) {
+        setToolbarHidden(true);
+      } else if (currentY < lastScrollY.current - 4) {
+        setToolbarHidden(false);
+      }
+      lastScrollY.current = currentY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCategories = []) => {
     if (pageNumber === 1) setLoading(true);
@@ -120,10 +142,14 @@ export default function Collection() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 pb-24">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-6 pb-24">
 
-        {/* Sticky Search + Filter Toolbar */}
-        <div className="sticky top-20 z-30 -mx-6 px-6 md:-mx-10 md:px-10 pt-2 pb-4 mb-10 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60">
+        {/* Sticky Search + Filter Toolbar — slides away on scroll-down, returns on scroll-up */}
+        <div
+          className={`sticky top-20 z-30 -mx-6 px-6 md:-mx-10 md:px-10 pt-2 pb-4 mb-6 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60 transition-transform duration-300 ease-out ${
+            toolbarHidden ? '-translate-y-40 pointer-events-none' : 'translate-y-0'
+          }`}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <form onSubmit={handleSearchSubmit} className="flex items-center w-full sm:w-auto sm:flex-1 sm:max-w-md gap-2 sm:gap-2.5">
               <div className="relative flex-grow group">
