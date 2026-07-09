@@ -47,23 +47,25 @@ function ProductCard({ product, isFavorited, onToggleFavorite, isRecommended = f
             {product.discount > 0 && <Badge variant="discount">{product.discount}% Off</Badge>}
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={(e) => onToggleFavorite(product._id, e)}
-          className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-white/60 text-[#2D2926] hover:text-[#90060C] transition-all duration-300 shadow-sm z-10 active:scale-90"
-        >
-          <Heart size={14} className={`sm:hidden ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
-          <Heart size={16} className={`hidden sm:block ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`} />
-        </button>
       </div>
 
       {/* Clean Product Typography stack info panel */}
       <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
-        <h3 className="text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
-          {product.productName}
-        </h3>
-        <p className="text-[10px] sm:text-[11px] font-sans font-medium tracking-wide text-[#A8A196] mb-2 sm:mb-2.5 line-clamp-1">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="min-w-0 flex-1 text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
+            {product.productName}
+          </h3>
+          <button
+            type="button"
+            onClick={(e) => onToggleFavorite(product._id, e)}
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+            className="shrink-0 -mt-0.5 -mr-1 p-1.5 text-[#C9BFA8] hover:text-[#90060C] transition-all duration-300 active:scale-90 cursor-pointer"
+          >
+            <Heart size={14} className={`sm:hidden ${isFavorited ? "fill-[#90060C] text-[#90060C]" : ""}`} />
+            <Heart size={16} className={`hidden sm:block ${isFavorited ? "fill-[#90060C] text-[#90060C]" : ""}`} />
+          </button>
+        </div>
+        <p className="text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-2 sm:mb-2.5 line-clamp-1">
           {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
         </p>
         <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5" />
