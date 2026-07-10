@@ -165,7 +165,7 @@ export default function RepositoryDetailView({ params }) {
               </div>
               <div className="pt-4 flex flex-col flex-1 text-center items-center">
                 <h3 className="text-[15px] text-[#222222] font-sans font-bold tracking-tight truncate w-full">{product.productName}</h3>
-                <p className="text-[12px] text-gray-500 font-sans mt-0.5">${parseFloat(product.price).toFixed(2)}</p>
+                <p className="text-[12px] text-gray-500 font-sans mt-0.5">₹{parseFloat(product.price).toFixed(2)}</p>
 
                 <button
                   onClick={() => handleRemoveProduct(product._id)}
@@ -230,7 +230,7 @@ export default function RepositoryDetailView({ params }) {
                       {item.imageUrl && <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${item.imageUrl})` }} />}
                     </div>
                     <h4 className="text-[14px] text-gray-900 font-sans font-bold tracking-tight text-center truncate px-1">{item.productName}</h4>
-                    <p className="text-[12px] text-gray-400 text-center font-sans mt-0.5">${parseFloat(item.price).toFixed(2)}</p>
+                    <p className="text-[12px] text-gray-400 text-center font-sans mt-0.5">₹{parseFloat(item.price).toFixed(2)}</p>
                   </div>
                 );
               })}

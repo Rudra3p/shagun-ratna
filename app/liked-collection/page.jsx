@@ -97,12 +97,13 @@ export default function LikedCollection() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-            {products.map((product) => (
+            {products.map((product, index) => (
               <ProductCard
                 key={product._id}
                 product={product}
                 isFavorited={!!favorites[product._id]}
                 onToggleFavorite={toggleFavorite}
+                priority={index < 4}
               />
             ))}
           </div>

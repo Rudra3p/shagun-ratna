@@ -7,7 +7,7 @@ import { Heart, Gem } from 'lucide-react';
 
 export const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
-export default function ProductCard({ product, isFavorited, onToggleFavorite }) {
+export default function ProductCard({ product, isFavorited, onToggleFavorite, priority = false }) {
   const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
   const savings = hasDiscount ? product.price - product.offerPrice : 0;
 
@@ -35,6 +35,8 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite }) 
               alt={product.productName}
               fill
               sizes="(max-width: 640px) 50vw, 25vw"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : undefined}
               className="object-cover scale-100 group-hover:scale-[1.08] transition-transform duration-700 ease-out"
             />
           ) : (
@@ -86,22 +88,22 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite }) 
             {hasDiscount ? (
               <>
                 <span className="text-lg sm:text-2xl font-brand font-bold text-[#90060C]">
-                  ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  ₹{parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
                 <span className="text-xs sm:text-sm text-[#A8A196] font-medium line-through">
-                  ${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  ₹{parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </>
             ) : (
               <span className="text-lg sm:text-2xl font-brand font-bold text-[#2D2926]">
-                {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
+                {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
               </span>
             )}
           </div>
           {/* Concrete dollar savings reads stronger than a bare percentage (loss-aversion framing) */}
           {hasDiscount && savings > 0 && (
             <span className="text-[10px] sm:text-xs font-sans font-semibold text-[#9C8253] mt-1">
-              You save ${savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              You save ₹{savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           )}
         </div>

@@ -140,6 +140,9 @@ export default function Collection() {
     });
   };
 
+  // Whichever grid renders first is what's above the fold on load, so only that one preloads its images
+  const showRecommended = !hasActiveFilter && recommendedProducts.length > 0;
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-6 pb-24">
@@ -223,20 +226,21 @@ export default function Collection() {
         </div>
 
         {/* Recommended For You (shown only to signed-in users matching a targeted collection) */}
-        {!hasActiveFilter && recommendedProducts.length > 0 && (
+        {showRecommended && (
           <div className="mb-14">
             <div className="flex items-center gap-2.5 mb-5">
               <Sparkles size={16} className="text-[#C5A059]" />
               <h2 className="font-brand text-xl sm:text-2xl text-[#1a1a1a]">Recommended For You</h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-              {recommendedProducts.map((product) => (
+              {recommendedProducts.map((product, index) => (
                 <ProductCard
                   key={product._id}
                   product={product}
                   isFavorited={!!favorites[product._id]}
                   onToggleFavorite={toggleFavorite}
                   isRecommended
+                  priority={index < 4}
                 />
               ))}
             </div>
@@ -280,12 +284,13 @@ export default function Collection() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-            {products.map((product) => (
+            {products.map((product, index) => (
               <ProductCard
                 key={product._id}
                 product={product}
                 isFavorited={!!favorites[product._id]}
                 onToggleFavorite={toggleFavorite}
+                priority={!showRecommended && index < 4}
               />
             ))}
 

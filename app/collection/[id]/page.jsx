@@ -174,21 +174,21 @@ export default function ProductDetail() {
                 {hasDiscount ? (
                   <>
                     <span className="text-2xl sm:text-3xl font-sans font-bold text-[#90060C]">
-                      ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      ₹{parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                     <span className="text-base text-[#A8A196] font-medium line-through">
-                      ${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      ₹{parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                   </>
                 ) : (
                   <span className="text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]">
-                    {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
+                    {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
                   </span>
                 )}
               </div>
               {hasDiscount && savings > 0 && (
                 <span className="text-sm font-sans font-semibold text-[#9C8253] mt-2">
-                  You save ${savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  You save ₹{savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               )}
 

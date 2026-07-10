@@ -82,11 +82,11 @@ function ProductCard({ product, onEdit, onDelete }) {
         <div className="flex items-baseline gap-2 mt-auto">
           {hasDiscount ? (
             <>
-              <span className="text-base sm:text-lg font-sans font-bold text-[#540411]">${parseFloat(product.offerPrice).toFixed(2)}</span>
-              <span className="text-xs text-gray-400 font-medium line-through">${parseFloat(product.price).toFixed(2)}</span>
+              <span className="text-base sm:text-lg font-sans font-bold text-[#540411]">₹{parseFloat(product.offerPrice).toFixed(2)}</span>
+              <span className="text-xs text-gray-400 font-medium line-through">₹{parseFloat(product.price).toFixed(2)}</span>
             </>
           ) : (
-            <span className="text-base sm:text-lg font-sans font-bold text-[#1a1a1a]">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</span>
+            <span className="text-base sm:text-lg font-sans font-bold text-[#1a1a1a]">₹{product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</span>
           )}
         </div>
       </div>
@@ -355,7 +355,7 @@ export default function Products() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Original Price ($) *</label>
+              <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Original Price (₹) *</label>
               <input
                 type="number"
                 step="0.01"
@@ -379,7 +379,7 @@ export default function Products() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Offer Price ($)</label>
+              <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Offer Price (₹)</label>
               <input
                 type="number"
                 step="0.01"
