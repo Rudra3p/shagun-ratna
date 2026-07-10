@@ -152,13 +152,13 @@ export default function Collection() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <form onSubmit={handleSearchSubmit} className="w-full sm:flex-1 sm:max-w-md">
-              {/* Underline search field — bottom border only, no boxed pill */}
-              <div className="group relative flex items-center gap-2.5 border-b border-[#D9CFBB] focus-within:border-[#90060C] transition-colors duration-300">
+              {/* Underline search field — a quiet base line, with a crimson accent that expands from center on focus */}
+              <div className="group relative flex items-center gap-2.5 pb-2.5 sm:pb-3">
                 <Search size={16} className="shrink-0 text-[#A8A196] group-focus-within:text-[#90060C] transition-colors duration-300" />
                 <input
                   type="text"
                   placeholder="Search the collection..."
-                  className="flex-1 min-w-0 bg-transparent py-2.5 sm:py-3 text-[#2D2926] placeholder-[#A8A196] text-sm outline-none"
+                  className="flex-1 min-w-0 bg-transparent text-[#2D2926] placeholder-[#A8A196] text-sm outline-none"
                   value={typedSearch}
                   onChange={(e) => setTypedSearch(e.target.value)}
                 />
@@ -175,10 +175,15 @@ export default function Collection() {
                 <button
                   type="submit"
                   aria-label="Search"
-                  className="shrink-0 -mr-1.5 flex items-center justify-center w-8 h-8 rounded-full bg-[#90060C] hover:bg-[#730509] text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                  className="shrink-0 -mr-1.5 flex items-center justify-center w-8 h-8 rounded-full bg-[#90060C] hover:bg-[#730509] text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-70"
                 >
-                  <Search size={14} />
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
                 </button>
+
+                {/* Base line, always visible */}
+                <span className="absolute left-0 right-0 bottom-0 h-px bg-[#D9CFBB]" />
+                {/* Accent line, expands from center to fill on focus */}
+                <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-[#90060C] scale-x-0 group-focus-within:scale-x-100 origin-center transition-transform duration-300 ease-out" />
               </div>
             </form>
 
@@ -200,19 +205,18 @@ export default function Collection() {
           {!loading && hasActiveFilter && (
             <div className="flex items-center justify-between gap-4 flex-wrap text-xs text-[#A8A196] font-sans mt-3">
               <span>
-                {`${products.length} result${products.length === 1 ? '' : 's'}${
-                  appliedSearch
-                    ? ` for “${appliedSearch}”`
-                    : selectedCategories.length > 0
-                      ? ` in ${selectedCategories.join(', ')}`
-                      : ''
-                }`}
+                {products.length} result{products.length === 1 ? '' : 's'}
+                {appliedSearch ? (
+                  <> for <em className="font-brand not-italic text-[#2D2926] font-semibold">“{appliedSearch}”</em></>
+                ) : selectedCategories.length > 0 ? (
+                  ` in ${selectedCategories.join(', ')}`
+                ) : null}
               </span>
               <button
                 onClick={handleClearFilters}
-                className="flex items-center gap-1.5 text-[#90060C] hover:text-[#730509] font-medium uppercase tracking-wider transition-colors cursor-pointer"
+                className="group flex items-center gap-1.5 text-[#90060C] hover:text-[#730509] font-medium uppercase tracking-wider transition-colors cursor-pointer"
               >
-                <X size={12} /> Clear
+                <X size={12} /> <span className="border-b border-transparent group-hover:border-[#730509] transition-colors">Clear</span>
               </button>
             </div>
           )}
