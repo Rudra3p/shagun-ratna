@@ -98,17 +98,17 @@ export default function HeroSection() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-          style={{ y: yOffset }}
+          style={{ y: yOffset, willChange: 'transform' }}
           className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 h-[350px] sm:h-[450px] lg:h-[550px]"
         >
           {/* Gold aura background glow */}
           <div className="absolute w-[80%] aspect-square rounded-full bg-radial from-[#C5A059]/15 to-transparent blur-3xl -z-10" />
 
           {/* Rotating Gold Ring behind the image */}
-          <motion.div 
+          <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-            className="absolute w-[80%] md:w-[70%] aspect-square rounded-full border border-dashed border-[#C5A059]/30 z-0 select-none pointer-events-none"
+            className="absolute w-[80%] md:w-[70%] aspect-square rounded-full border border-dashed border-[#C5A059]/30 z-0 select-none pointer-events-none will-change-transform"
           />
 
           {/* Solid thin gold ring */}
@@ -125,7 +125,7 @@ export default function HeroSection() {
           <div className="absolute bottom-[10%] right-[15%] w-3 h-3 border-b border-r border-[#C5A059]/40 z-0 select-none pointer-events-none" />
 
           {/* The hand image itself, floating borderless */}
-          <motion.div 
+          <motion.div
             animate={{
               y: [0, -10, 0],
             }}
@@ -134,7 +134,7 @@ export default function HeroSection() {
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="absolute inset-0 z-10 flex items-center justify-center select-none pointer-events-none"
+            className="absolute inset-0 z-10 flex items-center justify-center select-none pointer-events-none will-change-transform"
           >
             <Image 
               src="/hero_sec_hand.png" 

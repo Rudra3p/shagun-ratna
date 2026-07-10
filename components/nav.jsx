@@ -21,12 +21,25 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Re-check sign-in state on every route change — the navbar persists across
-  // client-side navigations, so a mount-only check would miss a sign-in/out
-  // that happened on the page you're navigating away from (e.g. /auth).
+  // Re-verify sign-in state on every route change via the httpOnly session cookie —
+  // localStorage can be faked by the client, so it isn't proof of an active session.
+  // Calling the profile endpoint directly (not through the userApi instance) avoids
+  // its 401-retry interceptor, which would otherwise redirect guests to /auth just
+  // for not being signed in.
   useEffect(() => {
     setIsOpen(false);
-    setUserName(localStorage.getItem("shagun_user_name"));
+
+    let cancelled = false;
+    fetch('/api/user/profile', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setUserName(data?.user?.name || null);
+      })
+      .catch(() => {
+        if (!cancelled) setUserName(null);
+      });
+
+    return () => { cancelled = true; };
   }, [pathname]);
 
   return (
