@@ -60,7 +60,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
     <div className="group relative flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">
       <Link href={`/collection/${product._id}`} className="contents">
         {/* Image Frame (Ratio 4:5, floats free of the text — no boxed card) */}
-        <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/60 shadow-sm group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.14)] transition-all duration-500">
+        <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#E4D4B0]/50 group-hover:ring-[#C5A059]/70 shadow-sm group-hover:shadow-[0_22px_45px_-12px_rgba(197,160,89,0.35),0_10px_25px_-10px_rgba(0,0,0,0.18)] transition-all duration-500">
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
@@ -75,6 +75,9 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
               <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-center px-2">Image Coming Soon</span>
             </div>
           )}
+
+          {/* Light-catching shimmer sweep, like a gem turning under a jeweller's lamp */}
+          <div className="absolute inset-y-0 -left-1/2 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[260%] transition-all duration-[1100ms] ease-out pointer-events-none" />
 
           {/* Gallery-style corner brackets, like a certificate frame */}
           <span className="absolute top-3 left-3 w-5 h-5 border-t-[1.5px] border-l-[1.5px] border-[#C5A059] opacity-0 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none" />
@@ -99,7 +102,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
         {/* Clean Product Typography stack info panel — sits below the image, no shared box */}
         <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="text-sm sm:text-lg font-brand font-semibold text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
+            <h3 className="text-sm sm:text-lg font-brand font-semibold tracking-tight text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
               {product.productName}
             </h3>
 
@@ -111,11 +114,15 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
                 onToggleFavorite(product._id, e);
               }}
               aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-              className="relative shrink-0 -mt-0.5 -mr-0.5 flex items-center justify-center w-7 h-7 rounded-full hover:bg-[#F5EFE6] active:scale-90 transition-all duration-300 cursor-pointer"
+              className={`relative shrink-0 -mt-0.5 -mr-0.5 flex items-center justify-center w-7 h-7 rounded-full ring-1 transition-all duration-300 cursor-pointer active:scale-90 ${
+                isFavorited
+                  ? "ring-[#90060C]/20 bg-[#90060C]/5"
+                  : "ring-[#EBE3D5] hover:ring-[#C5A059]/60 hover:bg-[#F5EFE6]"
+              }`}
             >
               {burst && <span className="absolute inset-0 rounded-full bg-[#90060C]/50 animate-ping" />}
               <Heart
-                size={15}
+                size={14}
                 className={`transition-colors duration-300 ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#A8A196] hover:text-[#2D2926]"}`}
               />
             </button>
