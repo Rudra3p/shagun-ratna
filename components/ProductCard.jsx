@@ -45,12 +45,13 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite }) 
           )}
         </div>
 
-        {/* Product info — clear eyebrow → title → price hierarchy, sits below the image */}
+        {/* Product info — minimal: purity → title → price, sits below the image */}
         <div className="flex flex-col flex-grow px-0.5 sm:px-1 pt-1.5">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[9px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.18em] text-[#C5A059] mb-1.5 line-clamp-1">
-                {product.category || "Fine Jewelry"}
+              <p className="flex items-center gap-1 text-[9px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.18em] text-[#C5A059] mb-1.5 line-clamp-1">
+                <Gem size={9} strokeWidth={2.5} className="shrink-0" />
+                {product.purity || "22K Pure Gold"}
               </p>
               <h3 className="text-base sm:text-xl font-brand font-semibold tracking-tight leading-snug text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
                 {product.productName}
@@ -79,12 +80,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite }) 
             </button>
           </div>
 
-          <p className="flex items-center gap-1.5 text-[10px] sm:text-xs font-sans font-medium text-[#8a7358] mt-1.5 mb-3 line-clamp-1">
-            <Gem size={10} strokeWidth={2.5} className="shrink-0 opacity-60" />
-            {product.purity || "22K Pure Gold"}
-          </p>
-
-          <div className="h-px w-6 bg-[#C5A059]/50 mb-3 group-hover:w-10 transition-all duration-500" />
+          <div className="h-px w-6 bg-[#C5A059]/50 mt-2.5 mb-3 group-hover:w-10 transition-all duration-500" />
 
           <div className="flex items-baseline gap-2 mt-auto flex-wrap">
             {hasDiscount ? (
