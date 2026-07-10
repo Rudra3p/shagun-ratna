@@ -234,13 +234,10 @@ export default function Collection() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse flex flex-col bg-white rounded-2xl border border-[#EBE3D5] shadow-[0_2px_16px_rgba(45,41,38,0.06)] overflow-hidden">
-                <div className="aspect-[4/5] w-full bg-[#EBE3D5]/30" />
-                <div className="px-3.5 sm:px-5 pt-3.5 sm:pt-4 pb-4 sm:pb-5">
-                  <div className="h-4 bg-[#EBE3D5]/40 w-3/4 rounded-md mb-2.5" />
-                  <div className="h-3 bg-[#EBE3D5]/40 w-1/2 rounded-md mb-3" />
-                  <div className="h-4 bg-[#EBE3D5]/40 w-1/3 rounded-md pt-3 border-t border-[#EBE3D5]/50" />
-                </div>
+              <div key={i} className="animate-pulse flex flex-col bg-transparent p-0">
+                <div className="aspect-[4/5] w-full bg-[#EBE3D5]/30 rounded-xl mb-4" />
+                <div className="h-4 bg-[#EBE3D5]/30 w-3/4 rounded-md mb-2.5 ml-1" />
+                <div className="h-3 bg-[#EBE3D5]/30 w-1/3 rounded-md ml-1" />
               </div>
             ))}
           </div>

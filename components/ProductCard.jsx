@@ -57,13 +57,10 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
   }, [isFavorited]);
 
   return (
-    <div className="group relative flex flex-col bg-white rounded-2xl border border-[#EBE3D5] shadow-[0_2px_16px_rgba(45,41,38,0.06)] hover:shadow-[0_30px_50px_-20px_rgba(144,6,12,0.25)] transition-all duration-500 ease-out hover:-translate-y-2 overflow-hidden">
-      {/* Gold foil ribbon — reveals across the top edge on hover, like a jeweller's box */}
-      <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-[#C5A059] via-[#F1DFA8] to-[#C5A059] scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-500 z-10" />
-
+    <div className="group relative flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">
       <Link href={`/collection/${product._id}`} className="contents">
-        {/* Image Frame (Ratio 4:5) — velvet-case gradient backdrop */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC]">
+        {/* Image Frame (Ratio 4:5, floats free of the text — no boxed card) */}
+        <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/60 shadow-sm group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.14)] transition-all duration-500">
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
@@ -106,16 +103,17 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
           </div>
         </div>
 
-        {/* Clean Product Typography stack info panel */}
-        <div className="flex flex-col flex-grow px-3.5 sm:px-5 pt-3.5 sm:pt-4 pb-4 sm:pb-5">
+        {/* Clean Product Typography stack info panel — sits below the image, no shared box */}
+        <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
           <h3 className="text-sm sm:text-lg font-brand font-semibold text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
             {product.productName}
           </h3>
-          <p className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-3 line-clamp-1">
+          <p className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-2 sm:mb-2.5 line-clamp-1">
             <Gem size={9} strokeWidth={2.5} className="shrink-0 opacity-70" />
             {product.purity || "22K Pure Gold"} · {product.category || "Fine Jewelry"}
           </p>
-          <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap pt-3 border-t border-[#EBE3D5]/80">
+          <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5 group-hover:w-10 transition-all duration-500" />
+          <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
             {hasDiscount ? (
               <>
                 <span className="text-sm sm:text-base font-brand font-bold text-[#90060C]">
