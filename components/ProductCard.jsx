@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Badge, { isNewArrival } from '@/components/Badge';
-import { Heart, Gem } from 'lucide-react';
+import { Heart, Gem, Eye } from 'lucide-react';
 
 export const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
@@ -57,10 +57,13 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
   }, [isFavorited]);
 
   return (
-    <div className="group relative flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">
+    <div className="group relative flex flex-col bg-white rounded-2xl border border-[#EBE3D5] shadow-[0_2px_16px_rgba(45,41,38,0.06)] hover:shadow-[0_30px_50px_-20px_rgba(144,6,12,0.25)] transition-all duration-500 ease-out hover:-translate-y-2 overflow-hidden">
+      {/* Gold foil ribbon — reveals across the top edge on hover, like a jeweller's box */}
+      <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-[#C5A059] via-[#F1DFA8] to-[#C5A059] scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-500 z-10" />
+
       <Link href={`/collection/${product._id}`} className="contents">
-        {/* Image Frame (Ratio 4:5, Transparent Borderless Grid Frame) */}
-        <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/60 shadow-sm group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.14)] transition-all duration-500">
+        {/* Image Frame (Ratio 4:5) — velvet-case gradient backdrop */}
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC]">
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
@@ -76,6 +79,10 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
             </div>
           )}
 
+          {/* Gallery-style corner brackets, like a certificate frame */}
+          <span className="absolute top-3 left-3 w-5 h-5 border-t-[1.5px] border-l-[1.5px] border-[#C5A059] opacity-0 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none" />
+          <span className="absolute bottom-3 left-3 w-5 h-5 border-b-[1.5px] border-l-[1.5px] border-[#C5A059] opacity-0 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none" />
+
           {/* Soft scrim so floating controls stay legible over any image */}
           <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
@@ -90,21 +97,28 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
               {countdownLabel && <Badge variant="urgency">{countdownLabel}</Badge>}
             </div>
           )}
+
+          {/* Quick View strip, slides up from the base of the image on hover */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pt-10 pb-3 flex items-center justify-center translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
+            <span className="flex items-center gap-1.5 text-white text-[10px] font-sans font-bold uppercase tracking-[0.2em]">
+              <Eye size={12} strokeWidth={2.5} /> Quick View
+            </span>
+          </div>
         </div>
 
         {/* Clean Product Typography stack info panel */}
-        <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
-          <h3 className="text-sm sm:text-lg font-brand font-medium text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
+        <div className="flex flex-col flex-grow px-3.5 sm:px-5 pt-3.5 sm:pt-4 pb-4 sm:pb-5">
+          <h3 className="text-sm sm:text-lg font-brand font-semibold text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
             {product.productName}
           </h3>
-          <p className="text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-2 sm:mb-2.5 line-clamp-1">
-            {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
+          <p className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-3 line-clamp-1">
+            <Gem size={9} strokeWidth={2.5} className="shrink-0 opacity-70" />
+            {product.purity || "22K Pure Gold"} · {product.category || "Fine Jewelry"}
           </p>
-          <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5 group-hover:w-10 transition-all duration-500" />
-          <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
+          <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap pt-3 border-t border-[#EBE3D5]/80">
             {hasDiscount ? (
               <>
-                <span className="text-xs sm:text-sm font-sans font-bold text-[#90060C]">
+                <span className="text-sm sm:text-base font-brand font-bold text-[#90060C]">
                   ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
                 <span className="text-[10px] sm:text-xs text-[#A8A196] font-medium line-through">
@@ -112,7 +126,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
                 </span>
               </>
             ) : (
-              <span className="text-xs sm:text-sm font-sans font-bold text-[#2D2926]">
+              <span className="text-sm sm:text-base font-brand font-bold text-[#2D2926]">
                 {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
               </span>
             )}
@@ -131,7 +145,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
         type="button"
         onClick={(e) => onToggleFavorite(product._id, e)}
         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-        className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/85 backdrop-blur-md ring-1 ring-black/[0.04] shadow-sm hover:bg-white hover:scale-110 active:scale-90 transition-all duration-300 cursor-pointer"
+        className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 backdrop-blur-md ring-1 ring-black/[0.05] shadow-md hover:ring-[#C5A059]/70 hover:bg-white hover:scale-110 active:scale-90 transition-all duration-300 cursor-pointer"
       >
         {burst && <span className="absolute inset-0 rounded-full bg-[#90060C]/50 animate-ping" />}
         <Heart
