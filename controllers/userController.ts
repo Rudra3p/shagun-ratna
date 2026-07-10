@@ -186,3 +186,45 @@ export const userSignout = async (): Promise<NextResponse> => {
 
   return response;
 };
+
+// 4. REFRESH ACCESS TOKEN (mirrors the admin-side /api/admin/refresh flow)
+export const userRefresh = async (req: Request): Promise<NextResponse> => {
+  try {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const refreshToken = cookieHeader
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("shagun_user_refresh="))
+      ?.split("=")[1];
+
+    if (!refreshToken) {
+      return NextResponse.json({ error: "Session expired" }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { id: string };
+
+    // DB CHECK: the cookie's token must match the one on record, so a signed-out
+    // or revoked refresh token can't silently mint fresh access tokens forever.
+    const user = await User.findById(decoded.id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+    }
+
+    const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: "15m" });
+
+    const response = NextResponse.json({ success: true });
+
+    response.cookies.set("shagun_user_access", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 900,
+    });
+
+    return response;
+  } catch (error) {
+    console.error("User Refresh Error:", error);
+    return NextResponse.json({ error: "Authentication failed" }, { status: 401 });
+  }
+};
