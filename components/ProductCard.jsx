@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Badge, { isNewArrival } from '@/components/Badge';
-import { Heart, Gem, Eye } from 'lucide-react';
+import { Heart, Gem } from 'lucide-react';
 
 export const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
@@ -94,20 +94,32 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
               {countdownLabel && <Badge variant="urgency">{countdownLabel}</Badge>}
             </div>
           )}
-
-          {/* Quick View strip, slides up from the base of the image on hover */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pt-10 pb-3 flex items-center justify-center translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
-            <span className="flex items-center gap-1.5 text-white text-[10px] font-sans font-bold uppercase tracking-[0.2em]">
-              <Eye size={12} strokeWidth={2.5} /> Quick View
-            </span>
-          </div>
         </div>
 
         {/* Clean Product Typography stack info panel — sits below the image, no shared box */}
         <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
-          <h3 className="text-sm sm:text-lg font-brand font-semibold text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1 mb-1">
-            {product.productName}
-          </h3>
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className="text-sm sm:text-lg font-brand font-semibold text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
+              {product.productName}
+            </h3>
+
+            {/* Favorite control — lives with the product info, not floating over the image */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onToggleFavorite(product._id, e);
+              }}
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              className="relative shrink-0 -mt-0.5 -mr-0.5 flex items-center justify-center w-7 h-7 rounded-full hover:bg-[#F5EFE6] active:scale-90 transition-all duration-300 cursor-pointer"
+            >
+              {burst && <span className="absolute inset-0 rounded-full bg-[#90060C]/50 animate-ping" />}
+              <Heart
+                size={15}
+                className={`transition-colors duration-300 ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#A8A196] hover:text-[#2D2926]"}`}
+              />
+            </button>
+          </div>
           <p className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-2 sm:mb-2.5 line-clamp-1">
             <Gem size={9} strokeWidth={2.5} className="shrink-0 opacity-70" />
             {product.purity || "22K Pure Gold"} · {product.category || "Fine Jewelry"}
@@ -137,24 +149,6 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, is
           )}
         </div>
       </Link>
-
-      {/* Floating favorite control — sibling of the Link, not nested inside it */}
-      <button
-        type="button"
-        onClick={(e) => onToggleFavorite(product._id, e)}
-        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-        className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 backdrop-blur-md ring-1 ring-black/[0.05] shadow-md hover:ring-[#C5A059]/70 hover:bg-white hover:scale-110 active:scale-90 transition-all duration-300 cursor-pointer"
-      >
-        {burst && <span className="absolute inset-0 rounded-full bg-[#90060C]/50 animate-ping" />}
-        <Heart
-          size={13}
-          className={`sm:hidden transition-colors duration-300 ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`}
-        />
-        <Heart
-          size={15}
-          className={`hidden sm:block transition-colors duration-300 ${isFavorited ? "fill-[#90060C] text-[#90060C]" : "text-[#2D2926]"}`}
-        />
-      </button>
     </div>
   );
 }
