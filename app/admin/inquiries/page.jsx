@@ -25,8 +25,21 @@ export default function InquiriesView() {
     fetchInquiries();
   }, []);
 
-  const removeInquiry = async (id, confirmMessage) => {
-    if (!confirm(confirmMessage)) return;
+  const handleDone = async (id) => {
+    if (!confirm("Mark this inquiry as done? It will be archived out of this pending list.")) return;
+    try {
+      setBusyId(id);
+      await adminApi.put(`/inquiries?id=${id}`);
+      setInquiries((prev) => prev.filter((i) => i._id !== id));
+    } catch (err) {
+      console.error("Action failed:", err);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to permanently delete this inquiry?")) return;
     try {
       setBusyId(id);
       await adminApi.delete(`/inquiries?id=${id}`);
@@ -37,9 +50,6 @@ export default function InquiriesView() {
       setBusyId(null);
     }
   };
-
-  const handleDone = (id) => removeInquiry(id, "Mark this inquiry as done? It will be removed from the list.");
-  const handleDelete = (id) => removeInquiry(id, "Are you sure you want to delete this inquiry?");
 
   return (
     <div className="animate-in fade-in duration-500 pb-10">

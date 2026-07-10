@@ -14,6 +14,7 @@ const inquirySchema = new Schema(
     phone: { type: String, required: true, trim: true },
     productName: { type: String, required: true, trim: true },
     customizationNotes: { type: String, trim: true, default: "" },
+    status: { type: String, enum: ["pending", "done"], default: "pending" },
   },
   { timestamps: true }
 );
