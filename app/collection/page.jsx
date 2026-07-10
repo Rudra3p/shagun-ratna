@@ -151,31 +151,43 @@ export default function Collection() {
           }`}
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <form onSubmit={handleSearchSubmit} className="flex items-center w-full sm:w-auto sm:flex-1 sm:max-w-md gap-2 sm:gap-2.5">
-              <div className="relative flex-grow group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196]" size={16} />
+            <form onSubmit={handleSearchSubmit} className="w-full sm:flex-1 sm:max-w-md">
+              {/* Unified search pill — icon, input, clear and submit all live inside one field */}
+              <div className="group relative flex items-center bg-white rounded-full border border-[#EBE3D5] shadow-sm focus-within:border-[#C5A059] focus-within:shadow-[0_0_0_4px_rgba(197,160,89,0.15)] transition-all duration-300">
+                <Search className="absolute left-4 sm:left-5 text-[#A8A196] group-focus-within:text-[#90060C] transition-colors duration-300 pointer-events-none" size={16} />
                 <input
                   type="text"
                   placeholder="Search the collection..."
-                  className="w-full bg-white border border-[#EBE3D5] focus:border-[#90060C] pl-11 pr-4 py-3 sm:py-3.5 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm outline-none transition-colors duration-300 shadow-sm"
+                  className={`w-full bg-transparent pl-11 sm:pl-12 py-3 sm:py-3.5 rounded-full text-[#2D2926] placeholder-[#A8A196] text-sm outline-none transition-all duration-300 ${
+                    typedSearch ? 'pr-[76px] sm:pr-[86px]' : 'pr-12 sm:pr-14'
+                  }`}
                   value={typedSearch}
                   onChange={(e) => setTypedSearch(e.target.value)}
                 />
+                {typedSearch && (
+                  <button
+                    type="button"
+                    onClick={handleClearFilters}
+                    aria-label="Clear search"
+                    className="absolute right-11 sm:right-[52px] flex items-center justify-center w-6 h-6 rounded-full text-[#A8A196] hover:text-[#2D2926] hover:bg-[#F5EFE6] transition-colors duration-200 cursor-pointer"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="absolute right-1.5 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#90060C] hover:bg-[#730509] text-white transition-all duration-300 shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <Search size={14} />
+                </button>
               </div>
-              <button
-                type="submit"
-                aria-label="Search"
-                className="flex items-center justify-center gap-1.5 bg-[#90060C] hover:bg-[#730509] text-white text-xs font-semibold tracking-wider uppercase px-3.5 sm:px-5 py-3 sm:py-3.5 rounded-full transition-colors duration-300 shadow-sm cursor-pointer whitespace-nowrap shrink-0"
-              >
-                <Search size={15} className="sm:hidden" />
-                <span className="hidden sm:inline">Search</span>
-              </button>
             </form>
 
             <button
               onClick={() => setIsFilterOpen(true)}
               aria-label="Filters"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto sm:ml-auto px-5 py-3.5 rounded-full border border-[#EBE3D5] bg-white hover:border-[#90060C] text-[#2D2926] text-xs font-semibold uppercase tracking-wider transition-colors duration-300 shadow-sm shrink-0 cursor-pointer"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto sm:ml-auto px-5 py-3.5 rounded-full border border-[#EBE3D5] bg-white hover:border-[#C5A059] text-[#2D2926] text-xs font-semibold uppercase tracking-wider transition-all duration-300 shadow-sm hover:shadow-md shrink-0 cursor-pointer"
             >
               <SlidersHorizontal size={16} />
               <span>Filters</span>
