@@ -55,7 +55,7 @@ const WhatsAppIcon = ({ size = 20, ...props }) => (
     fill="currentColor"
     {...props}
   >
-    <path d="M12.004 2C6.48 2 2 6.48 2 12.004c0 1.764.462 3.486 1.341 5.011l-1.428 5.215 5.337-1.4a9.96 9.96 0 0 0 4.754 1.178c5.524 0 10.004-4.48 10.004-10.004C22.012 6.48 17.528 2 12.004 2zm0 1.636c4.615 0 8.368 3.753 8.368 8.368 0 4.615-3.753 8.368-8.368 8.368-1.573 0-3.04-.438-4.305-1.196l-.309-.184-3.197.839.854-3.118-.202-.32a8.318 8.318 0 0 1-1.209-4.389c0-4.615 3.753-8.368 8.368-8.368zm-3.693 4.148c-.143 0-.36.054-.548.26-.188.207-.718.702-.718 1.711s.735 1.986.837 2.124c.102.138 1.447 2.21 3.506 3.097.49.21.872.337 1.17.432.493.156.942.134 1.296.082.395-.058 1.21-.495 1.38-.973.058-.09.207-.09.384-.141-.475-.052-.09-.188-.144-.395-.248-.207-.103-1.21-.597-1.397-.666-.188-.069-.324-.103-.46.103-.137.207-.53.666-.649.803-.12.138-.24.155-.447.052-.207-.103-.874-.322-1.664-1.026-.615-.549-1.03-1.226-1.15-1.433-.12-.207-.013-.32.09-.422.094-.092.207-.242.31-.362.104-.12.138-.207.207-.345.069-.138.035-.259-.017-.363-.052-.103-.46-1.109-.63-1.517-.165-.4-.347-.346-.46-.352-.105-.005-.226-.006-.347-.006z" />
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
   </svg>
 );
 
@@ -193,9 +193,9 @@ export default function Contact() {
           className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8"
         >
           
-          {/* Left Column: Contact Details & Map */}
-          <motion.div variants={itemVariants} className="lg:col-span-5 space-y-10">
-            
+          {/* Left Column: Contact Details */}
+          <motion.div variants={itemVariants} className="lg:col-span-5">
+
             {/* Contact Details Card */}
             <div className="bg-[#FAF7F2]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 rounded-2xl shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-[#C5A059]/5 to-transparent rounded-full pointer-events-none" />
@@ -300,21 +300,6 @@ export default function Contact() {
                   </a>
                 </div>
               </div>
-            </div>
-
-            {/* Map Frame Card */}
-            <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[260px] relative group bg-[#FAF7F2]">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3773.8427506979207!2d72.8302061759654!3d18.927318056965457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7d1c253d865ab%3A0xe349db82a937a00f!2sKala%20Ghoda%2C%20Fort%2C%20Mumbai%2C%20Maharashtra%20400001!5e0!3m2!1sen!2sin!4v1718784000000!5m2!1sen!2sin"
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen="" 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade"
-                className="grayscale contrast-110 opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
-              />
-              <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FAF7F2] rounded-2xl" />
             </div>
 
           </motion.div>
@@ -466,6 +451,29 @@ export default function Contact() {
             </div>
           </motion.div>
 
+        </motion.div>
+
+        {/* Map — full width so it doesn't get squeezed into one column and leave a dead gap beside it */}
+        <motion.div variants={itemVariants} initial="hidden" animate="visible" className="mt-10">
+          <div className="flex items-center gap-3 mb-5">
+            <h3 className="font-sans text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059]">
+              Find Our Boutique
+            </h3>
+            <div className="h-[1px] flex-1 bg-[#C5A059]/20" />
+          </div>
+          <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FAF7F2]">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3773.8427506979207!2d72.8302061759654!3d18.927318056965457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7d1c253d865ab%3A0xe349db82a937a00f!2sKala%20Ghoda%2C%20Fort%2C%20Mumbai%2C%20Maharashtra%20400001!5e0!3m2!1sen!2sin!4v1718784000000!5m2!1sen!2sin"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="grayscale contrast-110 opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
+            />
+            <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FAF7F2] rounded-2xl" />
+          </div>
         </motion.div>
 
       </div>
