@@ -45,12 +45,17 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite }) 
           )}
         </div>
 
-        {/* Clean Product Typography stack info panel — sits below the image, no shared box */}
-        <div className="flex flex-col flex-grow px-0.5 sm:px-1 pb-1">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="text-sm sm:text-lg font-brand font-semibold tracking-tight text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
-              {product.productName}
-            </h3>
+        {/* Product info — clear eyebrow → title → price hierarchy, sits below the image */}
+        <div className="flex flex-col flex-grow px-0.5 sm:px-1 pt-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[9px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.18em] text-[#C5A059] mb-1.5 line-clamp-1">
+                {product.category || "Fine Jewelry"}
+              </p>
+              <h3 className="text-base sm:text-xl font-brand font-semibold tracking-tight leading-snug text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
+                {product.productName}
+              </h3>
+            </div>
 
             {/* Favorite control — lives with the product info, not floating over the image */}
             <button
@@ -60,7 +65,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite }) 
                 onToggleFavorite(product._id, e);
               }}
               aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-              className={`relative shrink-0 -mt-0.5 -mr-0.5 flex items-center justify-center w-7 h-7 rounded-full ring-1 transition-all duration-300 cursor-pointer active:scale-90 ${
+              className={`relative shrink-0 mt-0.5 -mr-0.5 flex items-center justify-center w-7 h-7 rounded-full ring-1 transition-all duration-300 cursor-pointer active:scale-90 ${
                 isFavorited
                   ? "ring-[#90060C]/20 bg-[#90060C]/5"
                   : "ring-[#EBE3D5] hover:ring-[#C5A059]/60 hover:bg-[#F5EFE6]"
@@ -73,30 +78,33 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite }) 
               />
             </button>
           </div>
-          <p className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-2 sm:mb-2.5 line-clamp-1">
-            <Gem size={9} strokeWidth={2.5} className="shrink-0 opacity-70" />
-            {product.purity || "22K Pure Gold"} · {product.category || "Fine Jewelry"}
+
+          <p className="flex items-center gap-1.5 text-[10px] sm:text-xs font-sans font-medium text-[#8a7358] mt-1.5 mb-3 line-clamp-1">
+            <Gem size={10} strokeWidth={2.5} className="shrink-0 opacity-60" />
+            {product.purity || "22K Pure Gold"}
           </p>
-          <div className="h-px w-6 bg-[#C5A059]/50 mb-2 sm:mb-2.5 group-hover:w-10 transition-all duration-500" />
-          <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto flex-wrap">
+
+          <div className="h-px w-6 bg-[#C5A059]/50 mb-3 group-hover:w-10 transition-all duration-500" />
+
+          <div className="flex items-baseline gap-2 mt-auto flex-wrap">
             {hasDiscount ? (
               <>
-                <span className="text-sm sm:text-base font-brand font-bold text-[#90060C]">
+                <span className="text-lg sm:text-2xl font-brand font-bold text-[#90060C]">
                   ${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
-                <span className="text-[10px] sm:text-xs text-[#A8A196] font-medium line-through">
+                <span className="text-xs sm:text-sm text-[#A8A196] font-medium line-through">
                   ${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </>
             ) : (
-              <span className="text-sm sm:text-base font-brand font-bold text-[#2D2926]">
+              <span className="text-lg sm:text-2xl font-brand font-bold text-[#2D2926]">
                 {product.price ? `$${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
               </span>
             )}
           </div>
           {/* Concrete dollar savings reads stronger than a bare percentage (loss-aversion framing) */}
           {hasDiscount && savings > 0 && (
-            <span className="text-[10px] sm:text-[11px] font-sans font-semibold text-[#9C8253] mt-1">
+            <span className="text-[10px] sm:text-xs font-sans font-semibold text-[#9C8253] mt-1">
               You save ${savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           )}

@@ -236,8 +236,9 @@ export default function Collection() {
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse flex flex-col bg-transparent p-0">
                 <div className="aspect-[4/5] w-full bg-[#EBE3D5]/30 rounded-xl mb-4" />
-                <div className="h-4 bg-[#EBE3D5]/30 w-3/4 rounded-md mb-2.5 ml-1" />
-                <div className="h-3 bg-[#EBE3D5]/30 w-1/3 rounded-md ml-1" />
+                <div className="h-2.5 bg-[#EBE3D5]/30 w-1/4 rounded-md mb-2 ml-1" />
+                <div className="h-5 bg-[#EBE3D5]/30 w-3/4 rounded-md mb-3 ml-1" />
+                <div className="h-5 bg-[#EBE3D5]/30 w-1/3 rounded-md ml-1" />
               </div>
             ))}
           </div>

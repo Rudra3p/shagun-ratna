@@ -12,8 +12,9 @@ function ProductCardSkeleton() {
   return (
     <div className="flex flex-col bg-transparent p-0 animate-pulse">
       <div className="aspect-[3/4] w-full bg-gray-100 rounded-xl mb-3" />
+      <div className="h-2.5 bg-gray-100 w-1/4 rounded-md mb-2 ml-0.5" />
       <div className="h-4 bg-gray-100 w-3/4 rounded-md mb-2.5 ml-0.5" />
-      <div className="h-3 bg-gray-100 w-1/3 rounded-md ml-0.5" />
+      <div className="h-4 bg-gray-100 w-1/3 rounded-md ml-0.5" />
     </div>
   );
 }
@@ -69,23 +70,23 @@ function ProductCard({ product, onEdit, onDelete }) {
         </div>
       </div>
 
-      {/* Product Description Text */}
-      <div className="flex flex-col flex-grow px-0.5">
-        <h3 className="text-sm sm:text-base font-serif font-medium text-[#222222] group-hover:text-[#540411] transition-colors duration-300 truncate mb-1">
-          {product.productName}
-        </h3>
-        <p className="text-[10px] sm:text-[11px] font-sans font-semibold uppercase tracking-wide text-gray-400 mb-2 truncate">
+      {/* Product info — eyebrow category → title → price hierarchy */}
+      <div className="flex flex-col flex-grow px-0.5 pt-1">
+        <p className="text-[9.5px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.14em] text-gray-400 mb-1.5 truncate">
           {product.category || 'General'}
         </p>
-        <div className="h-px w-6 bg-[#540411]/25 mb-2 group-hover:w-10 transition-all duration-500" />
+        <h3 className="text-sm sm:text-base font-serif font-semibold text-[#1a1a1a] group-hover:text-[#540411] transition-colors duration-300 truncate mb-2 leading-snug">
+          {product.productName}
+        </h3>
+        <div className="h-px w-6 bg-[#540411]/25 mb-2.5 group-hover:w-10 transition-all duration-500" />
         <div className="flex items-baseline gap-2 mt-auto">
           {hasDiscount ? (
             <>
-              <span className="text-sm font-sans font-bold text-[#540411]">${parseFloat(product.offerPrice).toFixed(2)}</span>
+              <span className="text-base sm:text-lg font-sans font-bold text-[#540411]">${parseFloat(product.offerPrice).toFixed(2)}</span>
               <span className="text-xs text-gray-400 font-medium line-through">${parseFloat(product.price).toFixed(2)}</span>
             </>
           ) : (
-            <span className="text-sm font-sans font-bold text-[#222222]">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</span>
+            <span className="text-base sm:text-lg font-sans font-bold text-[#1a1a1a]">${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</span>
           )}
         </div>
       </div>
