@@ -470,7 +470,7 @@ export default function Contact() {
               allowFullScreen=""
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              className="grayscale contrast-110 opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
+              className="contrast-110 opacity-90 group-hover:opacity-100 transition-all duration-700"
             />
             <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FAF7F2] rounded-2xl" />
           </div>

@@ -94,8 +94,7 @@ export default function FeaturedCollections() {
                   alt={item.title}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
-                  // CHANGED: Added `lg:grayscale` so it is beautifully colorful on mobile by default, but stays grayscale on desktop hovers.
-                  className="object-cover lg:grayscale hover:grayscale-0 scale-100 group-hover:scale-103 transition-all duration-[1200ms] ease-out"
+                  className="object-cover scale-100 group-hover:scale-103 transition-all duration-[1200ms] ease-out"
                   priority={index === 0}
                 />
               </div>
