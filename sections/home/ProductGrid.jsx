@@ -13,7 +13,7 @@ export default function ProductGrid() {
   useEffect(() => {
     let cancelled = false;
 
-    userApi.get('/products?page=1&limit=6')
+    userApi.get('/products/homepage')
       .then((res) => {
         if (!cancelled) setProducts(res.data.products || []);
       })
