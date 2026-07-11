@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSiteImage } from '@/components/SiteImagesProvider';
 
 // Optimized animation variants for luxury choreography
 const containerVariants = {
@@ -26,6 +27,7 @@ const childVariants = {
 export default function HeroSection() {
   const containerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const heroImage = useSiteImage('home-hero', '/hero_sec_hand.png');
 
   // Check window width to adjust parallax intensity safely
   useEffect(() => {
@@ -136,9 +138,9 @@ export default function HeroSection() {
             }}
             className="absolute inset-0 z-10 flex items-center justify-center select-none pointer-events-none will-change-transform"
           >
-            <Image 
-              src="/hero_sec_hand.png" 
-              alt="Shagun Ratna Jewelry" 
+            <Image
+              src={heroImage}
+              alt="Shagun Ratna Jewelry"
               fill
               sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 50vw"
               className="object-contain opacity-95 select-none pointer-events-none" 

@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useSiteImage } from '@/components/SiteImagesProvider';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 }, // Reduced initial offset slightly for smoother tracking on mobile
@@ -10,6 +11,8 @@ const fadeUp = {
 };
 
 export default function StorySection() {
+  const storyImage = useSiteImage('home-story', '/story-image.jpg');
+
   return (
     <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7] text-[#1a1a1a] overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -29,8 +32,8 @@ export default function StorySection() {
           <div className="absolute -bottom-2 -left-2 lg:-bottom-4 lg:-left-4 w-16 h-16 lg:w-24 lg:h-24 border-l border-b border-[#90060c]/35 rounded-bl-2xl -z-10" />
           
           <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
-            <Image 
-              src="/story-image.jpg"
+            <Image
+              src={storyImage}
               alt="The craftsmanship of Shagun Ratna"
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 50vw"

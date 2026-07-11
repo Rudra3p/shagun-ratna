@@ -3,24 +3,28 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useSiteImages } from '@/components/SiteImagesProvider';
 
 const collections = [
   {
     tag: "The Collection",
     title: "Certified Diamonds",
     text: "Unrivaled brilliance, ethically sourced. Each stone is hand-selected for its fire and clarity, ensuring your piece is as unique as the moments it celebrates.",
+    imageKey: "home-featured-diamond",
     image: "/diamond-section.jpg"
   },
   {
     tag: "The Collection",
     title: "Rare Gemstones",
     text: "Stones that tell a story of origin. From deep emeralds to vibrant rubies, we curate rare treasures that bring color and life to traditional silhouettes.",
+    imageKey: "home-featured-gemstone",
     image: "/gemstone-section.jpg"
   },
   {
     tag: "The Collection",
     title: "Gold Artistry",
     text: "Tradition captured in 22K gold. Our master artisans breathe soul into metal, creating timeless pieces that carry the legacy of generations forward.",
+    imageKey: "home-featured-gold",
     image: "/gold-section.jpg"
   }
 ];
@@ -31,6 +35,8 @@ const fadeUp = {
 };
 
 export default function FeaturedCollections() {
+  const siteImages = useSiteImages();
+
   return (
     <div className="bg-[#FDFBF7]">
       {collections.map((item, index) => (
@@ -56,8 +62,8 @@ export default function FeaturedCollections() {
               />
               
               <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
-                <Image 
-                  src={item.image}
+                <Image
+                  src={siteImages[item.imageKey] || item.image}
                   alt={item.title}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"

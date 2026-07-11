@@ -1,8 +1,13 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSiteImage } from '@/components/SiteImagesProvider';
 
 export default function BoutiqueVisit() {
+  const boutiqueImage = useSiteImage('about-boutique', '/boutique-interior.jpg');
+
   return (
     <section className="relative py-24 px-6 bg-white text-[#90060c]">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
@@ -10,9 +15,9 @@ export default function BoutiqueVisit() {
         {/* Visual Content - Editorial Style */}
         <div className="w-full lg:w-1/2 relative">
           <div className="aspect-[4/3] w-full relative shadow-xl">
-            <Image 
-              src="/boutique-interior.jpg" 
-              alt="Visit our Boutique" 
+            <Image
+              src={boutiqueImage}
+              alt="Visit our Boutique"
               fill 
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"

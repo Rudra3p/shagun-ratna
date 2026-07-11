@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import adminApi from '@/lib/adminApi';
 import {
-  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X, Inbox
+  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X, Inbox, Image as ImageIcon
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -112,11 +112,18 @@ const handleLogout = async () => {
             href="/admin/product-mapping" 
             onClick={() => setIsOpen(false)}
           />
-          <SidebarItem 
-            active={currentPath === '/admin/history'} 
-            icon={<History size={20} />} 
-            label="History" 
-            href="/admin/history" 
+          <SidebarItem
+            active={currentPath === '/admin/site-images'}
+            icon={<ImageIcon size={20} />}
+            label="Site Images"
+            href="/admin/site-images"
+            onClick={() => setIsOpen(false)}
+          />
+          <SidebarItem
+            active={currentPath === '/admin/history'}
+            icon={<History size={20} />}
+            label="History"
+            href="/admin/history"
             onClick={() => setIsOpen(false)}
           />
           <SidebarItem

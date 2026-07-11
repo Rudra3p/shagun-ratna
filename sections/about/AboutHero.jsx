@@ -3,21 +3,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { useSiteImages } from '@/components/SiteImagesProvider';
 
-const images = [
-  "/about-1.png", 
-  "/about-2.jpg",
-  "/about-3.jpg",
-  "/about-4.jpg",
-  "/about-5.jpg",
+const slides = [
+  { key: 'about-hero-1', defaultSrc: "/about-1.png" },
+  { key: 'about-hero-2', defaultSrc: "/about-2.jpg" },
+  { key: 'about-hero-3', defaultSrc: "/about-3.jpg" },
+  { key: 'about-hero-4', defaultSrc: "/about-4.jpg" },
+  { key: 'about-hero-5', defaultSrc: "/about-5.jpg" },
 ];
 
 export default function AboutHero() {
   const [index, setIndex] = useState(0);
+  const siteImages = useSiteImages();
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
+      setIndex((prev) => (prev + 1) % slides.length);
     }, 9000);
     return () => clearInterval(timer);
   }, []);
@@ -37,7 +39,7 @@ export default function AboutHero() {
             className="absolute inset-0"
           >
             <Image
-              src={images[index]}
+              src={siteImages[slides[index].key] || slides[index].defaultSrc}
               alt="Shagun Ratna Legacy"
               fill
               sizes="100vw"

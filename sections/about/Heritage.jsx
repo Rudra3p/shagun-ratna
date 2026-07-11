@@ -1,7 +1,14 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
+import { useSiteImage } from '@/components/SiteImagesProvider';
 
 export default function HeritageSection() {
+  const tallImage = useSiteImage('about-heritage-tall', '/heritage-tall.jpg');
+  const squareImage1 = useSiteImage('about-heritage-square-1', '/heritage-square-1.jpg');
+  const squareImage2 = useSiteImage('about-heritage-square-2', '/heritage-square-2.jpg');
+
   return (
     <section className="py-20 px-6 bg-white text-[#90060c]">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -10,9 +17,9 @@ export default function HeritageSection() {
         <div className="order-1 grid grid-cols-2 lg:grid-cols-3 gap-4 h-[400px] lg:h-[500px]">
           {/* Main Tall Image */}
           <div className="col-span-2 relative h-full">
-            <Image 
-              src="/heritage-tall.jpg" 
-              alt="Heritage Craftsmanship" 
+            <Image
+              src={tallImage}
+              alt="Heritage Craftsmanship"
               fill 
               sizes="(max-width: 1024px) 100vw, 33vw"
               className="object-cover"
@@ -23,9 +30,9 @@ export default function HeritageSection() {
           {/* Stacked Images */}
           <div className="col-span-2 lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-4 h-full">
             <div className="relative h-full">
-              <Image 
-                src="/heritage-square-1.jpg" 
-                alt="Detailed Work" 
+              <Image
+                src={squareImage1}
+                alt="Detailed Work"
                 fill 
                 sizes="(max-width: 1024px) 50vw, 17vw"
                 className="object-cover"
@@ -33,9 +40,9 @@ export default function HeritageSection() {
               />
             </div>
             <div className="relative h-full">
-              <Image 
-                src="/heritage-square-2.jpg" 
-                alt="Legacy Detail" 
+              <Image
+                src={squareImage2}
+                alt="Legacy Detail"
                 fill 
                 sizes="(max-width: 1024px) 50vw, 17vw"
                 className="object-cover"

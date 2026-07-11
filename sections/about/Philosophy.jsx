@@ -3,8 +3,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useSiteImage } from '@/components/SiteImagesProvider';
 
 export default function PhilosophySection() {
+  const philosophyImage = useSiteImage('about-philosophy', '/philosophy-main.png');
+
   return (
     <section className="py-16 md:py-24 px-6 bg-[#90060c] text-[#faf3e5] overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
@@ -29,9 +32,9 @@ export default function PhilosophySection() {
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             className="relative w-[80%] md:w-[70%] aspect-[4/5] shadow-2xl"
           >
-            <Image 
-              src="/philosophy-main.png" 
-              alt="Our Philosophy" 
+            <Image
+              src={philosophyImage}
+              alt="Our Philosophy"
               fill 
               sizes="(max-width: 768px) 80vw, 35vw"
               className="object-cover border border-[#C5A059]/30"

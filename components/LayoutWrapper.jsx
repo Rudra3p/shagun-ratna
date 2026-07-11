@@ -4,6 +4,7 @@
 import Navbar from "@/components/nav";
 import FeedbackForm from "@/components/Feedback";
 import Footer from "@/components/Footer";
+import { SiteImagesProvider } from "@/components/SiteImagesProvider";
 import { usePathname } from 'next/navigation';
 
 export default function LayoutWrapper({ children }) {
@@ -18,13 +19,13 @@ export default function LayoutWrapper({ children }) {
 
   // Otherwise, render the standard public site layout
   return (
-    <>
+    <SiteImagesProvider>
       <Navbar />
       <main className="pt-16">
         {children}
       </main>
       <Footer />
       <FeedbackForm />
-    </>
+    </SiteImagesProvider>
   );
 }
