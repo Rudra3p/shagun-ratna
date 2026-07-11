@@ -112,9 +112,12 @@ export default function HistoryPage() {
             >
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-sm font-bold text-on-surface">
-                  {range === 'daily'
-                    ? formatDay(period.date, index)
-                    : formatWeekRange(period.startDate, period.endDate, index)}
+                  {/* Keyed off the period's own shape, not the `range` toggle state — right
+                      after switching ranges, `data` can still hold the previous range's
+                      shape for one render while the new fetch is in flight. */}
+                  {period.startDate
+                    ? formatWeekRange(period.startDate, period.endDate, index)
+                    : formatDay(period.date, index)}
                 </span>
                 <div className="flex-1 h-px bg-outline-variant/30" />
               </div>
