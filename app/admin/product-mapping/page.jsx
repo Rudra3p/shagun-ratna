@@ -157,12 +157,22 @@ export default function ProductMappingDashboard() {
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px] font-medium text-gray-700"
                 >
                   <option value="None">None (collection only)</option>
-                  <option value="Card 1">Homepage Spot 1</option>
-                  <option value="Card 2">Homepage Spot 2</option>
-                  <option value="Card 3">Homepage Spot 3</option>
-                  <option value="Card 4">Homepage Spot 4</option>
-                  <option value="Card 5">Homepage Spot 5</option>
-                  <option value="Card 6">Homepage Spot 6</option>
+                  <optgroup label="Product Grid (6 cards)">
+                    <option value="Card 1">Homepage Spot 1</option>
+                    <option value="Card 2">Homepage Spot 2</option>
+                    <option value="Card 3">Homepage Spot 3</option>
+                    <option value="Card 4">Homepage Spot 4</option>
+                    <option value="Card 5">Homepage Spot 5</option>
+                    <option value="Card 6">Homepage Spot 6</option>
+                  </optgroup>
+                  <optgroup label="New Launch Spotlight">
+                    <option value="New Launch">New Launch Section</option>
+                  </optgroup>
+                  <optgroup label="Featured Collections">
+                    <option value="Featured 1">Featured Collection 1</option>
+                    <option value="Featured 2">Featured Collection 2</option>
+                    <option value="Featured 3">Featured Collection 3</option>
+                  </optgroup>
                 </select>
               </div>
 
@@ -201,7 +211,7 @@ export default function ProductMappingDashboard() {
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Description</label>
                 <textarea
-                  rows={2} placeholder="Optional notes about this collection..."
+                  rows={2} placeholder="Shown as the homepage copy if placed in New Launch or a Featured Collection spot"
                   value={modalForm.description} onChange={(e) => setModalForm({...modalForm, description: e.target.value})}
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px] resize-none"
                 />

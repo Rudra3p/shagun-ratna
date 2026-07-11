@@ -1,9 +1,11 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSiteImages } from '@/components/SiteImagesProvider';
+import userApi from '@/lib/userApi';
 
 const collections = [
   {
@@ -36,10 +38,35 @@ const fadeUp = {
 
 export default function FeaturedCollections() {
   const siteImages = useSiteImages();
+  const [featured, setFeatured] = useState([null, null, null]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    userApi.get('/site-content')
+      .then((res) => {
+        if (!cancelled) setFeatured(res.data.featured || [null, null, null]);
+      })
+      .catch(() => {
+        // Cards keep their default content if this feed fails
+      });
+
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="bg-[#FDFBF7]">
-      {collections.map((item, index) => (
+      {collections.map((defaultItem, index) => {
+        const assigned = featured[index];
+        const product = assigned?.product;
+        const item = {
+          title: assigned?.title || defaultItem.title,
+          text: assigned?.description || defaultItem.text,
+          tag: defaultItem.tag,
+          image: product?.imageUrl || siteImages[defaultItem.imageKey] || defaultItem.image,
+        };
+
+        return (
         <section key={index} className="min-h-screen py-16 md:py-28 px-6 md:px-12 flex items-center overflow-hidden">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-center w-full">
             
@@ -63,7 +90,7 @@ export default function FeaturedCollections() {
               
               <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
                 <Image
-                  src={siteImages[item.imageKey] || item.image}
+                  src={item.image}
                   alt={item.title}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
@@ -115,15 +142,26 @@ export default function FeaturedCollections() {
                 {item.text}
               </p>
               
-              <button className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
-                <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
-                <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
-              </button>
+              {product ? (
+                <Link
+                  href={`/collection/${product._id}`}
+                  className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
+                >
+                  <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
+                  <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+                </Link>
+              ) : (
+                <button className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
+                  <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
+                  <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+                </button>
+              )}
             </motion.div>
-            
+
           </div>
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }

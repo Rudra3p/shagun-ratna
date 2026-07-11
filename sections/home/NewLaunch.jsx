@@ -1,10 +1,12 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Sparkles, Calendar, Award, Compass } from 'lucide-react';
 import { useSiteImage } from '@/components/SiteImagesProvider';
+import userApi from '@/lib/userApi';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -12,15 +14,33 @@ const fadeUp = {
 };
 
 export default function NewLaunchSection() {
-  const newLaunchImage = useSiteImage('home-new-launch', '/new-launch.png');
+  const defaultImage = useSiteImage('home-new-launch', '/new-launch.png');
+  const [spotlight, setSpotlight] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    userApi.get('/site-content')
+      .then((res) => {
+        if (!cancelled) setSpotlight(res.data.newLaunch || null);
+      })
+      .catch(() => {
+        // Section keeps its default content if this feed fails
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const product = spotlight?.product;
+  const image = product?.imageUrl || defaultImage;
 
   return (
     <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7] text-[#1a1a1a] overflow-hidden">
-      
+
       {/* Section Header */}
       <div className="max-w-7xl mx-auto flex flex-col items-center mb-12 md:mb-20 text-center">
         {/* Self-drawing vertical line */}
-        <motion.div 
+        <motion.div
           initial={{ height: 0 }}
           whileInView={{ height: 50 }}
           viewport={{ once: true }}
@@ -33,19 +53,19 @@ export default function NewLaunchSection() {
         <h2 className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase">
           L&apos;Inauguration
         </h2>
-        <motion.div 
+        <motion.div
           initial={{ width: 0 }}
           whileInView={{ width: 96 }}
           viewport={{ once: true }}
           transition={{ duration: 1, delay: 0.2 }}
-          className="h-[1px] bg-[#C5A059] mt-4 md:mt-6" 
+          className="h-[1px] bg-[#C5A059] mt-4 md:mt-6"
         />
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        
+
         {/* Left: Asymmetric Matting Image Container */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
@@ -54,14 +74,14 @@ export default function NewLaunchSection() {
         >
           {/* Gold Matted Frame behind the image */}
           <div className="absolute inset-0 border border-[#C5A059]/40 rounded-2xl translate-x-3 translate-y-3 lg:translate-x-4 lg:translate-y-4 -z-10 group-hover:translate-x-1.5 group-hover:translate-y-1.5 transition-transform duration-700" />
-          
+
           {/* Burgundy accent corner lines */}
           <div className="absolute -bottom-2 -left-2 lg:-bottom-4 lg:-left-4 w-16 h-16 lg:w-24 lg:h-24 border-l border-b border-[#90060c]/35 rounded-bl-2xl -z-10" />
-          
+
           <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
             <Image
-              src={newLaunchImage}
-              alt="Shagun Ratna New Launch - The Aadya Emerald Choker"
+              src={image}
+              alt={spotlight?.title || "Shagun Ratna New Launch - The Aadya Emerald Choker"}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 50vw"
               className="object-cover scale-100 group-hover:scale-103 transition-all duration-[1200ms] ease-out"
@@ -71,7 +91,7 @@ export default function NewLaunchSection() {
         </motion.div>
 
         {/* Right: Product Details & Specs */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
@@ -84,57 +104,118 @@ export default function NewLaunchSection() {
               Signature Piece
             </span>
           </div>
-          
-          <h3 className="font-brand text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight text-[#1a1a1a] font-light">
-            The Aadya <br />
-            <span className="text-[#90060c] font-normal not-italic">Emerald Choker</span>
-          </h3>
-          
+
+          {spotlight ? (
+            <h3 className="font-brand text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight text-[#1a1a1a] font-light">
+              {spotlight.title}
+            </h3>
+          ) : (
+            <h3 className="font-brand text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight text-[#1a1a1a] font-light">
+              The Aadya <br />
+              <span className="text-[#90060c] font-normal not-italic">Emerald Choker</span>
+            </h3>
+          )}
+
           <p className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/85 mb-8 max-w-lg text-left">
-            Unveiling our latest masterpiece—an exquisite choker that marries the architectural symmetry of heritage royal arches with the modern fluid lines of contemporary fine jewelry. Every single Colombian emerald has been hand-selected and cut to align with the intricate golden filigree, taking over 150 hours of meticulous craftsmanship.
+            {spotlight?.description ||
+              "Unveiling our latest masterpiece—an exquisite choker that marries the architectural symmetry of heritage royal arches with the modern fluid lines of contemporary fine jewelry. Every single Colombian emerald has been hand-selected and cut to align with the intricate golden filigree, taking over 150 hours of meticulous craftsmanship."}
           </p>
 
           {/* Specifications Grid - Falls back gracefully to single-column on tiny displays */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6 md:gap-y-8 border-t border-b border-[#C5A059]/20 py-8 mb-10 w-full max-w-lg text-left">
-            <div className="flex items-center gap-3.5">
-              <Award size={18} className="text-[#90060c] shrink-0 opacity-80" />
-              <div>
-                <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Gold Purity</p>
-                <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">22K Solid Gold</p>
-              </div>
-            </div>
+            {product ? (
+              <>
+                <div className="flex items-center gap-3.5">
+                  <Award size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Price</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">
+                      ₹{parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-3.5">
-              <Compass size={18} className="text-[#90060c] shrink-0 opacity-80" />
-              <div>
-                <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Colombian Emeralds</p>
-                <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">8.45 Carats</p>
-              </div>
-            </div>
+                <div className="flex items-center gap-3.5">
+                  <Compass size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Category</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">{product.category || "Fine Jewelry"}</p>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-3.5">
-              <Sparkles size={18} className="text-[#90060c] shrink-0 opacity-80" />
-              <div>
-                <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Uncut Diamonds</p>
-                <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">4.20 Carats</p>
-              </div>
-            </div>
+                <div className="flex items-center gap-3.5">
+                  <Sparkles size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Offer Price</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">
+                      {product.offerPrice > 0 ? `₹${parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-3.5">
-              <Calendar size={18} className="text-[#90060c] shrink-0 opacity-80" />
-              <div>
-                <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Artisan Sign</p>
-                <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">Harish Soni</p>
-              </div>
-            </div>
+                <div className="flex items-center gap-3.5">
+                  <Calendar size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Added</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">
+                      {new Date(product.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-3.5">
+                  <Award size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Gold Purity</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">22K Solid Gold</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3.5">
+                  <Compass size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Colombian Emeralds</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">8.45 Carats</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3.5">
+                  <Sparkles size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Uncut Diamonds</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">4.20 Carats</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3.5">
+                  <Calendar size={18} className="text-[#90060c] shrink-0 opacity-80" />
+                  <div>
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-[#C5A059] font-bold">Artisan Sign</p>
+                    <p className="text-sm font-brand text-[#1a1a1a] mt-0.5">Harish Soni</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-          
-          <button className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
-            <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Book Private Viewing</span>
-            <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
-          </button>
+
+          {product ? (
+            <Link
+              href={`/collection/${product._id}`}
+              className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
+            >
+              <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Book Private Viewing</span>
+              <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+            </Link>
+          ) : (
+            <button className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
+              <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Book Private Viewing</span>
+              <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+            </button>
+          )}
         </motion.div>
-        
+
       </div>
     </section>
   );
