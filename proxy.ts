@@ -33,14 +33,11 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return adminResponse || NextResponse.next();
   }
 
-  // 4. USER UI PROTECTION
+  // 4. USER UI PROTECTION (real account-only pages — not the public storefront)
+  const USER_PROTECTED_PATHS = ['/profile', '/liked-collection'];
   let response: NextResponse;
-  if (pathname.startsWith('/user')) {
-    if (pathname === '/user/signin' || pathname === '/signin') {
-      response = NextResponse.next();
-    } else {
-      response = (await userMiddleware(request)) || NextResponse.next();
-    }
+  if (USER_PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    response = (await userMiddleware(request)) || NextResponse.next();
   } else {
     response = NextResponse.next();
   }
