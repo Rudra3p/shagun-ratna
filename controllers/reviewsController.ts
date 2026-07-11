@@ -45,10 +45,12 @@ export const getReviews = async (req: Request): Promise<NextResponse> => {
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = parseInt(url.searchParams.get("limit") || "10");
     const approved = url.searchParams.get("approved");
+    const featured = url.searchParams.get("featured");
 
     const query: Record<string, unknown> = {};
     if (approved === "true") query.approved = true;
     if (approved === "false") query.approved = false;
+    if (featured === "true") query.featured = true;
 
     const skip = (page - 1) * limit;
 
@@ -100,6 +102,29 @@ export const updateReview = async (req: Request): Promise<NextResponse> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Failed to update review";
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+};
+
+// Sets the homepage Testimonials section to show exactly this set of reviews —
+// anything previously featured but not in `featuredIds` is unfeatured.
+export const syncFeaturedReviews = async (req: Request): Promise<NextResponse> => {
+  try {
+    await dbConnect();
+
+    const body = await req.json();
+    const featuredIds: string[] = Array.isArray(body.featuredIds) ? body.featuredIds : [];
+
+    await Review.updateMany({}, { $set: { featured: false } });
+    if (featuredIds.length > 0) {
+      await Review.updateMany({ _id: { $in: featuredIds } }, { $set: { featured: true } });
+    }
+
+    return NextResponse.json(
+      { success: true, message: "Homepage reviews updated", count: featuredIds.length },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to update homepage reviews" }, { status: 500 });
   }
 };
 

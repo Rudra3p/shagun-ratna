@@ -1,19 +1,25 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Star, Filter, Upload, ChevronDown, Trash2 } from 'lucide-react';
+import { Star, Filter, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 
 export default function ReviewsView() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
       const { data } = await adminApi.get('/reviews?limit=100');
-      setReviews(data.reviews || []);
+      const list = data.reviews || [];
+      setReviews(list);
+      // Checkboxes reflect what's currently live on the homepage
+      setSelectedIds(new Set(list.filter((r) => r.featured).map((r) => r._id)));
     } catch (err) {
       console.error("Failed to fetch reviews:", err);
     } finally {
@@ -25,12 +31,45 @@ export default function ReviewsView() {
     fetchReviews();
   }, []);
 
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleUploadToWeb = async () => {
+    setUploading(true);
+    try {
+      await adminApi.put('/reviews', { featuredIds: Array.from(selectedIds) });
+      await fetchReviews();
+      showToast('success', `Homepage updated with ${selectedIds.size} review${selectedIds.size === 1 ? '' : 's'}.`);
+    } catch (err) {
+      console.error("Failed to update homepage reviews:", err);
+      showToast('error', 'Failed to update homepage. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this review?")) return;
     try {
       setDeletingId(id);
       await adminApi.delete(`/reviews?id=${id}`);
       setReviews((prev) => prev.filter((r) => r._id !== id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     } catch (err) {
       console.error("Delete failed:", err);
     } finally {
@@ -91,9 +130,13 @@ export default function ReviewsView() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-primary">Customer Feedback</h3>
-          <button className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg font-semibold text-sm hover:bg-primary-fixed transition-colors">
-            <Upload size={18} />
-            Upload to Web
+          <button
+            onClick={handleUploadToWeb}
+            disabled={uploading}
+            className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg font-semibold text-sm hover:bg-primary-fixed transition-colors disabled:opacity-60"
+          >
+            {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+            Upload to Web {selectedIds.size > 0 && `(${selectedIds.size})`}
           </button>
         </div>
 
@@ -127,16 +170,43 @@ export default function ReviewsView() {
                   ))}
                 </div>
                 <p className="text-sm italic text-on-surface-variant leading-relaxed">"{review.text}"</p>
-                {!review.approved && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-secondary bg-outline-variant/20 self-start px-2 py-0.5 rounded-full">
-                    Pending
-                  </span>
-                )}
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {!review.approved && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-secondary bg-outline-variant/20 px-2 py-0.5 rounded-full">
+                      Pending
+                    </span>
+                  )}
+                  {review.featured && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-on-primary bg-primary px-2 py-0.5 rounded-full">
+                      Live on Homepage
+                    </span>
+                  )}
+                </div>
+
+                <label className="flex items-center gap-2 pt-3 mt-auto border-t border-outline-variant/20 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(review._id)}
+                    onChange={() => toggleSelect(review._id)}
+                    className="w-4 h-4 rounded accent-primary cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-secondary">Show on Homepage</span>
+                </label>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {toast && (
+        <div className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-semibold z-50 ${
+          toast.type === 'success' ? 'bg-primary text-on-primary' : 'bg-red-600 text-white'
+        }`}>
+          {toast.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ const reviewSchema = new Schema(
     text: { type: String, required: true, trim: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     approved: { type: Boolean, default: false },
+    featured: { type: Boolean, default: false }, // shown in the homepage Testimonials section
   },
   { timestamps: true }
 );

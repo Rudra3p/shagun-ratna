@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react'; // Added Star icon
 
-const testimonials = [
+const DEFAULT_TESTIMONIALS = [
   {
     name: "Dr. Anjali Mehta",
     quote: "The craftsmanship at Shagun Ratna is unparalleled. Every piece I've acquired feels like a timeless heirloom.",
@@ -26,14 +26,37 @@ const testimonials = [
 ];
 
 export default function Testimonials() {
+  const [featuredReviews, setFeaturedReviews] = useState(null); // null = not loaded yet
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch('/api/reviews?featured=true&limit=6')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setFeaturedReviews(data?.reviews || []);
+      })
+      .catch(() => {
+        if (!cancelled) setFeaturedReviews([]);
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Real reviews the admin has chosen to feature take priority; falls back to the
+  // default copy until at least one review is uploaded from /admin/reviews.
+  const testimonials = featuredReviews && featuredReviews.length > 0
+    ? featuredReviews.map((r) => ({ key: r._id, name: r.name, quote: r.text, role: r.product, rating: r.rating }))
+    : DEFAULT_TESTIMONIALS.map((t, i) => ({ key: i, ...t }));
+
   return (
     <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7]">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Section Header */}
         <div className="flex flex-col items-center mb-12 md:mb-20 text-center">
           {/* Self-drawing vertical line */}
-          <motion.div 
+          <motion.div
             initial={{ height: 0 }}
             whileInView={{ height: 50 }}
             viewport={{ once: true }}
@@ -46,26 +69,26 @@ export default function Testimonials() {
           <h2 className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase">
             Patron Experiences
           </h2>
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             whileInView={{ width: 96 }}
             viewport={{ once: true }}
             transition={{ duration: 1, delay: 0.2 }}
-            className="h-[1px] bg-[#C5A059] mt-4 md:mt-6" 
+            className="h-[1px] bg-[#C5A059] mt-4 md:mt-6"
           />
         </div>
-        
+
         {/* Fluid Testimonial Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch">
           {testimonials.map((t, i) => (
-            <motion.div 
-              key={i}
+            <motion.div
+              key={t.key}
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-30px" }}
-              transition={{ 
-                delay: typeof window !== 'undefined' && window.innerWidth >= 1024 ? i * 0.15 : 0, 
-                duration: 0.8 
+              transition={{
+                delay: typeof window !== 'undefined' && window.innerWidth >= 1024 ? i * 0.15 : 0,
+                duration: 0.8
               }}
               className={`bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-8 md:p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col justify-between ${
                 i === 2 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-[50%] sm:mx-auto lg:max-w-none lg:mx-0' : ''
@@ -75,16 +98,16 @@ export default function Testimonials() {
                 {/* 5-Star Luxury Rating Row */}
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(t.rating)].map((_, index) => (
-                    <Star 
-                      key={index} 
-                      size={13} 
-                      className="text-[#C5A059] fill-[#C5A059]" 
+                    <Star
+                      key={index}
+                      size={13}
+                      className="text-[#C5A059] fill-[#C5A059]"
                     />
                   ))}
                 </div>
 
                 {/* Large Decorative Quote Mark */}
-                <span className="font-brand text-6xl md:text-7xl text-[#C5A059]/30 select-none block h-4 leading-none mb-4">“</span>
+                <span className="font-brand text-6xl md:text-7xl text-[#C5A059]/30 select-none block h-4 leading-none mb-4">&ldquo;</span>
                 <p className="font-sans text-[#1a1a1a]/80 italic text-sm leading-[1.8] tracking-[0.04em] mb-8">
                   {t.quote}
                 </p>
