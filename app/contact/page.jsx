@@ -82,7 +82,8 @@ export default function Contact() {
     name: '',
     phone: '',
     productName: 'General Inquiry',
-    customizationNotes: ''
+    customizationNotes: '',
+    companyWebsite: '' // honeypot — real visitors never see or fill this field
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,7 +125,8 @@ export default function Contact() {
           name: formData.name,
           phone: formData.phone,
           productName: formData.productName,
-          customizationNotes: formData.customizationNotes
+          customizationNotes: formData.customizationNotes,
+          companyWebsite: formData.companyWebsite
         })
       });
 
@@ -136,7 +138,8 @@ export default function Contact() {
           name: '',
           phone: '',
           productName: 'General Inquiry',
-          customizationNotes: ''
+          customizationNotes: '',
+          companyWebsite: ''
         });
       } else {
         setErrorMessage(data.error || 'Failed to submit. Please try again.');
@@ -357,6 +360,20 @@ export default function Contact() {
                         {errorMessage}
                       </div>
                     )}
+
+                    {/* Honeypot — invisible to real visitors, only bots tend to fill this in */}
+                    <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+                      <label htmlFor="companyWebsite">Website</label>
+                      <input
+                        type="text"
+                        id="companyWebsite"
+                        name="companyWebsite"
+                        value={formData.companyWebsite}
+                        onChange={handleChange}
+                        tabIndex={-1}
+                        autoComplete="off"
+                      />
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Name */}

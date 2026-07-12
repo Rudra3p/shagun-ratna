@@ -15,6 +15,7 @@ const inquirySchema = new Schema(
     productName: { type: String, required: true, trim: true },
     customizationNotes: { type: String, trim: true, default: "" },
     status: { type: String, enum: ["pending", "done"], default: "pending" },
+    ip: { type: String, default: "unknown" }, // used for per-IP rate limiting
   },
   { timestamps: true }
 );

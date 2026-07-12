@@ -2,17 +2,51 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
 import Inquiry from "@/models/Inquiry";
 
+const ONE_HOUR_MS = 60 * 60 * 1000;
+const MAX_INQUIRIES_PER_IP_PER_HOUR = 5;
+
+const getClientIp = (req: Request): string => {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "unknown";
+};
+
 export const addInquiry = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
 
     const body = await req.json();
 
+    // Honeypot: a hidden field real visitors never see or fill, that bots tend to
+    // auto-fill anyway. Pretend success so scripted submitters don't learn they
+    // were caught, without ever writing their spam to the database.
+    if (body.companyWebsite) {
+      return NextResponse.json(
+        { success: true, message: "Inquiry submitted successfully" },
+        { status: 201 }
+      );
+    }
+
+    const ip = getClientIp(req);
+
+    const recentCount = await Inquiry.countDocuments({
+      ip,
+      createdAt: { $gte: new Date(Date.now() - ONE_HOUR_MS) },
+    });
+
+    if (recentCount >= MAX_INQUIRIES_PER_IP_PER_HOUR) {
+      return NextResponse.json(
+        { success: false, error: "Too many inquiries submitted. Please try again in a bit." },
+        { status: 429 }
+      );
+    }
+
     const newInquiry = new Inquiry({
       name: body.name,
       phone: body.phone,
       productName: body.productName,
       customizationNotes: body.customizationNotes,
+      ip,
     });
 
     const savedInquiry = await newInquiry.save();
