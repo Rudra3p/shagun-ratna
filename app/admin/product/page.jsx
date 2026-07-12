@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
-import Badge, { isNewArrival } from '@/components/Badge';
+import Badge from '@/components/Badge';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
   CheckCircle2, AlertCircle, PackageSearch, ImageOff
@@ -21,7 +21,6 @@ function ProductCardSkeleton() {
 
 function ProductCard({ product, onEdit, onDelete }) {
   const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
-  const isNew = isNewArrival(product);
 
   return (
     <div className="group flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">
@@ -42,10 +41,9 @@ function ProductCard({ product, onEdit, onDelete }) {
         {/* Soft scrim so the floating controls stay legible over any image */}
         <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-        {(product.discount > 0 || isNew) && (
+        {product.discount > 0 && (
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col items-start gap-1.5">
-            {product.discount > 0 && <Badge variant="discount">{product.discount}% Off</Badge>}
-            {isNew && <Badge variant="new">New</Badge>}
+            <Badge variant="discount">{product.discount}% Off</Badge>
           </div>
         )}
 
