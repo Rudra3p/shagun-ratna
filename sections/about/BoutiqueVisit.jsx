@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useSiteImage } from '@/components/SiteImagesProvider';
 
@@ -37,15 +36,6 @@ export default function BoutiqueVisit() {
           <p className="text-base md:text-lg font-light leading-relaxed opacity-80">
             Beyond the digital screen lies the true essence of our craft. We invite you to step into our sanctuary, where light dances on gold and every stone tells a story waiting to be yours.
           </p>
-
-          <div className="pt-4">
-            <Link 
-              href="/find-a-boutique"
-              className="inline-block border border-[#90060c] px-10 py-4 text-[11px] uppercase tracking-[0.25em] hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500"
-            >
-              Find a Boutique
-            </Link>
-          </div>
         </div>
 
       </div>
