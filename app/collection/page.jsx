@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
-import { Loader2, Search, SearchX, X, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Loader2, Search, SearchX, X, SlidersHorizontal } from 'lucide-react';
 
 const CATEGORIES = [
   "Gold", "Silver", "Platinum", "Diamond", "Gemstone",
@@ -141,8 +141,13 @@ export default function Collection() {
     });
   };
 
-  // Whichever grid renders first is what's above the fold on load, so only that one preloads its images
-  const showRecommended = !hasActiveFilter && recommendedProducts.length > 0;
+  // Recommended pieces are woven into the main grid (flagged with a badge on the
+  // card) rather than shown as their own section — pinned to the front only on
+  // the default, unfiltered browse view so a search/filter isn't reshuffled.
+  const recommendedIds = new Set(recommendedProducts.map((p) => p._id));
+  const displayProducts = hasActiveFilter || recommendedProducts.length === 0
+    ? products
+    : [...recommendedProducts, ...products.filter((p) => !recommendedIds.has(p._id))];
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
@@ -226,29 +231,6 @@ export default function Collection() {
           )}
         </div>
 
-        {/* Recommended For You (shown only to signed-in users matching a targeted collection) */}
-        {showRecommended && (
-          <div className="mb-14">
-            <div className="flex items-center gap-2.5 mb-5">
-              <Sparkles size={16} className="text-[#C5A059]" />
-              <h2 className="font-brand text-xl sm:text-2xl text-[#1a1a1a]">Recommended For You</h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-              {recommendedProducts.map((product, index) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  isFavorited={!!favorites[product._id]}
-                  onToggleFavorite={toggleFavorite}
-                  isRecommended
-                  priority={index < 4}
-                />
-              ))}
-            </div>
-            <div className="h-px w-full bg-[#EBE3D5]/60 mt-14" />
-          </div>
-        )}
-
         {/* Product Grid Layout */}
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
@@ -260,7 +242,7 @@ export default function Collection() {
           <div className="text-center py-16 bg-[#90060C]/5 border border-[#90060C]/20 rounded-2xl max-w-xl mx-auto text-[#90060C] font-serif">
             {error}
           </div>
-        ) : products.length === 0 ? (
+        ) : displayProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-24 border border-dashed border-[#EBE3D5] rounded-2xl">
             <div className="w-14 h-14 rounded-full bg-[#F5EFE6] flex items-center justify-center text-[#A8A196] mb-4">
               <SearchX size={24} />
@@ -280,13 +262,14 @@ export default function Collection() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-            {products.map((product, index) => (
+            {displayProducts.map((product, index) => (
               <ProductCard
                 key={product._id}
                 product={product}
                 isFavorited={!!favorites[product._id]}
                 onToggleFavorite={toggleFavorite}
-                priority={!showRecommended && index < 4}
+                isRecommended={recommendedIds.has(product._id)}
+                priority={index < 4}
               />
             ))}
 

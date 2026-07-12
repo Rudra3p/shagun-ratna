@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Gem } from 'lucide-react';
+import Badge from '@/components/Badge';
 
 export const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
-export default function ProductCard({ product, isFavorited, onToggleFavorite, priority = false }) {
+export default function ProductCard({ product, isFavorited, onToggleFavorite, priority = false, isRecommended = false }) {
   const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
   const savings = hasDiscount ? product.price - product.offerPrice : 0;
 
@@ -29,6 +30,11 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
       <Link href={`/collection/${product._id}`} className="contents">
         {/* Image Frame (Ratio 4:5, floats free of the text — no boxed card) */}
         <div className="relative aspect-[4/5] w-full mb-2.5 sm:mb-3.5 overflow-hidden rounded-xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 group-hover:ring-[#C5A059]/60 shadow-sm group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.14)] transition-all duration-500">
+          {isRecommended && (
+            <div className="absolute top-3 left-3 z-10">
+              <Badge variant="recommended">Recommended</Badge>
+            </div>
+          )}
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
