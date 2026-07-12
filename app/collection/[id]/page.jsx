@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
 import Badge, { isNewArrival } from '@/components/Badge';
+import ProductDetailSkeleton from '@/components/skeletons/ProductDetailSkeleton';
 import { ArrowLeft, Heart, Gem, AlertCircle } from 'lucide-react';
 
 const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
@@ -101,14 +102,7 @@ export default function ProductDetail() {
         </Link>
 
         {loading ? (
-          <div className="grid md:grid-cols-2 gap-10 lg:gap-16 animate-pulse">
-            <div className="aspect-[4/5] w-full bg-[#EBE3D5]/30 rounded-2xl" />
-            <div className="pt-2 space-y-4">
-              <div className="h-3 bg-[#EBE3D5]/30 w-1/3 rounded-md" />
-              <div className="h-9 bg-[#EBE3D5]/30 w-2/3 rounded-md" />
-              <div className="h-6 bg-[#EBE3D5]/30 w-1/4 rounded-md" />
-            </div>
-          </div>
+          <ProductDetailSkeleton />
         ) : error || !product ? (
           <div className="flex flex-col items-center justify-center text-center py-24 border border-dashed border-[#EBE3D5] rounded-2xl">
             <div className="w-14 h-14 rounded-full bg-[#F5EFE6] flex items-center justify-center text-[#A8A196] mb-4">

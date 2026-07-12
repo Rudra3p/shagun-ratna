@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import userApi from '@/lib/userApi';
+import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 
 export default function ProductGrid() {
   const [products, setProducts] = useState([]);
@@ -62,13 +63,7 @@ export default function ProductGrid() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
           {loading ? (
             [...Array(6)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="w-full aspect-[3/4] bg-[#e5e5e5] rounded-2xl border border-[#C5A059]/20" />
-                <div className="pt-4 md:pt-6 px-2 flex flex-col items-center">
-                  <div className="h-5 w-2/3 bg-[#e5e5e5] rounded-md mb-2" />
-                  <div className="h-3 w-1/3 bg-[#e5e5e5] rounded-md" />
-                </div>
-              </div>
+              <ProductCardSkeleton key={i} aspectClassName="aspect-[3/4]" centered />
             ))
           ) : (
             products.map((product) => (

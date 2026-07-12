@@ -1,4 +1,5 @@
 import "./globals.css";
+import "react-loading-skeleton/dist/skeleton.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import { Cormorant_Garamond } from 'next/font/google';
 import os from 'os';

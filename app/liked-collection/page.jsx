@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
+import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import { HeartOff } from 'lucide-react';
 
 export default function LikedCollection() {
@@ -68,11 +69,7 @@ export default function LikedCollection() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse flex flex-col bg-transparent p-0">
-                <div className="aspect-[4/5] w-full bg-[#EBE3D5]/30 rounded-xl mb-4" />
-                <div className="h-4 bg-[#EBE3D5]/30 w-3/4 rounded-md mb-2.5 ml-1" />
-                <div className="h-3 bg-[#EBE3D5]/30 w-1/3 rounded-md ml-1" />
-              </div>
+              <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : error ? (
