@@ -41,6 +41,11 @@ export default function DashboardView() {
   const [loading, setLoading] = useState(true);
   const [visitors, setVisitors] = useState(null);
   const [countdown, setCountdown] = useState(VISITOR_SYNC_SECONDS);
+  const [todayLabel, setTodayLabel] = useState('');
+
+  useEffect(() => {
+    setTodayLabel(new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
+  }, []);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -103,7 +108,7 @@ export default function DashboardView() {
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2.5 bg-[#721c24] text-white rounded-lg text-[13px] font-bold shadow-md hover:bg-[#540411] transition-all tracking-wide">
             <Calendar size={16} />
-            Sept 2024
+            {todayLabel}
           </button>
         </div>
       </div>
