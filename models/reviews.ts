@@ -11,6 +11,7 @@ export const ReviewZodSchema = z.object({
 
 const reviewSchema = new Schema(
   {
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
     name: { type: String, required: true, trim: true },
     product: { type: String, required: true, trim: true },
     text: { type: String, required: true, trim: true },

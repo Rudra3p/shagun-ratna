@@ -2,13 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { MessageSquarePlus } from "lucide-react";
+import { setAuthRedirect } from "@/lib/authRedirect";
 
 export default function GiveReviewButton() {
   const router = useRouter();
 
   const handleClick = () => {
     const signedIn = typeof window !== "undefined" && localStorage.getItem("shagun_user_name");
-    router.push(signedIn ? "/reviews/give-reviews" : "/auth");
+    if (signedIn) {
+      router.push("/reviews/give-reviews");
+      return;
+    }
+    setAuthRedirect("/reviews/give-reviews");
+    router.push("/auth");
   };
 
   return (

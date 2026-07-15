@@ -18,6 +18,7 @@ export const addReview = async (req: Request): Promise<NextResponse> => {
     const body = await req.json();
 
     const newReview = new Review({
+      userId,
       name: body.name,
       product: body.product,
       text: body.text,
@@ -63,6 +64,7 @@ export const getReviews = async (req: Request): Promise<NextResponse> => {
       {
         success: true,
         reviews,
+        total,
         totalPages: Math.ceil(total / limit),
         currentPage: page,
       },

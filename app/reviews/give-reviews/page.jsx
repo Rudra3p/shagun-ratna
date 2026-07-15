@@ -20,7 +20,7 @@ export default async function GiveReviewsPage() {
 
   const userId = await verifyUserSession(cookieHeader);
   if (!userId) {
-    redirect("/auth");
+    redirect("/auth?redirect=/reviews/give-reviews");
   }
 
   return (

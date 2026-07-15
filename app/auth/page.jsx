@@ -1,17 +1,24 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, Phone, Calendar, ArrowRight, CheckCircle2, Eye, EyeOff, Users } from 'lucide-react';
-import Link from 'next/link';
+import { setAuthRedirect, consumeAuthRedirect } from '@/lib/authRedirect';
 
 export default function SigninPage() {
   const [activeTab, setActiveTab] = useState('signin'); // 'signin' or 'register'
   const [error, setError] = useState('');
-  
+
   // Success states
   const [isRegistered, setIsRegistered] = useState(false);
   const [successUser, setSuccessUser] = useState('');
+
+  // Whichever gated page most recently sent the user here — the freshest
+  // attempt always wins, even if an earlier one was abandoned without signing in.
+  useEffect(() => {
+    const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+    if (redirectParam) setAuthRedirect(redirectParam);
+  }, []);
 
   // Login states
   const [loginEmail, setLoginEmail] = useState('');
@@ -47,7 +54,7 @@ export default function SigninPage() {
         localStorage.setItem("shagun_user_name", data.user.name);
         localStorage.setItem("shagun_user_dob", data.user.birthdate);
       }
-      window.location.href = '/collection';
+      window.location.href = consumeAuthRedirect('/collection');
     } catch (err) {
       console.error(err);
       setError('An error occurred. Please try again.');
@@ -121,14 +128,15 @@ export default function SigninPage() {
               </h2>
 
               <div className="flex flex-col gap-4">
-                <Link href="/collection">
-                  <button className="relative w-full font-sans py-4 text-xs tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.25)] active:scale-[0.98]">
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      Go To My Collection <ArrowRight size={14} />
-                    </span>
-                    <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
-                  </button>
-                </Link>
+                <button
+                  onClick={() => { window.location.href = consumeAuthRedirect('/collection'); }}
+                  className="relative w-full font-sans py-4 text-xs tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.25)] active:scale-[0.98]"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    Go To My Collection <ArrowRight size={14} />
+                  </span>
+                  <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+                </button>
               </div>
             </motion.div>
           ) : (
