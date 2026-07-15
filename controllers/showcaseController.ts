@@ -157,3 +157,20 @@ export const updateSmartCollection = async (req: Request): Promise<NextResponse>
     return NextResponse.json({ error: "Server update failure" }, { status: 500 });
   }
 };
+
+// 6. DELETE: Remove a folder
+export const deleteSmartCollection = async (req: Request): Promise<NextResponse> => {
+  try {
+    await dbConnect();
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
+    const deletedCollection = await Showcase.findByIdAndDelete(id);
+    if (!deletedCollection) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    return NextResponse.json({ success: true, message: "Folder repository deleted" }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: "Server delete failure" }, { status: 500 });
+  }
+};

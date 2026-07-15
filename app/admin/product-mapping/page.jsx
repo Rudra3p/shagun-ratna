@@ -2,23 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Layers, Users, Home, X, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Plus, Layers, Users, Home, X, ArrowRight, Loader2, Sparkles, Pencil, Trash2 } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
+
+const EMPTY_FORM = { title: '', gender: 'All', minAge: '18', maxAge: '60', homepageZone: 'None', description: '' };
 
 export default function ProductMappingDashboard() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [collections, setCollections] = useState([]);
+  const [editingId, setEditingId] = useState(null);
 
-  const [modalForm, setModalForm] = useState({
-    title: '',
-    gender: 'All',
-    minAge: '18',
-    maxAge: '60',
-    homepageZone: 'None',
-    description: ''
-  });
+  const [modalForm, setModalForm] = useState(EMPTY_FORM);
 
   const fetchCollections = async () => {
     try {
@@ -33,18 +30,62 @@ export default function ProductMappingDashboard() {
     fetchCollections();
   }, []);
 
-  const handleCreateMapping = async (e) => {
+  const openCreateModal = () => {
+    setEditingId(null);
+    setModalForm(EMPTY_FORM);
+    setShowModal(true);
+  };
+
+  const openEditModal = (folder, e) => {
+    e.stopPropagation();
+    setEditingId(folder._id);
+    setModalForm({
+      title: folder.title || '',
+      gender: folder.gender || 'All',
+      minAge: String(folder.minAge ?? 18),
+      maxAge: String(folder.maxAge ?? 60),
+      homepageZone: folder.homepageZone || 'None',
+      description: folder.description || ''
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+  };
+
+  const handleSubmitMapping = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await adminApi.post('/products-mapping', modalForm);
+      if (editingId) {
+        await adminApi.put(`/products-mapping?id=${editingId}`, modalForm);
+      } else {
+        await adminApi.post('/products-mapping', modalForm);
+      }
       setShowModal(false);
-      setModalForm({ title: '', gender: 'All', minAge: '18', maxAge: '60', homepageZone: 'None', description: '' });
+      setEditingId(null);
+      setModalForm(EMPTY_FORM);
       fetchCollections();
     } catch (err) {
-      console.error("Creation mapping asset error:", err);
+      console.error("Saving mapping asset error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteMapping = async (id, e) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this collection? This cannot be undone.")) return;
+    try {
+      setDeletingId(id);
+      await adminApi.delete(`/products-mapping?id=${id}`);
+      setCollections((prev) => prev.filter((c) => c._id !== id));
+    } catch (err) {
+      console.error("Failed to delete collection:", err);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -58,7 +99,7 @@ export default function ProductMappingDashboard() {
           <p className="text-[13px] text-gray-500 mt-0.5">Group products by gender and age, and feature them across the homepage.</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={openCreateModal}
           className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-[#400009] transition-all font-semibold text-[13px]"
         >
           <Plus size={16} />
@@ -75,7 +116,7 @@ export default function ProductMappingDashboard() {
           <p className="text-[14px] text-gray-700 font-semibold">No collections yet</p>
           <p className="text-[13px] text-gray-400 mt-1 max-w-xs">Create your first collection to start grouping products by audience.</p>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={openCreateModal}
             className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-[#400009] transition-all font-semibold text-[13px]"
           >
             <Plus size={16} />
@@ -110,6 +151,24 @@ export default function ProductMappingDashboard() {
                       <Home size={10} /> {folder.homepageZone}
                     </span>
                   )}
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => openEditModal(folder, e)}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-[#540411] hover:bg-[#ffecec] transition-colors"
+                      title="Edit collection"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteMapping(folder._id, e)}
+                      disabled={deletingId === folder._id}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                      title="Delete collection"
+                    >
+                      {deletingId === folder._id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -132,15 +191,17 @@ export default function ProductMappingDashboard() {
 
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-[18px] font-sans font-bold text-gray-900 tracking-tight">New Collection</h3>
-                <p className="text-[12px] text-gray-500">Define who this collection is for and where it appears.</p>
+                <h3 className="text-[18px] font-sans font-bold text-gray-900 tracking-tight">{editingId ? 'Edit Collection' : 'New Collection'}</h3>
+                <p className="text-[12px] text-gray-500">
+                  {editingId ? 'Update who this collection is for and where it appears.' : 'Define who this collection is for and where it appears.'}
+                </p>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+              <button onClick={closeModal} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateMapping} className="space-y-4">
+            <form onSubmit={handleSubmitMapping} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Collection Title *</label>
                 <input
@@ -219,7 +280,7 @@ export default function ProductMappingDashboard() {
 
               <div className="flex justify-end gap-3 pt-3">
                 <button
-                  type="button" onClick={() => setShowModal(false)}
+                  type="button" onClick={closeModal}
                   className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 text-[13px] font-semibold"
                 >
                   Cancel
@@ -229,7 +290,7 @@ export default function ProductMappingDashboard() {
                   className="flex items-center gap-2 px-5 py-2 bg-[#540411] text-white rounded-lg hover:bg-[#400009] text-[13px] font-semibold transition-colors disabled:opacity-70"
                 >
                   {loading && <Loader2 size={14} className="animate-spin" />}
-                  Create Collection
+                  {editingId ? 'Save Changes' : 'Create Collection'}
                 </button>
               </div>
             </form>

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { 
-  getSmartCollection, 
-  configureShowcase, 
-  updateSmartCollection 
+import {
+  getSmartCollection,
+  configureShowcase,
+  updateSmartCollection,
+  deleteSmartCollection
 } from "@/controllers/showcaseController";
 
 // GET /api/admin/products-mapping
@@ -18,4 +19,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 // PUT /api/admin/products-mapping
 export async function PUT(request: Request): Promise<NextResponse> {
   return updateSmartCollection(request);
+}
+
+// DELETE /api/admin/products-mapping
+export async function DELETE(request: Request): Promise<NextResponse> {
+  return deleteSmartCollection(request);
 }
