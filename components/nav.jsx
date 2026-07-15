@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Heart, Menu, X } from 'lucide-react'; // Added Menu and X icons
 import Image from 'next/image';
 import Link from 'next/link';
+import { goToProtectedRoute } from '@/lib/authRedirect';
 
 const Navbar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [userName, setUserName] = useState(null);
   const [isOpen, setIsOpen] = useState(false); // Mobile menu state
@@ -41,6 +43,14 @@ const Navbar = () => {
 
     return () => { cancelled = true; };
   }, [pathname]);
+
+  // Re-verifies the live session at click time instead of trusting the
+  // router's prefetch cache or stale nav state — avoids a just-signed-out
+  // user landing on the protected page before a fresh check catches up.
+  const handleLikedCollectionClick = (e) => {
+    e.preventDefault();
+    goToProtectedRoute(router, '/liked-collection');
+  };
 
   return (
     <>
@@ -92,6 +102,7 @@ const Navbar = () => {
           )}
           <Link
             href="/liked-collection"
+            onClick={handleLikedCollectionClick}
             className="hover:text-[#C5A059] transition-colors duration-500 flex items-center gap-1.5"
             title="Liked Collection"
           >
@@ -103,6 +114,7 @@ const Navbar = () => {
         <div className="flex md:hidden items-center gap-4">
           <Link
             href="/liked-collection"
+            onClick={handleLikedCollectionClick}
             className="hover:text-[#C5A059] transition-colors duration-500 flex items-center"
             title="Liked Collection"
           >

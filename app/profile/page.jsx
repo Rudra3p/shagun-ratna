@@ -45,7 +45,7 @@ export default function ProfilePage() {
     } catch {
       // localStorage unavailable — nothing to clean up
     }
-    router.push('/');
+    window.location.href = '/';
   };
 
   if (loading || !profile) {
