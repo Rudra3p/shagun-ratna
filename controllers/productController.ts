@@ -174,7 +174,8 @@ export const getProducts = async (
   products: any[] | null = null,
   totalPages: number = 0,
   currentPage: number = 1,
-  total: number = 0
+  total: number = 0,
+  limitOverride: number = 10
 ): Promise<NextResponse> => {
   try {
     if (products) {
@@ -182,7 +183,7 @@ export const getProducts = async (
     }
 
     const page = currentPage;
-    const limit = 10;
+    const limit = limitOverride;
     const skip = (page - 1) * limit;
 
     const allProducts = await Product.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
@@ -267,5 +268,27 @@ export const deleteProduct = async (req: Request): Promise<NextResponse> => {
     return NextResponse.json({ message: "Deleted" }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Delete failed" }, { status: 500 });
+  }
+};
+
+// 6. Sets the homepage Product Grid section to show exactly these products —
+// anything previously featured but not in `featuredIds` is unfeatured.
+export const syncFeaturedProducts = async (req: Request): Promise<NextResponse> => {
+  try {
+    await dbConnect();
+    const body = await req.json();
+    const featuredIds: string[] = Array.isArray(body.featuredIds) ? body.featuredIds : [];
+
+    await Product.updateMany({}, { $set: { featured: false } });
+    if (featuredIds.length > 0) {
+      await Product.updateMany({ _id: { $in: featuredIds } }, { $set: { featured: true } });
+    }
+
+    return NextResponse.json(
+      { success: true, message: "Homepage product grid updated", count: featuredIds.length },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to update homepage product grid" }, { status: 500 });
   }
 };

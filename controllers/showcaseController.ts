@@ -14,7 +14,7 @@ interface PopulatedProduct {
   createdAt: Date;
 }
 
-const HOMEPAGE_ZONES = ["Card 1", "Card 2", "Card 3", "Card 4", "Card 5", "Card 6"];
+const HOMEPAGE_GRID_SLOTS = 6;
 const NEW_LAUNCH_ZONE = "New Launch";
 const FEATURED_ZONES = ["Featured 1", "Featured 2", "Featured 3"];
 
@@ -61,35 +61,25 @@ export const configureShowcase = async (req: Request): Promise<NextResponse> => 
   }
 };
 
-// 4. GET: Public homepage feed — resolves the 6 admin-assigned card zones,
-// backfilling any unassigned slots with the latest products so the grid never looks empty.
+// 4. GET: Public homepage feed — shows the admin's directly-picked products (via
+// /admin/homepage-grid), backfilling any remaining slots with the latest products
+// so the grid never looks empty even if fewer than 6 have been picked.
 export const getHomepageShowcase = async (): Promise<NextResponse> => {
   try {
     await dbConnect();
 
-    const mapped = await Showcase.find({ homepageZone: { $in: HOMEPAGE_ZONES } })
-      .select("homepageZone productIds")
-      .populate({ path: "productIds", model: Product });
+    const featuredProducts = await Product.find({ featured: true })
+      .sort({ updatedAt: -1 })
+      .limit(HOMEPAGE_GRID_SLOTS);
 
-    const zoneProduct = new Map<string, PopulatedProduct>();
-    for (const collection of mapped) {
-      if (zoneProduct.has(collection.homepageZone)) continue;
-      // productIds may contain nulls for products that were deleted after being assigned
-      const validProduct = (collection.productIds as unknown as PopulatedProduct[]).find((p) => p);
-      if (validProduct) zoneProduct.set(collection.homepageZone, validProduct);
-    }
-
-    const usedIds = Array.from(zoneProduct.values()).map((p) => p._id);
-    const emptySlots = HOMEPAGE_ZONES.length - zoneProduct.size;
+    const usedIds = featuredProducts.map((p) => p._id);
+    const emptySlots = HOMEPAGE_GRID_SLOTS - featuredProducts.length;
 
     const fillerProducts = emptySlots > 0
       ? await Product.find({ _id: { $nin: usedIds } }).sort({ createdAt: -1 }).limit(emptySlots)
       : [];
 
-    let fillerIndex = 0;
-    const products = HOMEPAGE_ZONES
-      .map((zone) => zoneProduct.get(zone) || fillerProducts[fillerIndex++])
-      .filter(Boolean);
+    const products = [...featuredProducts, ...fillerProducts];
 
     return NextResponse.json({ products }, { status: 200 });
   } catch (error) {

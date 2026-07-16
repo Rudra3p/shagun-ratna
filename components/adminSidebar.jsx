@@ -1,16 +1,28 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import adminApi from '@/lib/adminApi';
 import {
-  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X, Inbox, Image as ImageIcon
+  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge, Menu, Workflow, X, Inbox, Image as ImageIcon, LayoutGrid
 } from 'lucide-react';
 
 const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
   const currentPath = usePathname();
+
+  useEffect(() => {
+    let cancelled = false;
+    adminApi.get('/profile')
+      .then((res) => {
+        if (!cancelled) setAdminEmail(res.data?.email || '');
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, []);
 
 const handleLogout = async () => {
     try {
@@ -77,7 +89,7 @@ const handleLogout = async () => {
             </div>
             <div className="overflow-hidden">
               <h3 className="font-sans font-bold text-[#540411] truncate text-[20px] leading-tight">Admin</h3>
-              <p className="text-[12px] text-[#5c5f60] truncate font-medium">admin@corporate.com</p>
+              <p className="text-[12px] text-[#5c5f60] truncate font-medium">{adminEmail || 'Loading...'}</p>
             </div>
           </div>
         </div>
@@ -105,11 +117,18 @@ const handleLogout = async () => {
             href="/admin/product" 
             onClick={() => setIsOpen(false)}
           />
-          <SidebarItem 
-            active={currentPath === '/admin/product-mapping'} 
-            icon={<GitMerge size={20} />} 
-            label="Product Mapping" 
-            href="/admin/product-mapping" 
+          <SidebarItem
+            active={currentPath === '/admin/product-mapping'}
+            icon={<GitMerge size={20} />}
+            label="Product Mapping"
+            href="/admin/product-mapping"
+            onClick={() => setIsOpen(false)}
+          />
+          <SidebarItem
+            active={currentPath === '/admin/homepage-grid'}
+            icon={<LayoutGrid size={20} />}
+            label="Homepage Grid"
+            href="/admin/homepage-grid"
             onClick={() => setIsOpen(false)}
           />
           <SidebarItem

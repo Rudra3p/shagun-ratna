@@ -24,6 +24,7 @@ const productSchema = new Schema({
   offerPrice: { type: Number, default: 0 },
   offertime: { type: Date, default: null },
   imageUrl: { type: String, required: true },
+  featured: { type: Boolean, default: false }, // shown in the homepage Product Grid section
 }, { timestamps: true });
 
 // Gatekeeper: Asynchronous and uses throw for automatic error handling

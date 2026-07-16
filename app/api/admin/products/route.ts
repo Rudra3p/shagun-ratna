@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
-import { 
-  getProducts, 
-  addProduct, 
-  searchProducts, 
-  updateProduct, 
-  deleteProduct 
+import {
+  getProducts,
+  addProduct,
+  searchProducts,
+  updateProduct,
+  deleteProduct,
+  syncFeaturedProducts
 } from "@/controllers/productController";
 import { generateUploadUrl } from "@/lib/r2Service";
 
@@ -24,7 +25,9 @@ export async function GET(req: Request) {
   }
 
   // Otherwise, fallback to the standard paginated catalog view
-  return await getProducts(); 
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = parseInt(url.searchParams.get("limit") || "10");
+  return await getProducts(null, 0, page, 0, limit);
 }
 
 // 2. POST ROUTE: Handles R2 image uploading operations and data asset insertions
@@ -56,10 +59,16 @@ export async function POST(req: Request) {
   }));
 }
 
-// 3. PUT ROUTE: Handles inventory updates
-export async function PUT(req: Request) { 
+// 3. PUT ROUTE: Handles inventory updates, or (with no ?id=) syncing the homepage grid selection
+export async function PUT(req: Request) {
   await ensureDB();
-  return await updateProduct(req); 
+
+  const url = new URL(req.url);
+  if (!url.searchParams.get("id")) {
+    return await syncFeaturedProducts(req);
+  }
+
+  return await updateProduct(req);
 }
 
 // 4. DELETE ROUTE: Handles inventory entry deletions

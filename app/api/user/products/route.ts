@@ -18,7 +18,9 @@ export async function GET(req: Request) {
     }
 
     // Otherwise, standard view catalog
-    return await getProducts(); 
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+    return await getProducts(null, 0, page, 0, limit);
   } catch (error: any) {
     console.error("User Route Product Fetch Crash Log:", error);
     return NextResponse.json(

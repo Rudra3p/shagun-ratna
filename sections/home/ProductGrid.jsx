@@ -114,9 +114,6 @@ export default function ProductGrid() {
                     <h4 className="font-brand text-xl md:text-2xl text-[#1a1a1a] group-hover:text-[#90060c] transition-colors duration-500 font-light line-clamp-1">
                       {product.productName}
                     </h4>
-                    <p className="font-sans text-sm text-[#2D2926] mt-1.5 font-semibold">
-                      {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
-                    </p>
                   </div>
                 </Link>
               </motion.div>

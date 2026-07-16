@@ -150,6 +150,11 @@ export default function Collection() {
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-6 pb-24">
 
+        <div className="mb-6">
+          <h1 className="font-brand text-3xl sm:text-4xl text-[#1a1a1a] mb-1">Our Collection</h1>
+          <p className="text-sm text-[#9C8253] font-sans">Handcrafted gold, diamond, and gemstone jewelry, made to last a lifetime.</p>
+        </div>
+
         {/* Sticky Search + Filter Toolbar — slides away on scroll-down, returns on scroll-up */}
         <div
           className={`sticky top-20 z-30 -mx-6 px-6 md:-mx-10 md:px-10 pt-2 pb-4 mb-6 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#EBE3D5]/60 transition-transform duration-300 ease-out ${

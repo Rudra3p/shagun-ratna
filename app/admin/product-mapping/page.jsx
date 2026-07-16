@@ -218,14 +218,6 @@ export default function ProductMappingDashboard() {
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px] font-medium text-gray-700"
                 >
                   <option value="None">None (collection only)</option>
-                  <optgroup label="Product Grid (6 cards)">
-                    <option value="Card 1">Homepage Spot 1</option>
-                    <option value="Card 2">Homepage Spot 2</option>
-                    <option value="Card 3">Homepage Spot 3</option>
-                    <option value="Card 4">Homepage Spot 4</option>
-                    <option value="Card 5">Homepage Spot 5</option>
-                    <option value="Card 6">Homepage Spot 6</option>
-                  </optgroup>
                   <optgroup label="New Launch Spotlight">
                     <option value="New Launch">New Launch Section</option>
                   </optgroup>
