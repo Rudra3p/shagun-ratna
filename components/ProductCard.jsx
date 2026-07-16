@@ -53,8 +53,11 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
           )}
         </div>
 
-        {/* Product info — minimal: purity → title → price, sits below the image */}
-        <div className="flex flex-col flex-grow px-0.5 sm:px-1 pt-1.5">
+        {/* Product info — minimal: purity → title → price, sits below the image.
+            Fixed `gap` between the three blocks (not mt-auto) so the space between
+            name and price stays the same regardless of how much a product has —
+            purity tag, discount — cards are just naturally taller or shorter, not stretched. */}
+        <div className="flex flex-col px-0.5 sm:px-1 pt-1.5 gap-2.5">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               {product.purity && (
@@ -90,12 +93,9 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
             </button>
           </div>
 
-          <div className="h-px w-6 bg-[#C5A059]/50 mt-2.5 mb-3 group-hover:w-10 transition-all duration-500" />
+          <div className="h-px w-6 bg-[#C5A059]/50 group-hover:w-10 transition-all duration-500" />
 
-          {/* Price + savings grouped as one flex-start block, anchored to the bottom as a
-              unit — keeps the price line at the same height across cards whether or not
-              a given product has savings text under it */}
-          <div className="flex flex-col items-start mt-auto">
+          <div className="flex flex-col items-start">
             <div className="flex items-baseline gap-2 flex-wrap">
               {hasDiscount ? (
                 <>
