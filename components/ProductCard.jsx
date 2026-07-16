@@ -92,28 +92,33 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
 
           <div className="h-px w-6 bg-[#C5A059]/50 mt-2.5 mb-3 group-hover:w-10 transition-all duration-500" />
 
-          <div className="flex items-baseline gap-2 mt-auto flex-wrap">
-            {hasDiscount ? (
-              <>
-                <span className="text-lg sm:text-2xl font-brand font-bold text-[#90060C]">
-                  ₹{parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          {/* Price + savings grouped as one flex-start block, anchored to the bottom as a
+              unit — keeps the price line at the same height across cards whether or not
+              a given product has savings text under it */}
+          <div className="flex flex-col items-start mt-auto">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              {hasDiscount ? (
+                <>
+                  <span className="text-lg sm:text-2xl font-brand font-bold text-[#90060C]">
+                    ₹{parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                  <span className="text-xs sm:text-sm text-[#A8A196] font-medium line-through">
+                    ₹{parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </>
+              ) : (
+                <span className="text-lg sm:text-2xl font-brand font-bold text-[#2D2926]">
+                  {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
                 </span>
-                <span className="text-xs sm:text-sm text-[#A8A196] font-medium line-through">
-                  ₹{parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </span>
-              </>
-            ) : (
-              <span className="text-lg sm:text-2xl font-brand font-bold text-[#2D2926]">
-                {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
+              )}
+            </div>
+            {/* Concrete dollar savings reads stronger than a bare percentage (loss-aversion framing) */}
+            {hasDiscount && savings > 0 && (
+              <span className="text-[10px] sm:text-xs font-sans font-semibold text-[#9C8253] mt-1">
+                You save ₹{savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </span>
             )}
           </div>
-          {/* Concrete dollar savings reads stronger than a bare percentage (loss-aversion framing) */}
-          {hasDiscount && savings > 0 && (
-            <span className="text-[10px] sm:text-xs font-sans font-semibold text-[#9C8253] mt-1">
-              You save ₹{savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </span>
-          )}
         </div>
       </Link>
     </div>
