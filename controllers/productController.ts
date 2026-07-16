@@ -124,6 +124,8 @@ export const searchProducts = async (req: Request): Promise<NextResponse> => {
           productName: "$fullProduct.productName",
           price: "$fullProduct.price",
           category: "$fullProduct.category",
+          purity: "$fullProduct.purity",
+          description: "$fullProduct.description",
           discount: "$fullProduct.discount",
           offerPrice: "$fullProduct.offerPrice",
           offertime: "$fullProduct.offertime",

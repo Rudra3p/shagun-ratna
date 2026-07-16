@@ -5,8 +5,10 @@ import { z } from 'zod';
 export const ProductZodSchema = z.object({
   productName: z.string().min(1, "Name is required").trim(),
   price: z.number().positive("Price must be greater than 0"),
-  imageUrl: z.string().url().nullable().optional().or(z.literal("")),
-  category: z.string().default('General').optional(),
+  imageUrl: z.string().url("A valid product image is required"),
+  category: z.string().min(1, "Category is required").trim(),
+  purity: z.string().trim().optional(),
+  description: z.string().min(1, "Details are required").trim(),
   discount: z.number().default(0).optional(),
   offerPrice: z.number().default(0).optional(),
   offertime: z.coerce.date().nullable().optional(),
@@ -15,11 +17,13 @@ export const ProductZodSchema = z.object({
 const productSchema = new Schema({
   productName: { type: String, required: true, trim: true },
   price: { type: Number, required: true },
-  category: { type: String, default: 'General' },
+  category: { type: String, required: true, trim: true },
+  purity: { type: String, default: '22K Pure Gold', trim: true },
+  description: { type: String, required: true, trim: true },
   discount: { type: Number, default: 0 },
   offerPrice: { type: Number, default: 0 },
   offertime: { type: Date, default: null },
-  imageUrl: { type: String, default: null },
+  imageUrl: { type: String, required: true },
 }, { timestamps: true });
 
 // Gatekeeper: Asynchronous and uses throw for automatic error handling

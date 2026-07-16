@@ -186,6 +186,12 @@ export default function ProductDetail() {
                 </span>
               )}
 
+              {product.description && (
+                <p className="mt-6 text-sm leading-7 text-[#5f5a53] whitespace-pre-line">
+                  {product.description}
+                </p>
+              )}
+
               <div className="mt-10 flex flex-col sm:flex-row gap-3">
                 <Link
                   href={`/contact?product=${encodeURIComponent(product.productName)}`}
