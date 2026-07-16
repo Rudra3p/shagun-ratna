@@ -57,10 +57,12 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
         <div className="flex flex-col flex-grow px-0.5 sm:px-1 pt-1.5">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="flex items-center gap-1 text-[9px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.18em] text-[#C5A059] mb-1.5 line-clamp-1">
-                <Gem size={9} strokeWidth={2.5} className="shrink-0" />
-                {product.purity || "22K Pure Gold"}
-              </p>
+              {product.purity && (
+                <p className="flex items-center gap-1 text-[9px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.18em] text-[#C5A059] mb-1.5 line-clamp-1">
+                  <Gem size={9} strokeWidth={2.5} className="shrink-0" />
+                  {product.purity}
+                </p>
+              )}
               <h3 className="text-base sm:text-xl font-brand font-semibold tracking-tight leading-snug text-[#1a1a1a] group-hover:text-[#90060C] transition-colors duration-300 line-clamp-1">
                 {product.productName}
               </h3>

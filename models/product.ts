@@ -18,7 +18,7 @@ const productSchema = new Schema({
   productName: { type: String, required: true, trim: true },
   price: { type: Number, required: true },
   category: { type: String, required: true, trim: true },
-  purity: { type: String, default: '22K Pure Gold', trim: true },
+  purity: { type: String, trim: true }, // left unset shows no purity label, rather than falsely claiming a default
   description: { type: String, required: true, trim: true },
   discount: { type: Number, default: 0 },
   offerPrice: { type: Number, default: 0 },

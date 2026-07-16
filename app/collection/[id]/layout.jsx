@@ -22,9 +22,10 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const materialText = product.purity ? `${product.purity} ` : "";
   const description = product.description
     ? product.description.slice(0, 160)
-    : `Shop the ${product.productName} from Shagun Ratna — ${product.purity || "22K Pure Gold"} ${product.category || "fine jewelry"}.`;
+    : `Shop the ${product.productName} from Shagun Ratna — ${materialText}${product.category || "fine jewelry"}.`;
 
   return {
     // Explicit .absolute: a title from generateMetadata in a nested layout doesn't

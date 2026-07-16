@@ -74,6 +74,7 @@ function ProductCard({ product, onEdit, onDelete }) {
       <div className="flex flex-col flex-grow px-0.5 pt-1">
         <p className="text-[9.5px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.14em] text-gray-400 mb-1.5 truncate">
           {product.category || 'General'}
+          {product.purity && ` • ${product.purity}`}
         </p>
         <h3 className="text-sm sm:text-base font-serif font-semibold text-[#1a1a1a] group-hover:text-[#540411] transition-colors duration-300 truncate mb-2 leading-snug">
           {product.productName}
@@ -110,7 +111,7 @@ export default function Products() {
   const [hasMore, setHasMore] = useState(true);
 
   const [formData, setFormData] = useState({
-    productName: '', price: '', category: 'General', purity: '22K Pure Gold', description: '', discount: 0, offerPrice: 0, offertime: ''
+    productName: '', price: '', category: 'General', purity: '', description: '', discount: 0, offerPrice: 0, offertime: ''
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -299,7 +300,7 @@ export default function Products() {
       productName: product.productName,
       price: product.price,
       category: product.category,
-      purity: product.purity || '22K Pure Gold',
+      purity: product.purity || '',
       description: product.description || '',
       discount: product.discount,
       offerPrice: product.offerPrice,
@@ -329,7 +330,7 @@ export default function Products() {
   };
 
   const resetForm = () => {
-    setFormData({ productName: '', price: '', category: 'General', purity: '22K Pure Gold', description: '', discount: 0, offerPrice: 0, offertime: '' });
+    setFormData({ productName: '', price: '', category: 'General', purity: '', description: '', discount: 0, offerPrice: 0, offertime: '' });
     setImageFile(null);
     setImagePreview(null);
     setEditingId(null);
@@ -492,12 +493,12 @@ export default function Products() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Or type a custom purity/material"
+                  placeholder="Or type a custom purity/material — leave blank to show none"
                   value={formData.purity}
                   onChange={(e) => setFormData({...formData, purity: e.target.value})}
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
                 />
-                <p className="text-[11px] text-gray-400">Shown on the product card and detail page in place of the default purity label.</p>
+                <p className="text-[11px] text-gray-400">Only shows on the product card and detail page if set — leaving it blank shows no purity label at all.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -627,7 +628,7 @@ export default function Products() {
 
       {/* Main Grid View Dashboard Container */}
       {showSkeleton ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-8 sm:gap-y-12">
           {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
         </div>
       ) : showEmpty ? (
@@ -658,7 +659,7 @@ export default function Products() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-8 sm:gap-y-12">
           {visibleProducts.map((product) => (
             <ProductCard
               key={product._id}

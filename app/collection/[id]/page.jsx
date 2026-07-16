@@ -157,7 +157,7 @@ export default function ProductDetail() {
             {/* Details */}
             <div className="flex flex-col pt-2">
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-3">
-                {product.purity || "22K Pure Gold"} • {product.category || "Fine Jewelry"}
+                {[product.purity, product.category || "Fine Jewelry"].filter(Boolean).join(" • ")}
               </p>
               <h1 className="font-brand text-3xl sm:text-4xl text-[#1a1a1a] mb-5 leading-tight">
                 {product.productName}
