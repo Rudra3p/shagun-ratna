@@ -234,7 +234,7 @@ export default function Contact() {
                       <a href="tel:+912222829800" className="text-gray-600 hover:text-[#90060c] transition-colors">+91 22 2282 9800</a>
                     </p>
                     <p className="leading-relaxed">
-                      <a href="tel:+919876543210" className="text-gray-600 hover:text-[#90060c] transition-colors">+91 98765 43210</a>
+                      <a href="tel:+919558888754" className="text-gray-600 hover:text-[#90060c] transition-colors">+91 95588 88754</a>
                     </p>
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function Contact() {
                     <FacebookIcon size={18} />
                   </a>
                   <a 
-                    href="https://wa.me/919876543210" 
+                    href="https://wa.me/919558888754" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"

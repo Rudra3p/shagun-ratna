@@ -10,7 +10,6 @@ export const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
 export default function ProductCard({ product, isFavorited, onToggleFavorite, priority = false, isRecommended = false }) {
   const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
-  const savings = hasDiscount ? product.price - product.offerPrice : 0;
 
   // Heart "burst" micro-reward: a brief ping the moment a piece is favorited.
   const [burst, setBurst] = useState(false);
@@ -95,27 +94,19 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
 
           <div className="h-px w-6 bg-[#C5A059]/50 group-hover:w-10 transition-all duration-500" />
 
-          <div className="flex flex-col items-start">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              {hasDiscount ? (
-                <>
-                  <span className="text-lg sm:text-2xl font-brand font-bold text-[#90060C]">
-                    ₹{parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-xs sm:text-sm text-[#A8A196] font-medium line-through">
-                    ₹{parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                </>
-              ) : (
-                <span className="text-lg sm:text-2xl font-brand font-bold text-[#2D2926]">
-                  {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
+          <div className="flex items-baseline gap-2 flex-wrap">
+            {hasDiscount ? (
+              <>
+                <span className="text-lg sm:text-2xl font-brand font-bold text-[#90060C]">
+                  ₹{parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
-              )}
-            </div>
-            {/* Concrete dollar savings reads stronger than a bare percentage (loss-aversion framing) */}
-            {hasDiscount && savings > 0 && (
-              <span className="text-[10px] sm:text-xs font-sans font-semibold text-[#9C8253] mt-1">
-                You save ₹{savings.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <span className="text-xs sm:text-sm text-[#A8A196] font-medium line-through">
+                  ₹{parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+              </>
+            ) : (
+              <span className="text-lg sm:text-2xl font-brand font-bold text-[#2D2926]">
+                {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
               </span>
             )}
           </div>

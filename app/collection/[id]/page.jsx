@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
-import Badge, { isNewArrival } from '@/components/Badge';
+import Badge from '@/components/Badge';
 import ProductDetailSkeleton from '@/components/skeletons/ProductDetailSkeleton';
 import { ArrowLeft, Heart, Gem, AlertCircle } from 'lucide-react';
 
@@ -87,7 +87,6 @@ export default function ProductDetail() {
 
   const countdownLabel = useOfferCountdown(product?.offertime);
   const hasDiscount = !!product && product.offerPrice > 0 && product.offerPrice !== product.price;
-  const isNew = product ? isNewArrival(product) : false;
   const savings = hasDiscount ? product.price - product.offerPrice : 0;
   const isFavorited = !!favorites[id];
 
@@ -136,9 +135,8 @@ export default function ProductDetail() {
                 </div>
               )}
 
-              {(isNew || product.discount > 0 || countdownLabel) && (
+              {(product.discount > 0 || countdownLabel) && (
                 <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-1.5">
-                  {isNew && <Badge variant="new">New</Badge>}
                   {product.discount > 0 && <Badge variant="discount">{product.discount}% Off</Badge>}
                   {countdownLabel && <Badge variant="urgency">{countdownLabel}</Badge>}
                 </div>

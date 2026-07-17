@@ -1,13 +1,4 @@
-import { Tag, Sparkles, Star, Clock } from 'lucide-react';
-
-const NEW_ARRIVAL_DAYS = 14;
-
-// A product counts as "New" for its first 14 days in the catalog.
-export function isNewArrival(product) {
-  if (!product?.createdAt) return false;
-  const ageInDays = (Date.now() - new Date(product.createdAt).getTime()) / 86400000;
-  return ageInDays >= 0 && ageInDays <= NEW_ARRIVAL_DAYS;
-}
+import { Tag, Star, Clock } from 'lucide-react';
 
 const VARIANTS = {
   discount: {
@@ -17,10 +8,6 @@ const VARIANTS = {
   recommended: {
     icon: Star,
     wrap: 'bg-gradient-to-r from-[#C5A059] to-[#DEC58B] text-[#3A2C0F] shadow-[0_4px_14px_rgba(197,160,89,0.4)]',
-  },
-  new: {
-    icon: Sparkles,
-    wrap: 'bg-[#1a1a1a] text-white shadow-[0_4px_14px_rgba(0,0,0,0.25)]',
   },
   urgency: {
     icon: Clock,
