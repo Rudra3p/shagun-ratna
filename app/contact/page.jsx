@@ -216,9 +216,9 @@ export default function Contact() {
                   <div>
                     <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Flagship Boutique</h4>
                     <p className="leading-relaxed text-gray-600">
-                      Shagun Ratna, 102 Heritage Mansion,<br />
-                      MG Road, Kala Ghoda, Fort,<br />
-                      Mumbai, Maharashtra 400001
+                      Shagun Ratna, GF/9, Akshar Complex,<br />
+                      Beside Harit Zaveri, Shivranjani Cross Road,<br />
+                      Satellite, Ahmedabad, Gujarat 380015
                     </p>
                   </div>
                 </div>
@@ -480,7 +480,7 @@ export default function Contact() {
           </div>
           <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FAF7F2]">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3773.8427506979207!2d72.8302061759654!3d18.927318056965457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7d1c253d865ab%3A0xe349db82a937a00f!2sKala%20Ghoda%2C%20Fort%2C%20Mumbai%2C%20Maharashtra%20400001!5e0!3m2!1sen!2sin!4v1718784000000!5m2!1sen!2sin"
+              src="https://www.google.com/maps?q=Shagunratna+Gems+%26+Jewellers,+23.0245069,+72.5288626&z=17&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0 }}
