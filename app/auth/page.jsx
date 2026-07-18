@@ -232,7 +232,7 @@ export default function SigninPage() {
                       type="text"
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
-                      placeholder="Rudra Shah"
+                      placeholder="Rudra Patel"
                       className="w-full bg-transparent border-b border-[#C5A059]/40 py-2 px-1 text-sm text-[#1a1a1a] focus:border-[#90060c] outline-none transition-colors duration-500 font-sans"
                       required
                     />

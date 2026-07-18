@@ -387,7 +387,7 @@ export default function Contact() {
                           name="name"
                           value={formData.name}
                           onChange={handleChange}
-                          placeholder="Lord/Lady Name" 
+                          placeholder="Full Name" 
                           required
                           className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400"
                         />
