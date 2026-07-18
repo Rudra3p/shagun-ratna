@@ -34,7 +34,9 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   }
 
   // 4. USER UI PROTECTION (real account-only pages — not the public storefront)
-  const USER_PROTECTED_PATHS = ['/profile', '/liked-collection'];
+  // Liked Collection is intentionally open: it's backed by localStorage, not an
+  // account, so anyone can use the wishlist without signing in first.
+  const USER_PROTECTED_PATHS = ['/profile'];
   let response: NextResponse;
   if (USER_PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     response = (await userMiddleware(request)) || NextResponse.next();

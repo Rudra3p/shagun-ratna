@@ -1,7 +1,9 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { ShieldCheck, Gem, BadgeCheck } from 'lucide-react';
+import { useSiteImage } from '@/components/SiteImagesProvider';
 
 const CERTIFICATIONS = [
   {
@@ -22,28 +24,55 @@ const CERTIFICATIONS = [
 ];
 
 export default function CertificationSection() {
+  const certificateImage = useSiteImage('about-certification', '/new-launch.png');
+
   return (
     <section className="py-20 px-6 bg-[#faf3e5] text-[#90060c]">
-      <div className="max-w-7xl mx-auto text-center">
-        <h2 className="font-serif text-4xl md:text-5xl mb-6 leading-tight">
-          Authenticity, <span className="italic text-[#C5A059]">Certified</span>
-        </h2>
-        <p className="max-w-2xl mx-auto text-sm md:text-base font-light leading-relaxed opacity-80 mb-16">
-          Four decades of craftsmanship mean little without proof to stand behind it. Every piece that carries
-          the Shagun Ratna name is independently verified, so what you see is exactly what you own.
-        </p>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 md:gap-12 max-w-5xl mx-auto">
-          {CERTIFICATIONS.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="flex flex-col items-center text-center px-4">
-              <div className="w-16 h-16 rounded-full bg-white border border-[#C5A059]/40 flex items-center justify-center text-[#90060c] mb-5 shadow-sm">
-                <Icon size={26} strokeWidth={1.5} />
+        {/* Framed certificate photo, mounted like a document on display */}
+        <div className="order-2 lg:order-1 flex justify-center lg:justify-start">
+          <div className="relative w-[80%] md:w-[70%] lg:w-full max-w-md aspect-[4/5]">
+            <div className="absolute -bottom-4 -left-4 w-full h-full border border-[#C5A059]/50" />
+            <div className="relative w-full h-full bg-white p-3 shadow-xl">
+              <div className="relative w-full h-full">
+                <Image
+                  src={certificateImage}
+                  alt="Certification"
+                  fill
+                  sizes="(max-width: 1024px) 70vw, 35vw"
+                  className="object-cover"
+                />
               </div>
-              <h3 className="font-serif text-lg mb-2">{title}</h3>
-              <p className="text-sm font-light leading-relaxed opacity-75">{description}</p>
             </div>
-          ))}
+          </div>
         </div>
+
+        {/* Text Content */}
+        <div className="order-1 lg:order-2 text-center lg:text-left">
+          <h2 className="font-serif text-4xl md:text-5xl mb-6 leading-tight">
+            Authenticity, <span className="italic text-[#C5A059]">Certified</span>
+          </h2>
+          <p className="text-sm md:text-base font-light leading-relaxed opacity-80 mb-10 max-w-xl mx-auto lg:mx-0">
+            Four decades of craftsmanship mean little without proof to stand behind it. Every piece that carries
+            the Shagun Ratna name is independently verified, so what you see is exactly what you own.
+          </p>
+
+          <div className="space-y-7 max-w-xl mx-auto lg:mx-0">
+            {CERTIFICATIONS.map(({ icon: Icon, title, description }) => (
+              <div key={title} className="flex items-start gap-4 text-left">
+                <div className="shrink-0 w-12 h-12 rounded-full bg-white border border-[#C5A059]/40 flex items-center justify-center text-[#90060c] shadow-sm">
+                  <Icon size={20} strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h3 className="font-serif text-lg mb-1">{title}</h3>
+                  <p className="text-sm font-light leading-relaxed opacity-75">{description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </section>
   );
