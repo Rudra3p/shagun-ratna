@@ -41,7 +41,7 @@ export default function ProfilePage() {
     }
     try {
       localStorage.removeItem('shagun_user_name');
-      localStorage.removeItem('shagun_user_dob');
+      localStorage.removeItem('shagun_user_age');
     } catch {
       // localStorage unavailable — nothing to clean up
     }
@@ -87,7 +87,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex items-center gap-3">
               <Cake size={16} className="text-[#C5A059] shrink-0" />
-              <span className="text-sm font-sans text-[#2D2926]">{profile.birthdate}</span>
+              <span className="text-sm font-sans text-[#2D2926]">{profile.age} years old</span>
             </div>
           </div>
 

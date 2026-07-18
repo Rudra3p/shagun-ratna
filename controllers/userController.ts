@@ -48,7 +48,7 @@ export const registerUser = async (req: Request): Promise<NextResponse> => {
       return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
-    const { name, email, phone, password, birthdate, gender } = validation.data;
+    const { name, email, phone, password, age, gender } = validation.data;
 
     // Check if account rules conflict with database unique items
     const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
@@ -63,7 +63,7 @@ export const registerUser = async (req: Request): Promise<NextResponse> => {
       name,
       email,
       phone,
-      birthdate,
+      age,
       gender,
       password: hashedPassword,
       loginAttempts: 0 // Match admin-side security schema structure
@@ -80,7 +80,7 @@ export const registerUser = async (req: Request): Promise<NextResponse> => {
       message: "Account created successfully",
       user: {
         name: newUser.name,
-        birthdate: newUser.birthdate,
+        age: newUser.age,
         gender: newUser.gender
       }
     }, { status: 201 });
@@ -147,7 +147,7 @@ export const userSignin = async (req: Request): Promise<NextResponse> => {
       message: "Welcome to Shagun Ratna",
       user: {
         name: user.name,
-        birthdate: user.birthdate,
+        age: user.age,
         gender: user.gender
       }
     }, { status: 200 });

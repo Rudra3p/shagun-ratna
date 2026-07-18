@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import { z } from 'zod';
 
-// 1. Zod Schema with rules for gender and birthdate
+// 1. Zod Schema with rules for gender and age
 export const UserZodSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").trim(),
   email: z.string().email("Invalid email address"),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"),
-  birthdate: z.string().min(1, "Birthdate is required"),
+  age: z.coerce.number().int().min(1, "Age is required").max(120, "Please enter a valid age"),
   gender: z.enum(["Male", "Female", "Other"]),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   phone: { type: String, required: true, unique: true, trim: true },
-  birthdate: { type: String, required: true }, // 🧠 Added birthdate rule
+  age: { type: Number, required: true },
   gender: { type: String, required: true, enum: ["Male", "Female", "Other"] }, // 🧠 Added dynamic gender mapping field
   password: { type: String, required: true },
   loginAttempts: { type: Number, default: 0 }, // 🧠 Added tracking for brute-force safety block metrics

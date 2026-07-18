@@ -5,20 +5,6 @@ import Product from "@/models/product";
 import Showcase from "@/models/showcase";
 import { verifyUserSession } from "@/lib/verifyUserSession";
 
-const calculateAge = (birthdate: string): number => {
-  const birthDate = new Date(birthdate);
-  const today = new Date();
-
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-
-  return age;
-};
-
 export const getRecommendations = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
@@ -28,12 +14,12 @@ export const getRecommendations = async (req: Request): Promise<NextResponse> =>
       return NextResponse.json({ success: true, recommended: false, products: [] }, { status: 200 });
     }
 
-    const user = await User.findById(userId).select("birthdate gender");
+    const user = await User.findById(userId).select("age gender");
     if (!user) {
       return NextResponse.json({ success: true, recommended: false, products: [] }, { status: 200 });
     }
 
-    const age = calculateAge(user.birthdate);
+    const age = user.age;
 
     const matchingCollections = await Showcase.find({
       minAge: { $lte: age },

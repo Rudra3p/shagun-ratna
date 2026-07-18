@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Phone, Calendar, ArrowRight, CheckCircle2, Eye, EyeOff, Users } from 'lucide-react';
+import { Mail, Lock, User, Phone, Cake, ArrowRight, CheckCircle2, Eye, EyeOff, Users } from 'lucide-react';
 import { setAuthRedirect, consumeAuthRedirect } from '@/lib/authRedirect';
 
 export default function SigninPage() {
@@ -29,7 +29,7 @@ export default function SigninPage() {
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regDob, setRegDob] = useState('');
+  const [regAge, setRegAge] = useState('');
   const [regGender, setRegGender] = useState('Male'); 
 
   // Show/Hide password states
@@ -52,7 +52,7 @@ export default function SigninPage() {
       }
       if (data.user) {
         localStorage.setItem("shagun_user_name", data.user.name);
-        localStorage.setItem("shagun_user_dob", data.user.birthdate);
+        localStorage.setItem("shagun_user_age", data.user.age);
       }
       window.location.href = consumeAuthRedirect('/collection');
     } catch (err) {
@@ -73,7 +73,7 @@ export default function SigninPage() {
           email: regEmail,
           phone: regPhone,
           password: regPassword,
-          birthdate: regDob,
+          age: Number(regAge),
           gender: regGender
         }),
       });
@@ -86,7 +86,7 @@ export default function SigninPage() {
       setIsRegistered(true);
       setSuccessUser(regName);
       localStorage.setItem("shagun_user_name", regName);
-      localStorage.setItem("shagun_user_dob", regDob);
+      localStorage.setItem("shagun_user_age", regAge);
     } catch (err) {
       console.error(err);
       setError('An error occurred during registration.');
@@ -268,12 +268,15 @@ export default function SigninPage() {
 
                   <div className="flex flex-col gap-1 items-start">
                     <label className="font-sans text-[9px] tracking-[0.2em] text-[#C5A059] uppercase font-bold flex items-center gap-1.5">
-                      <Calendar size={11} /> Date of Birth
+                      <Cake size={11} /> Age
                     </label>
-                    <input 
-                      type="date"
-                      value={regDob}
-                      onChange={(e) => setRegDob(e.target.value)}
+                    <input
+                      type="number"
+                      min="1"
+                      max="120"
+                      value={regAge}
+                      onChange={(e) => setRegAge(e.target.value)}
+                      placeholder="Enter your age"
                       className="w-full bg-transparent border-b border-[#C5A059]/40 py-2 px-1 text-sm text-[#1a1a1a] focus:border-[#90060c] outline-none transition-colors duration-500 font-sans"
                       required
                     />

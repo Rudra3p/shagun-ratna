@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Session expired" }, { status: 401 });
     }
 
-    const user = await User.findById(decoded.id).select("name email phone birthdate gender createdAt");
+    const user = await User.findById(decoded.id).select("name email phone age gender createdAt");
     if (!user) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
