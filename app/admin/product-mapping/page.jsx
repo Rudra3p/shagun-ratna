@@ -218,9 +218,6 @@ export default function ProductMappingDashboard() {
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] text-[14px] font-medium text-gray-700"
                 >
                   <option value="None">None (collection only)</option>
-                  <optgroup label="New Launch Spotlight">
-                    <option value="New Launch">New Launch Section</option>
-                  </optgroup>
                   <optgroup label="Featured Collections">
                     <option value="Featured 1">Featured Collection 1</option>
                     <option value="Featured 2">Featured Collection 2</option>

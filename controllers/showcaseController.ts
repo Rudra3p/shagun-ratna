@@ -15,7 +15,6 @@ interface PopulatedProduct {
 }
 
 const HOMEPAGE_GRID_SLOTS = 6;
-const NEW_LAUNCH_ZONE = "New Launch";
 const FEATURED_ZONES = ["Featured 1", "Featured 2", "Featured 3"];
 
 // 1. GET: Fetch folders
@@ -87,7 +86,7 @@ export const getHomepageShowcase = async (): Promise<NextResponse> => {
   }
 };
 
-// 5. GET: Public feed for the "New Launch" spotlight and the 3 "Featured Collections" cards.
+// 5. GET: Public feed for the 3 "Featured Collections" cards.
 // Each zone resolves to the collection's title/description plus its first assigned product;
 // a zone with no collection assigned (or no product in it) resolves to null so the section
 // falls back to its own default copy/image.
@@ -95,8 +94,7 @@ export const getHomepageContent = async (): Promise<NextResponse> => {
   try {
     await dbConnect();
 
-    const zones = [NEW_LAUNCH_ZONE, ...FEATURED_ZONES];
-    const mapped = await Showcase.find({ homepageZone: { $in: zones } })
+    const mapped = await Showcase.find({ homepageZone: { $in: FEATURED_ZONES } })
       .select("homepageZone title description productIds")
       .populate({ path: "productIds", model: Product });
 
@@ -116,12 +114,11 @@ export const getHomepageContent = async (): Promise<NextResponse> => {
       return { title: collection.title, description: collection.description || "", product };
     };
 
-    const newLaunch = buildEntry(NEW_LAUNCH_ZONE);
     const featured = FEATURED_ZONES.map(buildEntry);
 
-    return NextResponse.json({ newLaunch, featured }, { status: 200 });
+    return NextResponse.json({ featured }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ newLaunch: null, featured: [null, null, null] }, { status: 200 });
+    return NextResponse.json({ featured: [null, null, null] }, { status: 200 });
   }
 };
 
