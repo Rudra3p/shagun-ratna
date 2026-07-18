@@ -1,6 +1,7 @@
 import AboutHero from '@/sections/about/AboutHero';
 import HeritageSection from '@/sections/about/Heritage';
 import PhilosophySection from '@/sections/about/Philosophy';
+import CertificationSection from '@/sections/about/Certification';
 import BoutiqueVisit from '@/sections/about/BoutiqueVisit';
 import PageDivider from '@/components/PageDivider';
 
@@ -23,9 +24,11 @@ export default function About() {
       
       {/* Philosophy section provides a dark-mode contrast for better visual rhythm */}
       <PhilosophySection />
-      
+
+      <CertificationSection />
+
       <PageDivider />
-      
+
       <BoutiqueVisit />
     </main>
   );

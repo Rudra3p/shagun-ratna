@@ -1,10 +1,20 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { Loader2, Search, SearchX, X, SlidersHorizontal } from 'lucide-react';
+
+// Shared crossfade so skeleton -> content/error/empty swaps never hard-cut
+const fadeProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.35, ease: 'easeOut' },
+};
 
 const CATEGORIES = [
   "Gold", "Silver", "Platinum", "Diamond", "Gemstone",
@@ -19,7 +29,7 @@ export default function Collection() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [favorites, setFavorites] = useState({});
+  const [favorites, setFavorites] = usePersistedState(FAVORITES_STORAGE_KEY, {});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
 
@@ -95,13 +105,7 @@ export default function Collection() {
   useEffect(() => {
     loadCollectionItems(1, "", []);
     loadRecommendations();
-
-    try {
-      const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
-      if (stored) setFavorites(JSON.parse(stored));
-    } catch {
-      // localStorage unavailable (e.g. private browsing) — favorites just won't persist
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleClearFilters = () => {
@@ -130,15 +134,7 @@ export default function Collection() {
 
   const toggleFavorite = (id, e) => {
     e.stopPropagation();
-    setFavorites(prev => {
-      const next = { ...prev, [id]: !prev[id] };
-      try {
-        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // localStorage unavailable — favorites just won't persist
-      }
-      return next;
-    });
+    setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   // Recommended pieces stay right where they'd normally sort in the catalog —
@@ -234,62 +230,64 @@ export default function Collection() {
         </div>
 
         {/* Product Grid Layout */}
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-            {[...Array(4)].map((_, i) => (
-              <ProductCardSkeleton key={i} showCategoryLine />
-            ))}
-          </div>
-        ) : error ? (
-          <div className="text-center py-16 bg-[#90060C]/5 border border-[#90060C]/20 rounded-2xl max-w-xl mx-auto text-[#90060C] font-serif">
-            {error}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center py-24 border border-dashed border-[#EBE3D5] rounded-2xl">
-            <div className="w-14 h-14 rounded-full bg-[#F5EFE6] flex items-center justify-center text-[#A8A196] mb-4">
-              <SearchX size={24} />
-            </div>
-            <p className="font-serif text-lg text-[#1a1a1a]">
-              {appliedSearch ? `No pieces match “${appliedSearch}”` : 'No pieces in this category yet'}
-            </p>
-            <p className="text-sm text-[#A8A196] mt-1.5 max-w-xs font-sans">
-              Try a different search term or browse the full collection.
-            </p>
-            <button
-              onClick={handleClearFilters}
-              className="mt-6 px-8 py-3 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full cursor-pointer"
-            >
-              View Full Collection
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-            {products.map((product, index) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                isFavorited={!!favorites[product._id]}
-                onToggleFavorite={toggleFavorite}
-                isRecommended={recommendedIds.has(product._id)}
-                priority={index < 4}
-              />
-            ))}
-
-            {/* Load More Button Trigger Pagination system */}
-            {hasMore && (
-              <div className="col-span-full mt-20 text-center">
-                <button
-                  disabled={loadingMore}
-                  onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategories)}
-                  className="px-10 py-4 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full inline-flex items-center gap-2.5 shadow-md cursor-pointer"
-                >
-                  {loadingMore && <Loader2 size={14} className="animate-spin mr-2" />}
-                  {loadingMore ? 'Syncing Vault...' : 'Load More Masterpieces'}
-                </button>
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div key="loading" {...fadeProps} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
+              {[...Array(4)].map((_, i) => (
+                <ProductCardSkeleton key={i} showCategoryLine />
+              ))}
+            </motion.div>
+          ) : error ? (
+            <motion.div key="error" {...fadeProps} className="text-center py-16 bg-[#90060C]/5 border border-[#90060C]/20 rounded-2xl max-w-xl mx-auto text-[#90060C] font-serif">
+              {error}
+            </motion.div>
+          ) : products.length === 0 ? (
+            <motion.div key="empty" {...fadeProps} className="flex flex-col items-center justify-center text-center py-24 border border-dashed border-[#EBE3D5] rounded-2xl">
+              <div className="w-14 h-14 rounded-full bg-[#F5EFE6] flex items-center justify-center text-[#A8A196] mb-4">
+                <SearchX size={24} />
               </div>
-            )}
-          </div>
-        )}
+              <p className="font-serif text-lg text-[#1a1a1a]">
+                {appliedSearch ? `No pieces match “${appliedSearch}”` : 'No pieces in this category yet'}
+              </p>
+              <p className="text-sm text-[#A8A196] mt-1.5 max-w-xs font-sans">
+                Try a different search term or browse the full collection.
+              </p>
+              <button
+                onClick={handleClearFilters}
+                className="mt-6 px-8 py-3 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full cursor-pointer"
+              >
+                View Full Collection
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div key="content" {...fadeProps} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
+              {products.map((product, index) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  isFavorited={!!favorites[product._id]}
+                  onToggleFavorite={toggleFavorite}
+                  isRecommended={recommendedIds.has(product._id)}
+                  priority={index < 4}
+                />
+              ))}
+
+              {/* Load More Button Trigger Pagination system */}
+              {hasMore && (
+                <div className="col-span-full mt-20 text-center">
+                  <button
+                    disabled={loadingMore}
+                    onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategories)}
+                    className="px-10 py-4 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full inline-flex items-center gap-2.5 shadow-md cursor-pointer"
+                  >
+                    {loadingMore && <Loader2 size={14} className="animate-spin mr-2" />}
+                    {loadingMore ? 'Syncing Vault...' : 'Load More Masterpieces'}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Right-side Filter Drawer */}

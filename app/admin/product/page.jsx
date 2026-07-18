@@ -22,7 +22,8 @@ function ProductCardSkeleton() {
 }
 
 function ProductCard({ product, onEdit, onDelete }) {
-  const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
+  const hasValidPrice = typeof product?.price === 'number' && product.price > 0;
+  const hasDiscount = hasValidPrice && product.offerPrice > 0 && product.offerPrice !== product.price;
 
   return (
     <div className="group flex flex-col bg-transparent border-none p-0 transition-transform duration-500 ease-out hover:-translate-y-1.5">

@@ -9,7 +9,8 @@ import Badge from '@/components/Badge';
 export const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
 
 export default function ProductCard({ product, isFavorited, onToggleFavorite, priority = false, isRecommended = false }) {
-  const hasDiscount = product.offerPrice > 0 && product.offerPrice !== product.price;
+  const hasValidPrice = typeof product?.price === 'number' && product.price > 0;
+  const hasDiscount = hasValidPrice && product.offerPrice > 0 && product.offerPrice !== product.price;
 
   // Heart "burst" micro-reward: a brief ping the moment a piece is favorited.
   const [burst, setBurst] = useState(false);

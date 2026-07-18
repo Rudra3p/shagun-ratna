@@ -2,14 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import userApi from '@/lib/userApi';
 import Badge from '@/components/Badge';
 import ProductDetailSkeleton from '@/components/skeletons/ProductDetailSkeleton';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { ArrowLeft, Heart, Gem, AlertCircle } from 'lucide-react';
 
 const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
+
+// Shared crossfade so skeleton -> content/error swaps never hard-cut
+const fadeProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.35, ease: 'easeOut' },
+};
 
 // Real, admin-set expiry only — mirrors the countdown shown on the collection grid.
 function useOfferCountdown(offertime) {
@@ -44,7 +54,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [favorites, setFavorites] = useState({});
+  const [favorites, setFavorites] = usePersistedState(FAVORITES_STORAGE_KEY, {});
 
   useEffect(() => {
     let cancelled = false;
@@ -63,30 +73,16 @@ export default function ProductDetail() {
         if (!cancelled) setLoading(false);
       });
 
-    try {
-      const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
-      if (stored) setFavorites(JSON.parse(stored));
-    } catch {
-      // localStorage unavailable — favorites just won't persist
-    }
-
     return () => { cancelled = true; };
   }, [id]);
 
   const toggleFavorite = () => {
-    setFavorites(prev => {
-      const next = { ...prev, [id]: !prev[id] };
-      try {
-        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // localStorage unavailable — favorites just won't persist
-      }
-      return next;
-    });
+    setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const countdownLabel = useOfferCountdown(product?.offertime);
-  const hasDiscount = !!product && product.offerPrice > 0 && product.offerPrice !== product.price;
+  const hasValidPrice = typeof product?.price === 'number' && product.price > 0;
+  const hasDiscount = hasValidPrice && product.offerPrice > 0 && product.offerPrice !== product.price;
   const savings = hasDiscount ? product.price - product.offerPrice : 0;
   const isFavorited = !!favorites[id];
 
@@ -100,10 +96,13 @@ export default function ProductDetail() {
           <ArrowLeft size={14} /> Back to Collection
         </Link>
 
+        <AnimatePresence mode="wait">
         {loading ? (
-          <ProductDetailSkeleton />
+          <motion.div key="loading" {...fadeProps}>
+            <ProductDetailSkeleton />
+          </motion.div>
         ) : error || !product ? (
-          <div className="flex flex-col items-center justify-center text-center py-24 border border-dashed border-[#EBE3D5] rounded-2xl">
+          <motion.div key="error" {...fadeProps} className="flex flex-col items-center justify-center text-center py-24 border border-dashed border-[#EBE3D5] rounded-2xl">
             <div className="w-14 h-14 rounded-full bg-[#F5EFE6] flex items-center justify-center text-[#A8A196] mb-4">
               <AlertCircle size={24} />
             </div>
@@ -114,9 +113,9 @@ export default function ProductDetail() {
             >
               View Full Collection
             </Link>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
+          <motion.div key="content" {...fadeProps} className="grid md:grid-cols-2 gap-10 lg:gap-16">
             {/* Image */}
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 ring-[#EBE3D5]/40 shadow-sm">
               {product.imageUrl ? (
@@ -207,8 +206,9 @@ export default function ProductDetail() {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </div>
   );
