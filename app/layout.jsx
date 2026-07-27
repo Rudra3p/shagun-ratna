@@ -43,12 +43,8 @@ export const metadata = {
     locale: 'en_IN',
     type: 'website',
   },
-
-  // 4. Mobile App Identity
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
+  // 4. Mobile App Identity — favicon/apple-touch-icon come from app/icon.png
+  // and app/apple-icon.png via Next's file-convention metadata, not this key.
 };
 
 // 2. Define the monitoring function
