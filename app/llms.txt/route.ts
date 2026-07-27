@@ -34,9 +34,9 @@ export async function GET() {
 
   const body = `# Shagun Ratna
 
-> Shagun Ratna is a premium handcrafted jewelry boutique founded in 1980 in Ahmedabad, India. It offers authentic gold, diamond, and gemstone jewelry — every gold piece is BIS hallmarked and every gemstone independently lab-certified, with diamonds graded against GIA/IGI standards.
+> Shagun Ratna is a premium handcrafted jewelry boutique founded in 1980 in Ahmedabad, India, offering certified natural gemstones and authentic gold and diamond jewelry — every gold piece is BIS hallmarked, every gemstone independently lab-certified, with diamonds graded against GIA/IGI standards.
 
-Shagun Ratna is a family jewelry house with four decades of craftsmanship, specializing in bridal sets, gold heirlooms, solitaire diamonds, and astrological/rashi gemstones, alongside bespoke commission design. The brand emphasizes ethical sourcing, sustainability, and verified authenticity behind every piece.
+Shagun Ratna is a family jewelry house with four decades of craftsmanship, specializing in premium gemstones (ruby, emerald, sapphire, and diamond alternatives), bridal sets, gold heirlooms, solitaire diamonds, and astrological/rashi gemstones, alongside bespoke commission design. The brand emphasizes ethical sourcing, sustainability, and verified authenticity behind every piece.
 
 ## Pages
 
@@ -53,6 +53,15 @@ Shagun Ratna is a family jewelry house with four decades of craftsmanship, speci
 - Solitaire Diamonds & Rings
 - Astrological & Rashi Gems
 - Bespoke Commission Design
+
+## Gemstones
+
+- Certified natural gemstones — every stone is independently lab-certified for authenticity, clarity, and origin
+- Ruby jewelry
+- Emerald jewelry
+- Sapphire jewelry
+- Diamond alternatives (e.g. moissanite, white sapphire) available via bespoke commission
+- Premium gemstones available in-store at our Ahmedabad boutique and online at ${BASE_URL}/collection
 
 ## Products${truncationNote}
 

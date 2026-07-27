@@ -18,6 +18,7 @@ const fadeProps = {
 
 const CATEGORIES = [
   "Gold", "Silver", "Platinum", "Diamond", "Gemstone",
+  "Ruby", "Emerald", "Sapphire",
   "Bridal", "Heirloom", "Contemporary", "Traditional",
   "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
 ];

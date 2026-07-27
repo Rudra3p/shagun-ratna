@@ -14,11 +14,26 @@ const cormorant = Cormorant_Garamond({
 export const metadata = {
   // 1. Browser Tab Branding
   title: {
-    default: 'Shagun Ratna | Premium Jewelry & Authentic Collections',
-    template: '%s | Shagun Ratna', 
+    default: 'Shagun Ratna | Premium Gemstones & Jewelry in Ahmedabad',
+    template: '%s | Shagun Ratna',
   },
-  description: 'Exquisite, handcrafted jewelry for every occasion. Shagun Ratna offers a premium collection of authentic gold and diamond pieces.',
-  keywords: ['Shagun Ratna', 'Premium Jewelry', 'Authentic Gold', 'Diamond Jewelry India', 'Jewelry Shop'],
+  description: 'Shagun Ratna offers certified, natural gemstones and handcrafted gold and diamond jewellery in Ahmedabad — including ruby, emerald, sapphire, and diamond alternatives — since 1980.',
+  keywords: [
+    'Shagun Ratna',
+    'Premium Jewelry',
+    'Authentic Gold',
+    'Diamond Jewelry India',
+    'Jewelry Shop',
+    'Premium Gemstones Ahmedabad',
+    'Certified Gemstones',
+    'Natural Gemstones',
+    'Gemstone Jewellery',
+    'Ruby Jewelry',
+    'Emerald Jewelry',
+    'Sapphire Jewelry',
+    'Diamond Alternatives',
+    'Ahmedabad Jewelry Shop',
+  ],
 
   // 2. SEO (Google Search)
   metadataBase: new URL('https://shagunratna.com'), 
@@ -29,8 +44,8 @@ export const metadata = {
 
   // 3. Social Media (WhatsApp/Instagram Previews)
   openGraph: {
-    title: 'Shagun Ratna | Handcrafted Luxury Jewelry',
-    description: 'Shop our latest authentic jewelry collections.',
+    title: 'Shagun Ratna | Certified Gemstones & Handcrafted Luxury Jewelry',
+    description: 'Shop certified natural gemstones — ruby, emerald, sapphire, and more — plus our latest authentic gold and diamond jewelry collections.',
     url: 'https://shagunratna.com',
     siteName: 'Shagun Ratna Jewelry',
     images: [
@@ -60,12 +75,25 @@ const businessJsonLd = {
   "@context": "https://schema.org",
   "@type": "JewelryStore",
   name: "Shagun Ratna",
-  description: 'Premium handcrafted gold, diamond, and gemstone jewelry boutique in Ahmedabad, founded in 1980. BIS hallmarked gold, lab-certified gemstones, and GIA/IGI-referenced diamonds.',
+  description: 'Premium handcrafted gold, diamond, and certified natural gemstone jewelry boutique in Ahmedabad, founded in 1980. BIS hallmarked gold, lab-certified natural gemstones (ruby, emerald, sapphire, and more), and GIA/IGI-referenced diamonds.',
   url: 'https://shagunratna.com',
   image: 'https://shagunratna.com/og-jewelry.jpg',
   telephone: '+91-22-2282-9800',
   priceRange: '₹₹₹',
   foundingDate: '1980',
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Gemstone & Jewelry Categories",
+    itemListElement: [
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Certified Natural Ruby Jewelry" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Certified Natural Emerald Jewelry" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Certified Natural Sapphire Jewelry" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Diamond Alternative Gemstone Jewelry" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Bridal & Wedding Sets" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Gold Heirlooms & Necklaces" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Astrological & Rashi Gems" } },
+    ],
+  },
   address: {
     "@type": "PostalAddress",
     streetAddress: 'GF/9, Akshar Complex, Beside Harit Zaveri, Shivranjani Cross Road, Satellite',

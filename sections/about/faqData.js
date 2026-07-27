@@ -39,4 +39,24 @@ export const FAQS = [
     answer:
       "Yes. Ethical sourcing and sustainability are core to our philosophy, alongside handcrafted artistry in every piece we create.",
   },
+  {
+    question: "Does Shagun Ratna sell certified natural gemstones?",
+    answer:
+      "Yes. Every gemstone we set — ruby, emerald, sapphire, and other precious and semi-precious stones — is natural and independently lab-certified for authenticity, clarity, and origin before it goes into a piece.",
+  },
+  {
+    question: "Where can I buy premium gemstones in Ahmedabad?",
+    answer:
+      "Our flagship boutique in Satellite, Ahmedabad, carries a curated selection of certified natural gemstone jewelry, and our full gemstone catalog is also browsable online at shagunratna.com/collection.",
+  },
+  {
+    question: "Do you offer ruby, emerald, and sapphire jewelry?",
+    answer:
+      "Yes. Our gemstone collection includes ruby, emerald, sapphire, and other precious stones set in gold and platinum, alongside astrological and rashi gemstones chosen for their certified authenticity.",
+  },
+  {
+    question: "Does Shagun Ratna offer diamond alternatives?",
+    answer:
+      "Alongside natural diamonds, we can source and set diamond-alternative gemstones — such as moissanite or white sapphire — through our bespoke commission service. Reach out via our contact form to discuss options.",
+  },
 ];

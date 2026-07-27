@@ -8,8 +8,8 @@ import { FAQS } from '@/sections/about/faqData';
 import PageDivider from '@/components/PageDivider';
 
 export const metadata = {
-  title: "About Shagun Ratna | Handcrafted Jewelry Since 1980",
-  description: "Learn the story of Shagun Ratna. Over four decades of crafting timeless gold jewelry.",
+  title: "Certified Gemstones & Jewelry Since 1980",
+  description: "Learn the story of Shagun Ratna — four decades of crafting timeless gold jewelry and sourcing certified natural gemstones in Ahmedabad, including ruby, emerald, and sapphire.",
    alternates: {
     canonical: 'https://shagunratna.com/about',
   },

@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Shop the Collection",
-  description: "Browse Shagun Ratna's full collection of handcrafted gold, diamond, and gemstone jewelry — rings, necklaces, earrings, bangles, and more.",
+  title: "Shop Certified Gemstones & Jewelry",
+  description: "Browse Shagun Ratna's full collection in Ahmedabad — certified natural gemstones (ruby, emerald, sapphire, diamond alternatives) plus handcrafted gold and diamond jewelry: rings, necklaces, earrings, bangles, and more.",
   alternates: {
     canonical: "https://shagunratna.com/collection",
   },
