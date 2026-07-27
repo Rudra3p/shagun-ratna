@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useSiteImage } from '@/components/SiteImagesProvider';
 
 export default function BoutiqueVisit() {
-  const boutiqueImage = useSiteImage('about-boutique', '/boutique-interior.jpg');
+  const boutiqueImage = useSiteImage('about-boutique', '/boutique-interior.webp');
 
   return (
     <section className="relative py-24 px-6 bg-white text-[#90060c]">

@@ -27,7 +27,7 @@ const childVariants = {
 export default function HeroSection() {
   const containerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
-  const heroImage = useSiteImage('home-hero', '/hero_sec_hand.png');
+  const heroImage = useSiteImage('home-hero', '/hero_sec_hand.webp');
 
   // Check window width to adjust parallax intensity safely
   useEffect(() => {

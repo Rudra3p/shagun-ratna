@@ -60,12 +60,51 @@ export const logMemoryStatus = () => {
   console.log(`[RAM STATUS]: ${used}MB used / ${total}MB total (${percentage}%)`);
 };
 
+const businessJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "JewelryStore",
+  name: "Shagun Ratna",
+  description: 'Premium handcrafted gold, diamond, and gemstone jewelry boutique in Ahmedabad, founded in 1980. BIS hallmarked gold, lab-certified gemstones, and GIA/IGI-referenced diamonds.',
+  url: 'https://shagunratna.com',
+  image: 'https://shagunratna.com/og-jewelry.jpg',
+  telephone: '+91-22-2282-9800',
+  priceRange: '₹₹₹',
+  foundingDate: '1980',
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: 'GF/9, Akshar Complex, Beside Harit Zaveri, Shivranjani Cross Road, Satellite',
+    addressLocality: 'Ahmedabad',
+    addressRegion: 'Gujarat',
+    postalCode: '380015',
+    addressCountry: 'IN',
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 23.0245069,
+    longitude: 72.5288626,
+  },
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '11:00',
+      closes: '20:00',
+    },
+  ],
+};
+
 export default function RootLayout({ children }) {
   logMemoryStatus();
 
   return (
     <html lang="en" className={`${cormorant.variable}`}>
       <body className="bg-[#FDFBF7] font-sans">
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
+        />
+
         <LayoutWrapper>
           {children}
         </LayoutWrapper>

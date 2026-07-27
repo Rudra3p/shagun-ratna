@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useSiteImage } from '@/components/SiteImagesProvider';
 
 export default function PhilosophySection() {
-  const philosophyImage = useSiteImage('about-philosophy', '/philosophy-main.png');
+  const philosophyImage = useSiteImage('about-philosophy', '/philosophy-main.webp');
 
   return (
     <section className="py-16 md:py-24 px-6 bg-[#90060c] text-[#faf3e5] overflow-hidden">

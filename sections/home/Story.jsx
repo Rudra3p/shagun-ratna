@@ -12,7 +12,7 @@ const fadeUp = {
 };
 
 export default function StorySection() {
-  const storyImage = useSiteImage('home-story', '/story-image.jpg');
+  const storyImage = useSiteImage('home-story', '/story-image.webp');
 
   return (
     <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7] text-[#1a1a1a] overflow-hidden">

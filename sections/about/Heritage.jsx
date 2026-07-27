@@ -5,9 +5,9 @@ import Image from 'next/image';
 import { useSiteImage } from '@/components/SiteImagesProvider';
 
 export default function HeritageSection() {
-  const tallImage = useSiteImage('about-heritage-tall', '/heritage-tall.jpg');
-  const squareImage1 = useSiteImage('about-heritage-square-1', '/heritage-square-1.jpg');
-  const squareImage2 = useSiteImage('about-heritage-square-2', '/heritage-square-2.jpg');
+  const tallImage = useSiteImage('about-heritage-tall', '/heritage-tall.webp');
+  const squareImage1 = useSiteImage('about-heritage-square-1', '/heritage-square-1.webp');
+  const squareImage2 = useSiteImage('about-heritage-square-2', '/heritage-square-2.webp');
 
   return (
     <section className="py-20 px-6 bg-white text-[#90060c]">

@@ -13,21 +13,21 @@ const collections = [
     title: "Certified Diamonds",
     text: "Unrivaled brilliance, ethically sourced. Each stone is hand-selected for its fire and clarity, ensuring your piece is as unique as the moments it celebrates.",
     imageKey: "home-featured-diamond",
-    image: "/diamond-section.jpg"
+    image: "/diamond-section.webp"
   },
   {
     tag: "The Collection",
     title: "Rare Gemstones",
     text: "Stones that tell a story of origin. From deep emeralds to vibrant rubies, we curate rare treasures that bring color and life to traditional silhouettes.",
     imageKey: "home-featured-gemstone",
-    image: "/gemstone-section.jpg"
+    image: "/gemstone-section.webp"
   },
   {
     tag: "The Collection",
     title: "Gold Artistry",
     text: "Tradition captured in 22K gold. Our master artisans breathe soul into metal, creating timeless pieces that carry the legacy of generations forward.",
     imageKey: "home-featured-gold",
-    image: "/gold-section.jpg"
+    image: "/gold-section.webp"
   }
 ];
 

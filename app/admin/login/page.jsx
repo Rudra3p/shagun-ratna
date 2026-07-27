@@ -105,7 +105,7 @@ export default function AdminLogin() {
         <div className="relative w-[240px] h-[120px] overflow-hidden mb-6">
           <div className="relative w-full h-full">
             <Image 
-              src="/shagunratnalogo.png"            
+              src="/shagunratnalogo.webp"
               alt="Shagunratna Logo" 
               fill                                              
               priority                                   

@@ -6,11 +6,11 @@ import Image from 'next/image';
 import { useSiteImages } from '@/components/SiteImagesProvider';
 
 const slides = [
-  { key: 'about-hero-1', defaultSrc: "/about-1.png" },
-  { key: 'about-hero-2', defaultSrc: "/about-2.jpg" },
-  { key: 'about-hero-3', defaultSrc: "/about-3.jpg" },
-  { key: 'about-hero-4', defaultSrc: "/about-4.jpg" },
-  { key: 'about-hero-5', defaultSrc: "/about-5.jpg" },
+  { key: 'about-hero-1', defaultSrc: "/about-1.webp" },
+  { key: 'about-hero-2', defaultSrc: "/about-2.webp" },
+  { key: 'about-hero-3', defaultSrc: "/about-3.webp" },
+  { key: 'about-hero-4', defaultSrc: "/about-4.webp" },
+  { key: 'about-hero-5', defaultSrc: "/about-5.webp" },
 ];
 
 export default function AboutHero() {

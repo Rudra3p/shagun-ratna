@@ -24,7 +24,7 @@ const CERTIFICATIONS = [
 ];
 
 export default function CertificationSection() {
-  const certificateImage = useSiteImage('about-certification', '/new-launch.png');
+  const certificateImage = useSiteImage('about-certification', '/new-launch.webp');
 
   return (
     <section className="py-20 px-6 bg-[#faf3e5] text-[#90060c]">

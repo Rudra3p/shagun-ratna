@@ -53,7 +53,7 @@ const Navbar = () => {
         {/* Brand Name on the Left */}
         <Link href="/" className="h-[45px] w-[90px] md:h-[55px] md:w-[110px] relative transition-transform duration-500 hover:scale-[1.03]">
           <Image 
-            src="/shagunratnalogo.png" 
+            src="/shagunratnalogo.webp"
             alt="Shagun Ratna Logo" 
             fill 
             sizes="(max-width: 768px) 90px, 110px"
