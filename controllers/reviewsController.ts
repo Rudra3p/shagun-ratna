@@ -7,18 +7,14 @@ export const addReview = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
 
+    // Reviews are open to everyone. If the visitor happens to be signed in, we still
+    // attach their userId so "Your Review" on the reviews page can find it later.
     const userId = await verifyUserSession(req.headers.get("cookie"));
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "Please sign in to submit a review." },
-        { status: 401 }
-      );
-    }
 
     const body = await req.json();
 
     const newReview = new Review({
-      userId,
+      userId: userId || undefined,
       name: body.name,
       product: body.product,
       text: body.text,

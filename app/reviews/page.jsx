@@ -137,9 +137,7 @@ export default async function ReviewsPage() {
               </>
             ) : (
               <p className="mt-3 text-sm leading-7 text-[#5f5a53]">
-                {userId
-                  ? "You haven't submitted a review yet. Use the Give Feedback button above to share your experience."
-                  : "Sign in and write a review to see it here, along with its approval status."}
+                You haven&apos;t submitted a review yet. Use the Give Feedback button above to share your experience — no account needed.
               </p>
             )}
           </div>
