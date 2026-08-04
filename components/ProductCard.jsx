@@ -98,7 +98,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
           <div className="flex items-baseline gap-2 flex-wrap">
             {hasDiscount ? (
               <>
-                <span className="text-lg sm:text-2xl font-brand font-bold text-[#90060C]">
+                <span className="text-lg sm:text-2xl font-sans font-bold text-[#90060C]">
                   ₹{parseFloat(product.offerPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
                 <span className="text-xs sm:text-sm text-[#A8A196] font-medium line-through">
@@ -106,7 +106,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
                 </span>
               </>
             ) : (
-              <span className="text-lg sm:text-2xl font-brand font-bold text-[#2D2926]">
+              <span className="text-lg sm:text-2xl font-sans font-bold text-[#2D2926]">
                 {product.price ? `₹${parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Price on Request'}
               </span>
             )}
