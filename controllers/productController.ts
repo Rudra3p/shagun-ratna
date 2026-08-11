@@ -257,7 +257,7 @@ export const deleteProduct = async (req: Request): Promise<NextResponse> => {
 
     // Execute instant Cloudflare CDN Cache purging for text payloads and R2 image assets
     const encodedSearch = encodeURIComponent(deletedProduct.productName);
-    const cdnSearchUrl = `https://shagunratna.onrender.com/api/products?search=${encodedSearch}&page=1&limit=10`;
+    const cdnSearchUrl = `https://shagunratna.com/api/products?search=${encodedSearch}&page=1&limit=10`;
     
     await purgeCDNCache(cdnSearchUrl); 
 

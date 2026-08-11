@@ -5,10 +5,29 @@ import adminApi from '@/lib/adminApi';
 import Badge from '@/components/Badge';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, ArrowRight, Upload, Loader2,
-  CheckCircle2, AlertCircle, PackageSearch, ImageOff
+  CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown
 } from 'lucide-react';
 
 const PURITY_PRESETS = ['22K Pure Gold', '18K Gold', '14K Gold', '925 Silver', 'Platinum'];
+
+const CATEGORY_PRESETS = [
+  'General', 'Gold', 'Silver', 'Platinum', 'Diamond', 'Gemstone',
+  'Ruby', 'Emerald', 'Sapphire', 'Bridal', 'Heirloom', 'Contemporary',
+  'Traditional', 'Rings', 'Necklaces', 'Earrings', 'Bangles', 'Bracelets', 'Pendants'
+];
+
+// Shared field styling so every input in the form meets WCAG AA contrast and gets a
+// consistent keyboard focus-visible ring (see :root tokens in app/globals.css)
+const FIELD_LABEL = "text-[12px] font-bold text-on-surface-variant uppercase tracking-wider font-sans";
+const FIELD_INPUT = "w-full px-4 py-2.5 bg-white border border-outline rounded-lg text-[14px] text-gray-900 placeholder:text-on-surface-variant shadow-sm transition-all focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
+const SECTION_GROUP = "space-y-5 pb-6 border-b border-outline/15";
+const BUTTON_FOCUS = "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+
+// Decorative required-field marker — the native `required` attribute already announces
+// "required" to screen readers, so the asterisk itself is hidden from assistive tech.
+function Required() {
+  return <span className="text-primary font-bold ml-0.5" aria-hidden="true">*</span>;
+}
 
 function ProductCardSkeleton() {
   return (
@@ -116,6 +135,8 @@ export default function Products() {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [categoryOther, setCategoryOther] = useState(false); // true when Category is set to a custom (non-preset) value
 
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -210,14 +231,14 @@ export default function Products() {
     }
   };
 
-  // Handle local image preview generation
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  // Handle local image preview generation (shared by native picker and drag-and-drop)
+  const applyImageFile = (file) => {
     if (file) {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
+  const handleFileChange = (e) => applyImageFile(e.target.files[0]);
 
   const handleNextStep = () => {
     if (!formData.productName.trim() || !formData.category.trim() || !formData.price || !formData.description.trim()) {
@@ -309,6 +330,7 @@ export default function Products() {
       imageUrl: product.imageUrl || ''
     });
     setImagePreview(product.imageUrl || null);
+    setCategoryOther(!!product.category && !CATEGORY_PRESETS.includes(product.category));
     setEditingId(product._id);
     setStep(1);
     setView('edit');
@@ -334,6 +356,7 @@ export default function Products() {
     setFormData({ productName: '', price: '', category: 'General', purity: '', description: '', discount: 0, offerPrice: 0, offertime: '' });
     setImageFile(null);
     setImagePreview(null);
+    setCategoryOther(false);
     setEditingId(null);
     setStep(1);
   };
@@ -357,21 +380,22 @@ export default function Products() {
             <h1 className="text-[20px] font-sans font-bold text-[#721c24] tracking-tight">
               {view === 'add' ? 'Add New Product' : 'Edit Product'}
             </h1>
-            <p className="text-[13px] text-gray-500 mt-0.5">
+            <p className="text-[13px] text-on-surface-variant mt-0.5">
               {step === 1 ? 'Step 1 of 2 — Required details' : 'Step 2 of 2 — Optional details'}
             </p>
           </div>
         </div>
 
-        {/* Step indicator */}
+        {/* Step indicator — inactive step keeps a readable (not faint) label/number via the
+            on-surface-variant token, hierarchy comes from the filled vs. outlined badge, not from washing the text out */}
         <div className="flex items-center gap-2 mb-6 px-1">
-          <div className={`flex items-center gap-2 text-[12px] font-bold ${step === 1 ? 'text-[#540411]' : 'text-gray-400'}`}>
-            <span className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] ${step === 1 ? 'bg-[#540411] text-white' : 'bg-gray-100 text-gray-400'}`}>1</span>
+          <div className={`flex items-center gap-2 text-[12px] font-bold ${step === 1 ? 'text-primary' : 'text-on-surface-variant'}`}>
+            <span className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] ${step === 1 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant ring-1 ring-outline/30'}`}>1</span>
             Required
           </div>
-          <div className="flex-1 h-px bg-gray-100" />
-          <div className={`flex items-center gap-2 text-[12px] font-bold ${step === 2 ? 'text-[#540411]' : 'text-gray-400'}`}>
-            <span className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] ${step === 2 ? 'bg-[#540411] text-white' : 'bg-gray-100 text-gray-400'}`}>2</span>
+          <div className="flex-1 h-px bg-outline/20" />
+          <div className={`flex items-center gap-2 text-[12px] font-bold ${step === 2 ? 'text-primary' : 'text-on-surface-variant'}`}>
+            <span className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] ${step === 2 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant ring-1 ring-outline/30'}`}>2</span>
             Optional
           </div>
         </div>
@@ -379,78 +403,125 @@ export default function Products() {
         <form onSubmit={handleSave} className="bg-white border border-gray-100 rounded-[20px] p-8 shadow-[0_2px_10px_rgba(0,0,0,0.04)] space-y-6">
           {step === 1 ? (
             <>
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Product Name *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Royal Sapphire Halo"
-                  value={formData.productName}
-                  onChange={(e) => setFormData({...formData, productName: e.target.value})}
-                  required
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
-                />
+              {/* Basic info */}
+              <div className={SECTION_GROUP}>
+                <div className="space-y-1.5">
+                  <label className={FIELD_LABEL}>Product Name<Required /></label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Royal Sapphire Halo"
+                    value={formData.productName}
+                    onChange={(e) => setFormData({...formData, productName: e.target.value})}
+                    required
+                    className={FIELD_INPUT}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className={FIELD_LABEL}>Category<Required /></label>
+                  <div className="relative">
+                    <select
+                      value={categoryOther ? 'other' : (formData.category || 'General')}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === 'other') {
+                          setCategoryOther(true);
+                          setFormData({ ...formData, category: '' });
+                        } else {
+                          setCategoryOther(false);
+                          setFormData({ ...formData, category: value });
+                        }
+                      }}
+                      required
+                      className={`${FIELD_INPUT} appearance-none pr-10 cursor-pointer`}
+                    >
+                      {CATEGORY_PRESETS.map((preset) => (
+                        <option key={preset} value={preset}>{preset}</option>
+                      ))}
+                      <option value="other">Other (type custom)</option>
+                    </select>
+                    <ChevronDown size={16} strokeWidth={2.5} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+                  </div>
+                  {categoryOther && (
+                    <input
+                      type="text"
+                      placeholder="Type a custom category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      required
+                      className={`${FIELD_INPUT} mt-1.5`}
+                    />
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Category *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. High-End Jewelry"
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  required
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
-                />
+              {/* Pricing */}
+              <div className={SECTION_GROUP}>
+                <div className="space-y-1.5">
+                  <label className={FIELD_LABEL}>Original Price (₹)<Required /></label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    required
+                    className={FIELD_INPUT}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Original Price (₹) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  required
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
-                />
+              {/* Description */}
+              <div className={SECTION_GROUP}>
+                <div className="space-y-1.5">
+                  <label className={FIELD_LABEL}>Details<Required /></label>
+                  <textarea
+                    rows={4}
+                    placeholder="Craftsmanship notes, materials, or anything else shown on the product's detail page"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    required
+                    className={`${FIELD_INPUT} resize-none`}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Details *</label>
-                <textarea
-                  rows={4}
-                  placeholder="Craftsmanship notes, materials, or anything else shown on the product's detail page"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  required
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Product Asset Image *</label>
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 bg-white rounded-[16px] cursor-pointer hover:border-[#540411] hover:bg-[#ffecec]/20 transition-all duration-300 relative overflow-hidden group">
-                    {imagePreview ? (
-                      <div
-                        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                        style={{ backgroundImage: `url(${imagePreview})` }}
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
-                        <Upload className="w-8 h-8 text-gray-400 mb-2 group-hover:text-[#540411] transition-colors" />
-                        <p className="text-[13px] text-gray-900 font-bold">Click to upload file</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">PNG, JPG or WEBP formats allowed</p>
-                      </div>
-                    )}
+              {/* Media */}
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className={FIELD_LABEL}>Product Asset Image<Required /></label>
+                  <div
+                    className={`relative w-full h-40 rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden has-focus-visible:ring-2 has-focus-visible:ring-primary has-focus-visible:ring-offset-2 ${
+                      isDragOver
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                        : 'border-outline/60 bg-white has-hover:border-primary has-hover:bg-primary/3'
+                    }`}
+                  >
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleFileChange}
-                      className="hidden"
+                      onDragEnter={() => setIsDragOver(true)}
+                      onDragLeave={() => setIsDragOver(false)}
+                      onDrop={() => setIsDragOver(false)}
+                      aria-label="Upload product image"
+                      className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
                     />
-                  </label>
+                    <div className="pointer-events-none flex flex-col items-center justify-center w-full h-full">
+                      {imagePreview ? (
+                        <div
+                          className="absolute inset-0 bg-cover bg-center"
+                          style={{ backgroundImage: `url(${imagePreview})` }}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center px-4">
+                          <Upload className="w-8 h-8 text-primary/70 mb-2" />
+                          <p className="text-[13px] text-gray-900 font-bold">Click to upload, or drag & drop</p>
+                          <p className="text-[11px] text-on-surface-variant mt-0.5">PNG, JPG or WEBP formats allowed</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -458,14 +529,14 @@ export default function Products() {
                 <button
                   type="button"
                   onClick={() => { resetForm(); setView('list'); }}
-                  className="px-5 py-2.5 border border-gray-200 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-semibold text-[13px] shadow-sm"
+                  className={`px-5 py-2.5 border border-outline text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-semibold text-[13px] shadow-sm ${BUTTON_FOCUS}`}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-[#400009] transition-all font-semibold text-[13px]"
+                  className={`flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg shadow-md hover:bg-on-primary-fixed transition-all font-semibold text-[13px] ${BUTTON_FOCUS}`}
                 >
                   Next: Optional Details
                   <ArrowRight size={14} />
@@ -474,75 +545,84 @@ export default function Products() {
             </>
           ) : (
             <>
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Purity / Material</label>
-                <div className="flex flex-wrap gap-2">
-                  {PURITY_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setFormData({...formData, purity: preset})}
-                      className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors ${
-                        formData.purity === preset
-                          ? 'bg-[#540411] border-[#540411] text-white'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-[#540411]/40'
-                      }`}
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Or type a custom purity/material — leave blank to show none"
-                  value={formData.purity}
-                  onChange={(e) => setFormData({...formData, purity: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
-                />
-                <p className="text-[11px] text-gray-400">Only shows on the product card and detail page if set — leaving it blank shows no purity label at all.</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Material */}
+              <div className={SECTION_GROUP}>
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Discount (%)</label>
+                  <label className={FIELD_LABEL}>Purity / Material</label>
+                  <div className="flex flex-wrap gap-2">
+                    {PURITY_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setFormData({...formData, purity: preset})}
+                        className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
+                          formData.purity === preset
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-white border-outline text-gray-600 hover:border-primary/50'
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
                   <input
-                    type="number"
-                    placeholder="0"
-                    value={formData.discount}
-                    onChange={(e) => setFormData({...formData, discount: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
+                    type="text"
+                    placeholder="Or type a custom purity/material — leave blank to show none"
+                    value={formData.purity}
+                    onChange={(e) => setFormData({...formData, purity: e.target.value})}
+                    className={FIELD_INPUT}
                   />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Offer Price (₹)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.offerPrice}
-                    onChange={(e) => setFormData({...formData, offerPrice: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
-                  />
+                  <p className="text-[11px] text-on-surface-variant">Only shows on the product card and detail page if set — leaving it blank shows no purity label at all.</p>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider font-sans">Offer Ends At</label>
-                <input
-                  type="datetime-local"
-                  value={formData.offertime}
-                  onChange={(e) => setFormData({...formData, offertime: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#540411] focus:ring-1 focus:ring-[#540411] transition-all text-[14px] text-gray-900 shadow-sm"
-                />
-                <p className="text-[11px] text-gray-400">Shows a live countdown badge on the storefront card until this time. Leave blank for no countdown.</p>
+              {/* Pricing */}
+              <div className={SECTION_GROUP}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className={FIELD_LABEL}>Discount (%)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={formData.discount}
+                      onChange={(e) => setFormData({...formData, discount: e.target.value})}
+                      className={FIELD_INPUT}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className={FIELD_LABEL}>Offer Price (₹)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.offerPrice}
+                      onChange={(e) => setFormData({...formData, offerPrice: e.target.value})}
+                      className={FIELD_INPUT}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Scheduling */}
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className={FIELD_LABEL}>Offer Ends At</label>
+                  <input
+                    type="datetime-local"
+                    value={formData.offertime}
+                    onChange={(e) => setFormData({...formData, offertime: e.target.value})}
+                    className={FIELD_INPUT}
+                  />
+                  <p className="text-[11px] text-on-surface-variant">Shows a live countdown badge on the storefront card until this time. Leave blank for no countdown.</p>
+                </div>
               </div>
 
               <div className="flex items-center justify-between gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-semibold text-[13px] shadow-sm"
+                  className={`flex items-center gap-2 px-5 py-2.5 border border-outline text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-semibold text-[13px] shadow-sm ${BUTTON_FOCUS}`}
                 >
                   <ArrowLeft size={14} />
                   Back
@@ -551,14 +631,14 @@ export default function Products() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2.5 border border-gray-200 text-gray-700 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-60 transition-colors font-semibold text-[13px] shadow-sm"
+                    className={`px-5 py-2.5 border border-outline text-gray-700 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-60 transition-colors font-semibold text-[13px] shadow-sm ${BUTTON_FOCUS}`}
                   >
                     Skip
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-[#400009] disabled:bg-gray-400 transition-all font-semibold text-[13px]"
+                    className={`flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg shadow-md hover:bg-on-primary-fixed disabled:bg-gray-400 transition-all font-semibold text-[13px] ${BUTTON_FOCUS}`}
                   >
                     {submitting && <Loader2 size={14} className="animate-spin" />}
                     {view === 'add' ? 'Create Product' : 'Save Changes'}
@@ -599,7 +679,7 @@ export default function Products() {
           <button
             type="submit"
             disabled={loading}
-            className="px-4 bg-[#540411] text-white rounded-lg hover:bg-[#400009] transition-all text-[13px] font-semibold flex items-center justify-center shadow-sm disabled:opacity-60"
+            className="px-4 bg-[#540411] text-white rounded-lg hover:bg-on-primary-fixed transition-all text-[13px] font-semibold flex items-center justify-center shadow-sm disabled:opacity-60"
           >
             {loading ? "Searching..." : "Search"}
           </button>
@@ -619,7 +699,7 @@ export default function Products() {
           </button>
           <button
             onClick={() => { resetForm(); setView('add'); }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-[#400009] transition-all font-semibold text-[13px]"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-on-primary-fixed transition-all font-semibold text-[13px]"
           >
             <Plus size={16} />
             Add Product
@@ -652,7 +732,7 @@ export default function Products() {
           {!isSearching && !showOfferOnly && (
             <button
               onClick={() => { resetForm(); setView('add'); }}
-              className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-[#400009] transition-all font-semibold text-[13px]"
+              className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-[#540411] text-white rounded-lg shadow-md hover:bg-on-primary-fixed transition-all font-semibold text-[13px]"
             >
               <Plus size={16} />
               Add Product
