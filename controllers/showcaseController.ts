@@ -30,8 +30,25 @@ export const getSmartCollection = async (req: Request): Promise<NextResponse> =>
       return NextResponse.json({ collection }, { status: 200 });
     }
 
-    const collections = await Showcase.find().sort({ createdAt: -1 }); // 👈 Uses new Showcase model
-    return NextResponse.json({ collections }, { status: 200 });
+    const collections = await Showcase.find().sort({ createdAt: -1 }).lean(); // 👈 Uses new Showcase model
+
+    // Attach a lightweight thumbnail (first product's image) per collection without
+    // touching productIds itself, so the "N Products" count on the card stays accurate
+    const firstProductIds = collections
+      .map((c) => c.productIds?.[0])
+      .filter(Boolean);
+
+    const thumbnailDocs = firstProductIds.length
+      ? await Product.find({ _id: { $in: firstProductIds } }).select('imageUrl').lean()
+      : [];
+    const thumbnailById = new Map(thumbnailDocs.map((p) => [String(p._id), p.imageUrl]));
+
+    const collectionsWithThumbnails = collections.map((c) => ({
+      ...c,
+      thumbnailImage: c.productIds?.[0] ? thumbnailById.get(String(c.productIds[0])) || null : null,
+    }));
+
+    return NextResponse.json({ collections: collectionsWithThumbnails }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Server read failure" }, { status: 500 });
   }

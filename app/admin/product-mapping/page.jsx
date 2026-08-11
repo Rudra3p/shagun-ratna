@@ -132,9 +132,16 @@ export default function ProductMappingDashboard() {
               className="bg-white border border-gray-100 rounded-[20px] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_28px_rgba(84,4,17,0.08)] hover:-translate-y-1 hover:border-[#540411]/20 cursor-pointer group transition-all duration-300 relative flex flex-col min-h-[200px]"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-xl bg-[#ffecec] text-[#540411] group-hover:bg-[#540411] group-hover:text-white transition-colors duration-300">
-                  <Layers size={22} />
-                </div>
+                {folder.thumbnailImage ? (
+                  <div
+                    className="w-11 h-11 rounded-xl bg-cover bg-center ring-1 ring-black/5 shadow-sm shrink-0"
+                    style={{ backgroundImage: `url(${folder.thumbnailImage})` }}
+                  />
+                ) : (
+                  <div className="p-3 rounded-xl bg-[#ffecec] text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                    <Layers size={22} />
+                  </div>
+                )}
 
                 <div className="flex flex-col items-end gap-1.5">
                   <div className="flex flex-wrap justify-end gap-1.5">
@@ -172,11 +179,23 @@ export default function ProductMappingDashboard() {
                 </div>
               </div>
 
-              <h2 className="text-[17px] text-gray-900 font-sans font-bold tracking-tight mb-1 group-hover:text-[#540411] transition-colors">{folder.title}</h2>
-              <p className="text-[13px] text-gray-500 line-clamp-2 font-sans mb-4">{folder.description || 'No description added yet.'}</p>
+              <h2 className="text-[17px] text-gray-900 font-sans font-bold tracking-tight mb-1 group-hover:text-primary transition-colors">{folder.title}</h2>
+              {folder.description ? (
+                <p className="text-[13px] text-gray-500 line-clamp-2 font-sans mb-4">{folder.description}</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => openEditModal(folder, e)}
+                  className="w-fit text-[13px] italic text-gray-400 hover:text-primary font-sans mb-4 underline decoration-dotted underline-offset-4 transition-colors"
+                >
+                  + Add description
+                </button>
+              )}
 
-              <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between text-[12px] font-bold text-[#540411] tracking-wide uppercase font-sans">
-                <span>{folder.productIds?.length || 0} Product{folder.productIds?.length === 1 ? '' : 's'}</span>
+              <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between text-[12px] font-bold text-primary tracking-wide uppercase font-sans">
+                <span className="group-hover:underline underline-offset-4 decoration-2">
+                  {folder.productIds?.length || 0} Product{folder.productIds?.length === 1 ? '' : 's'}
+                </span>
                 <ArrowRight size={14} className="transform group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
