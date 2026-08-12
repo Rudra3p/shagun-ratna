@@ -46,7 +46,7 @@ export default function Testimonials() {
   // Real reviews the admin has chosen to feature take priority; falls back to the
   // default copy until at least one review is uploaded from /admin/reviews.
   const testimonials = featuredReviews && featuredReviews.length > 0
-    ? featuredReviews.map((r) => ({ key: r._id, name: r.name, quote: r.text, role: r.product, rating: r.rating }))
+    ? featuredReviews.map((r) => ({ key: r._id, name: r.name, quote: r.text, role: r.product, rating: r.rating, image: r.productImage }))
     : DEFAULT_TESTIMONIALS.map((t, i) => ({ key: i, ...t }));
 
   return (
@@ -114,8 +114,20 @@ export default function Testimonials() {
               </div>
               <div>
                 <div className="h-[1px] w-8 bg-[#C5A059]/40 mb-4" />
-                <h4 className="font-brand text-xl md:text-2xl text-[#90060c] font-normal">{t.name}</h4>
-                <p className="text-[9px] uppercase tracking-[0.25em] text-[#C5A059] mt-2 font-bold">{t.role}</p>
+                <div className="flex items-center gap-3">
+                  {t.image && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={t.image}
+                      alt=""
+                      className="w-11 h-11 rounded-full object-cover ring-1 ring-[#C5A059]/40 shrink-0"
+                    />
+                  )}
+                  <div>
+                    <h4 className="font-brand text-xl md:text-2xl text-[#90060c] font-normal">{t.name}</h4>
+                    <p className="text-[9px] uppercase tracking-[0.25em] text-[#C5A059] mt-2 font-bold">{t.role}</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}

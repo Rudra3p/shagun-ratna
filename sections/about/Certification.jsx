@@ -3,28 +3,36 @@
 import React from 'react';
 import Image from 'next/image';
 import { ShieldCheck, Gem, BadgeCheck } from 'lucide-react';
-import { useSiteImage } from '@/components/SiteImagesProvider';
+import { useSiteImage, useSiteImages } from '@/components/SiteImagesProvider';
+import CertificatePreview from '@/components/CertificatePreview';
 
 const CERTIFICATIONS = [
   {
     icon: ShieldCheck,
     title: 'BIS Hallmarked',
     description: 'Every gold piece is stamped with the official BIS hallmark, certifying purity down to the karat.',
+    imageKey: 'cert-bis-hallmark',
+    defaultImage: '/certificates/bis-hallmark-sample.svg',
   },
   {
     icon: Gem,
     title: 'Certified Gemstones',
     description: 'Each gemstone is independently lab-certified for authenticity, clarity, and origin before it is set.',
+    imageKey: 'cert-gemstone',
+    defaultImage: '/certificates/gemstone-lab-report-sample.svg',
   },
   {
     icon: BadgeCheck,
     title: 'GIA / IGI Referenced',
     description: 'Diamonds are graded against internationally recognized GIA and IGI standards, so quality is never a question of trust alone.',
+    imageKey: 'cert-gia-igi',
+    defaultImage: '/certificates/gia-igi-report-sample.svg',
   },
 ];
 
 export default function CertificationSection() {
   const certificateImage = useSiteImage('about-certification', '/new-launch.webp');
+  const siteImages = useSiteImages();
 
   return (
     <section className="py-20 px-6 bg-[#faf3e5] text-[#90060c]">
@@ -59,7 +67,7 @@ export default function CertificationSection() {
           </p>
 
           <div className="space-y-7 max-w-xl mx-auto lg:mx-0">
-            {CERTIFICATIONS.map(({ icon: Icon, title, description }) => (
+            {CERTIFICATIONS.map(({ icon: Icon, title, description, imageKey, defaultImage }) => (
               <div key={title} className="flex items-start gap-4 text-left">
                 <div className="shrink-0 w-12 h-12 rounded-full bg-white border border-[#C5A059]/40 flex items-center justify-center text-[#90060c] shadow-sm">
                   <Icon size={20} strokeWidth={1.5} />
@@ -67,6 +75,11 @@ export default function CertificationSection() {
                 <div>
                   <h3 className="font-serif text-lg mb-1">{title}</h3>
                   <p className="text-sm font-light leading-relaxed opacity-75">{description}</p>
+                  <CertificatePreview
+                    title={title}
+                    description={description}
+                    image={siteImages[imageKey] || defaultImage}
+                  />
                 </div>
               </div>
             ))}

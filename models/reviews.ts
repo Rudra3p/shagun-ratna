@@ -7,6 +7,7 @@ export const ReviewZodSchema = z.object({
   text: z.string().min(5, "Review text is required").trim(),
   rating: z.coerce.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
   approved: z.boolean().optional().default(false),
+  productImage: z.string().url().optional().or(z.literal("")),
 });
 
 const reviewSchema = new Schema(
@@ -18,6 +19,7 @@ const reviewSchema = new Schema(
     rating: { type: Number, required: true, min: 1, max: 5 },
     approved: { type: Boolean, default: false },
     featured: { type: Boolean, default: false }, // shown in the homepage Testimonials section
+    productImage: { type: String, trim: true }, // optional thumbnail shown next to the review on the homepage
   },
   { timestamps: true }
 );

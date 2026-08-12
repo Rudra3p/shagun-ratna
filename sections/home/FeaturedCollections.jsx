@@ -142,13 +142,21 @@ export default function FeaturedCollections() {
               </p>
               
               {product ? (
-                <Link
-                  href={`/collection/${product._id}`}
-                  className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
-                >
-                  <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
-                  <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
-                </Link>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <Link
+                    href={`/collection/${product._id}`}
+                    className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
+                  >
+                    <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
+                    <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+                  </Link>
+                  <Link
+                    href={`/contact?product=${encodeURIComponent(product.productName)}`}
+                    className="text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/70 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
+                  >
+                    Enquire about this piece
+                  </Link>
+                </div>
               ) : (
                 <Link href="/collection" className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
                   <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>

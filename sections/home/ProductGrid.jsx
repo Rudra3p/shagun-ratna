@@ -116,6 +116,17 @@ export default function ProductGrid() {
                     </h4>
                   </div>
                 </Link>
+
+                {/* Secondary CTA — sits outside the card's main Link so it can route
+                    to Contact independently without nesting anchor tags */}
+                <div className="text-center mt-2">
+                  <Link
+                    href={`/contact?product=${encodeURIComponent(product.productName)}`}
+                    className="inline-block text-[10px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/70 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
+                  >
+                    Enquire about this piece
+                  </Link>
+                </div>
               </motion.div>
             ))
           )}

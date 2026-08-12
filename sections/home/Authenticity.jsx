@@ -4,6 +4,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ShieldCheck, Gem, BadgeCheck, Leaf } from 'lucide-react';
+import { useSiteImages } from '@/components/SiteImagesProvider';
+import CertificatePreview from '@/components/CertificatePreview';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -15,20 +17,28 @@ const CERTIFICATIONS = [
     icon: ShieldCheck,
     title: 'BIS Hallmarked',
     description: 'Every gold piece carries the official BIS hallmark, certifying purity and fineness.',
+    imageKey: 'cert-bis-hallmark',
+    defaultImage: '/certificates/bis-hallmark-sample.svg',
   },
   {
     icon: Gem,
     title: 'Certified Gemstones',
     description: 'Every gemstone is lab-certified for authenticity, clarity, and origin before it reaches you.',
+    imageKey: 'cert-gemstone',
+    defaultImage: '/certificates/gemstone-lab-report-sample.svg',
   },
   {
     icon: BadgeCheck,
     title: 'GIA / IGI Referenced',
     description: 'Diamonds are graded against internationally recognized GIA and IGI standards.',
+    imageKey: 'cert-gia-igi',
+    defaultImage: '/certificates/gia-igi-report-sample.svg',
   },
 ];
 
 export default function AuthenticitySection() {
+  const siteImages = useSiteImages();
+
   return (
     <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7] text-[#1a1a1a] overflow-hidden">
 
@@ -68,13 +78,18 @@ export default function AuthenticitySection() {
         variants={fadeUp}
         className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-10 md:gap-12 mb-20"
       >
-        {CERTIFICATIONS.map(({ icon: Icon, title, description }) => (
+        {CERTIFICATIONS.map(({ icon: Icon, title, description, imageKey, defaultImage }) => (
           <div key={title} className="flex flex-col items-center text-center px-4">
             <div className="w-14 h-14 rounded-full bg-[#90060c]/5 border border-[#C5A059]/30 flex items-center justify-center text-[#90060c] mb-5">
               <Icon size={24} strokeWidth={1.5} />
             </div>
             <h3 className="font-brand text-lg text-[#1a1a1a] mb-2 tracking-wide">{title}</h3>
             <p className="font-sans text-xs leading-6 text-[#1a1a1a]/70 tracking-wide">{description}</p>
+            <CertificatePreview
+              title={title}
+              description={description}
+              image={siteImages[imageKey] || defaultImage}
+            />
           </div>
         ))}
       </motion.div>

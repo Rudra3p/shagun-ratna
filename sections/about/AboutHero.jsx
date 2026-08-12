@@ -5,8 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useSiteImages } from '@/components/SiteImagesProvider';
 
+// Note: a former slide 1 (about-1.webp) showed storefront signage reading
+// "EST. 1921 | LUXURY JEWELLERS", contradicting the "Founded in 1980" copy used
+// everywhere else on the site (Heritage section, etc). It's been dropped from the
+// rotation rather than left up with incorrect text. If a real, correctly-dated
+// storefront photo becomes available, add it back here as a new slide.
 const slides = [
-  { key: 'about-hero-1', defaultSrc: "/about-1.webp" },
   { key: 'about-hero-2', defaultSrc: "/about-2.webp" },
   { key: 'about-hero-3', defaultSrc: "/about-3.webp" },
   { key: 'about-hero-4', defaultSrc: "/about-4.webp" },

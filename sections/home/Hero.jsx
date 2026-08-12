@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { MapPin } from 'lucide-react';
 import { useSiteImage } from '@/components/SiteImagesProvider';
 
 // Optimized animation variants for luxury choreography
@@ -91,6 +92,19 @@ export default function HeroSection() {
                 <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Explore Now</span>
                 <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
               </button>
+            </Link>
+          </motion.div>
+
+          {/* Concierge model clarified up front — otherwise this isn't clear until the Contact page */}
+          <motion.div variants={childVariants}>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 mt-6 lg:mt-8 text-[11px] sm:text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors group"
+            >
+              <MapPin size={13} className="text-[#C5A059] shrink-0" />
+              <span className="underline underline-offset-4 decoration-[#C5A059]/40 group-hover:decoration-[#90060c]">
+                Visit our Ahmedabad boutique by appointment
+              </span>
             </Link>
           </motion.div>
         </motion.div>

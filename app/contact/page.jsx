@@ -70,12 +70,24 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
   }
 };
+
+// Preset options for the "Jewelry Interest" select — kept as a plain array (rather than
+// hardcoded <option> tags) so a specific piece name arriving via ?product= can be injected
+// as a real, properly-selected option instead of silently failing to match any of these.
+const INTEREST_OPTIONS = [
+  'General Inquiry',
+  'Bridal & Wedding Sets',
+  'Gold Heirlooms & Necklaces',
+  'Solitaire Diamonds & Rings',
+  'Astrological & Rashi Gems',
+  'Bespoke Commission Design',
+];
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -85,16 +97,23 @@ export default function Contact() {
     customizationNotes: '',
     companyWebsite: '' // honeypot — real visitors never see or fill this field
   });
-  
+  const [customInterest, setCustomInterest] = useState(null); // a specific piece name that isn't one of INTEREST_OPTIONS
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Pre-fill from a product detail page's "Inquire About This Piece" link (?product=...)
+  // Pre-fill from a product/collection card's "Enquire about this piece" or "Inquire About
+  // This Piece" link (?product=...). The piece's exact name rarely matches one of the preset
+  // INTEREST_OPTIONS, so it's injected as its own selected option rather than silently
+  // leaving the <select> pointed at a value with no matching option.
   useEffect(() => {
     const productParam = new URLSearchParams(window.location.search).get('product');
     if (productParam) {
       setFormData((prev) => ({ ...prev, productName: productParam }));
+      if (!INTEREST_OPTIONS.includes(productParam)) {
+        setCustomInterest(productParam);
+      }
     }
   }, []);
 
@@ -423,12 +442,12 @@ export default function Contact() {
                         onChange={handleChange}
                         className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans cursor-pointer"
                       >
-                        <option value="General Inquiry">General Inquiry</option>
-                        <option value="Bridal & Wedding Sets">Bridal & Wedding Sets</option>
-                        <option value="Gold Heirlooms & Necklaces">Gold Heirlooms & Necklaces</option>
-                        <option value="Solitaire Diamonds & Rings">Solitaire Diamonds & Rings</option>
-                        <option value="Astrological & Rashi Gems">Astrological & Rashi Gems</option>
-                        <option value="Bespoke Commission Design">Bespoke Commission Design</option>
+                        {customInterest && (
+                          <option value={customInterest}>{customInterest}</option>
+                        )}
+                        {INTEREST_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
                       </select>
                     </div>
 
