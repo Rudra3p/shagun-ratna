@@ -7,7 +7,7 @@ export const contentType = 'image/png';
 
 export default async function Icon() {
   const fontData = await readFile(
-    path.join(process.cwd(), 'assets/fonts/CormorantGaramond-Bold.woff')
+    path.join(process.cwd(), 'assets/fonts/AlexBrush-Regular.woff')
   );
 
   return new ImageResponse(
@@ -26,20 +26,20 @@ export default async function Icon() {
         <div
           style={{
             display: 'flex',
-            fontFamily: 'Cormorant Garamond',
-            fontWeight: 700,
-            fontSize: 34,
-            color: '#3d0a14',
-            letterSpacing: '-1.5px',
+            fontFamily: 'Alex Brush',
+            fontSize: 54,
+            color: '#6b1f2a',
+            WebkitTextStroke: '1.5px #6b1f2a',
+            paddingBottom: 6,
           }}
         >
-          SR
+          S
         </div>
       </div>
     ),
     {
       ...size,
-      fonts: [{ name: 'Cormorant Garamond', data: fontData, weight: 700, style: 'normal' }],
+      fonts: [{ name: 'Alex Brush', data: fontData, weight: 400, style: 'normal' }],
     }
   );
 }

@@ -7,7 +7,7 @@ export const contentType = 'image/png';
 
 export default async function AppleIcon() {
   const fontData = await readFile(
-    path.join(process.cwd(), 'assets/fonts/CormorantGaramond-Bold.woff')
+    path.join(process.cwd(), 'assets/fonts/AlexBrush-Regular.woff')
   );
 
   return new ImageResponse(
@@ -25,20 +25,20 @@ export default async function AppleIcon() {
         <div
           style={{
             display: 'flex',
-            fontFamily: 'Cormorant Garamond',
-            fontWeight: 700,
-            fontSize: 92,
-            color: '#3d0a14',
-            letterSpacing: '-4px',
+            fontFamily: 'Alex Brush',
+            fontSize: 140,
+            color: '#6b1f2a',
+            WebkitTextStroke: '2px #6b1f2a',
+            paddingBottom: 16,
           }}
         >
-          SR
+          S
         </div>
       </div>
     ),
     {
       ...size,
-      fonts: [{ name: 'Cormorant Garamond', data: fontData, weight: 700, style: 'normal' }],
+      fonts: [{ name: 'Alex Brush', data: fontData, weight: 400, style: 'normal' }],
     }
   );
 }
