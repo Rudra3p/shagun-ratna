@@ -5,7 +5,7 @@ import adminApi from '@/lib/adminApi';
 import Badge from '@/components/Badge';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, ArrowRight, Upload, Loader2,
-  CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown
+  CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown, Sparkles
 } from 'lucide-react';
 
 const PURITY_PRESETS = ['22K Pure Gold', '18K Gold', '14K Gold', '925 Silver', 'Platinum'];
@@ -22,6 +22,11 @@ const FIELD_LABEL = "text-[12px] font-bold text-on-surface-variant uppercase tra
 const FIELD_INPUT = "w-full px-4 py-2.5 bg-white border border-outline rounded-lg text-[14px] text-gray-900 placeholder:text-on-surface-variant shadow-sm transition-all focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
 const SECTION_GROUP = "space-y-5 pb-6 border-b border-outline/15";
 const BUTTON_FOCUS = "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+
+// Step 1 is a live mirror of the real product page — these inputs are borderless until
+// you interact with them (hover shows a faint dashed line, focus shows the brand color),
+// so editing feels like clicking directly into the final page rather than filling a form.
+const GHOST_INPUT = "bg-transparent border-b-2 border-dashed border-transparent hover:border-outline/40 focus:border-primary focus:outline-none transition-colors";
 
 // Decorative required-field marker — the native `required` attribute already announces
 // "required" to screen readers, so the asterisk itself is hidden from assistive tech.
@@ -368,7 +373,7 @@ export default function Products() {
   // --- RENDERING FORM VIEW (ADD / EDIT) ---
   if (view === 'add' || view === 'edit') {
     return (
-      <div className="animate-in fade-in duration-500 pb-10 max-w-[600px] mx-auto">
+      <div className="animate-in fade-in duration-500 pb-10 max-w-[760px] mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => { resetForm(); setView('list'); }}
@@ -403,98 +408,19 @@ export default function Products() {
         <form onSubmit={handleSave} className="bg-white border border-gray-100 rounded-[20px] p-8 shadow-[0_2px_10px_rgba(0,0,0,0.04)] space-y-6">
           {step === 1 ? (
             <>
-              {/* Basic info */}
-              <div className={SECTION_GROUP}>
-                <div className="space-y-1.5">
-                  <label className={FIELD_LABEL}>Product Name<Required /></label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Royal Sapphire Halo"
-                    value={formData.productName}
-                    onChange={(e) => setFormData({...formData, productName: e.target.value})}
-                    required
-                    className={FIELD_INPUT}
-                  />
-                </div>
+              {/* Live-preview cue — this whole block is styled exactly like the real
+                  product page, so editing it should read as "editing the page itself" */}
+              <p className="flex items-center gap-1.5 text-[11px] font-sans font-bold uppercase tracking-[0.15em] text-primary/80 -mt-1">
+                <Sparkles size={12} />
+                Edit directly below — this is exactly how it'll look on the site
+              </p>
 
-                <div className="space-y-1.5">
-                  <label className={FIELD_LABEL}>Category<Required /></label>
-                  <div className="relative">
-                    <select
-                      value={categoryOther ? 'other' : (formData.category || 'General')}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === 'other') {
-                          setCategoryOther(true);
-                          setFormData({ ...formData, category: '' });
-                        } else {
-                          setCategoryOther(false);
-                          setFormData({ ...formData, category: value });
-                        }
-                      }}
-                      required
-                      className={`${FIELD_INPUT} appearance-none pr-10 cursor-pointer`}
-                    >
-                      {CATEGORY_PRESETS.map((preset) => (
-                        <option key={preset} value={preset}>{preset}</option>
-                      ))}
-                      <option value="other">Other (type custom)</option>
-                    </select>
-                    <ChevronDown size={16} strokeWidth={2.5} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-                  </div>
-                  {categoryOther && (
-                    <input
-                      type="text"
-                      placeholder="Type a custom category"
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      required
-                      className={`${FIELD_INPUT} mt-1.5`}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Pricing */}
-              <div className={SECTION_GROUP}>
-                <div className="space-y-1.5">
-                  <label className={FIELD_LABEL}>Original Price (₹)<Required /></label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    required
-                    className={FIELD_INPUT}
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className={SECTION_GROUP}>
-                <div className="space-y-1.5">
-                  <label className={FIELD_LABEL}>Details<Required /></label>
-                  <textarea
-                    rows={4}
-                    placeholder="Craftsmanship notes, materials, or anything else shown on the product's detail page"
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    required
-                    className={`${FIELD_INPUT} resize-none`}
-                  />
-                </div>
-              </div>
-
-              {/* Media */}
-              <div className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className={FIELD_LABEL}>Product Asset Image<Required /></label>
+              <div className="grid sm:grid-cols-2 gap-8 sm:gap-6">
+                {/* Left: image, same frame/ratio/gradient as the live product page */}
+                <div className="group/img space-y-1.5">
                   <div
-                    className={`relative w-full h-40 rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden has-focus-visible:ring-2 has-focus-visible:ring-primary has-focus-visible:ring-offset-2 ${
-                      isDragOver
-                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                        : 'border-outline/60 bg-white has-hover:border-primary has-hover:bg-primary/3'
+                    className={`relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 transition-all duration-300 has-focus-visible:ring-2 has-focus-visible:ring-primary has-focus-visible:ring-offset-2 ${
+                      isDragOver ? 'ring-2 ring-primary' : 'ring-[#EBE3D5] has-hover:ring-primary/60'
                     }`}
                   >
                     <input
@@ -504,28 +430,108 @@ export default function Products() {
                       onDragEnter={() => setIsDragOver(true)}
                       onDragLeave={() => setIsDragOver(false)}
                       onDrop={() => setIsDragOver(false)}
+                      required={!imagePreview}
                       aria-label="Upload product image"
                       className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
                     />
                     <div className="pointer-events-none flex flex-col items-center justify-center w-full h-full">
                       {imagePreview ? (
-                        <div
-                          className="absolute inset-0 bg-cover bg-center"
-                          style={{ backgroundImage: `url(${imagePreview})` }}
-                        />
+                        <>
+                          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${imagePreview})` }} />
+                          <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-sm text-white text-[10px] font-sans font-semibold opacity-0 group-hover/img:opacity-100 transition-opacity">
+                            Click to replace
+                          </div>
+                        </>
                       ) : (
-                        <div className="flex flex-col items-center justify-center text-center px-4">
-                          <Upload className="w-8 h-8 text-primary/70 mb-2" />
-                          <p className="text-[13px] text-gray-900 font-bold">Click to upload, or drag & drop</p>
-                          <p className="text-[11px] text-on-surface-variant mt-0.5">PNG, JPG or WEBP formats allowed</p>
+                        <div className="flex flex-col items-center justify-center text-center px-6 text-[#B8A888]">
+                          <Upload className="w-9 h-9 mb-3" strokeWidth={1.5} />
+                          <p className="text-[13px] font-sans font-bold text-[#8a7a5f]">Click or drag a photo here</p>
+                          <p className="text-[11px] font-sans mt-1">This becomes the main product photo<Required /></p>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
+
+                {/* Right: editable content, same hierarchy as the live product page */}
+                <div className="flex flex-col pt-1">
+                  <div className="flex items-baseline gap-2 mb-3">
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={categoryOther ? 'other' : (formData.category || 'General')}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'other') {
+                            setCategoryOther(true);
+                            setFormData({ ...formData, category: '' });
+                          } else {
+                            setCategoryOther(false);
+                            setFormData({ ...formData, category: value });
+                          }
+                        }}
+                        required
+                        aria-label="Category"
+                        className="appearance-none bg-transparent text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] pr-4 py-0.5 cursor-pointer border-b-2 border-dashed border-transparent hover:border-[#9C8253]/50 focus:outline-none focus:border-primary transition-colors"
+                      >
+                        {CATEGORY_PRESETS.map((preset) => (
+                          <option key={preset} value={preset}>{preset}</option>
+                        ))}
+                        <option value="other">Other (type custom)</option>
+                      </select>
+                      <ChevronDown size={10} strokeWidth={2.5} className="pointer-events-none absolute right-0 text-[#9C8253]" />
+                    </div>
+                  </div>
+                  {categoryOther && (
+                    <input
+                      type="text"
+                      placeholder="Custom category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      required
+                      aria-label="Custom category"
+                      className="w-fit -mt-2 mb-3 text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] placeholder:text-[#9C8253]/50 border-b-2 border-dashed border-[#9C8253]/40 bg-transparent focus:outline-none focus:border-primary transition-colors"
+                    />
+                  )}
+
+                  <input
+                    type="text"
+                    placeholder="Product Name"
+                    value={formData.productName}
+                    onChange={(e) => setFormData({...formData, productName: e.target.value})}
+                    required
+                    aria-label="Product Name"
+                    className={`font-brand text-3xl sm:text-4xl text-[#1a1a1a] leading-tight placeholder:text-[#1a1a1a]/35 w-full mb-5 pb-1 ${GHOST_INPUT}`}
+                  />
+
+                  <div className="h-px w-12 bg-[#C5A059]/50 mb-6" />
+
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]">₹</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.price}
+                      onChange={(e) => setFormData({...formData, price: e.target.value})}
+                      required
+                      aria-label="Original Price"
+                      className={`text-2xl sm:text-3xl font-sans font-bold text-[#2D2926] placeholder:text-[#2D2926]/35 w-36 pb-1 ${GHOST_INPUT}`}
+                    />
+                  </div>
+
+                  <textarea
+                    rows={5}
+                    placeholder="Add a description — craftsmanship notes, materials, or anything else shown on the piece's detail page…"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    required
+                    aria-label="Details"
+                    className="mt-6 text-sm leading-7 text-[#5f5a53] placeholder:text-[#5f5a53]/50 resize-none w-full rounded-lg -mx-2 px-2 py-1 border border-dashed border-transparent hover:border-outline/30 focus:border-primary/50 focus:outline-none bg-transparent transition-colors"
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-6 mt-2 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => { resetForm(); setView('list'); }}
@@ -545,6 +551,26 @@ export default function Products() {
             </>
           ) : (
             <>
+              {/* Live price preview — reflects Discount/Offer Price below exactly as it'll
+                  render on the product page, so the effect of each field is immediate */}
+              <div className="flex items-baseline gap-3 pb-6 -mt-1 border-b border-gray-100">
+                {(Number(formData.discount) > 0 || Number(formData.offerPrice) > 0) ? (
+                  <>
+                    <span className="text-2xl sm:text-3xl font-sans font-bold text-primary">
+                      ₹{(Number(formData.offerPrice) || (Number(formData.price || 0) * (1 - Number(formData.discount || 0) / 100))).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-base text-gray-400 font-medium line-through">
+                      ₹{Number(formData.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]">
+                    ₹{Number(formData.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+                <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-on-surface-variant ml-1">Live price</span>
+              </div>
+
               {/* Material */}
               <div className={SECTION_GROUP}>
                 <div className="space-y-1.5">
