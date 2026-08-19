@@ -1,5 +1,6 @@
 import dbConnect from "@/db/db";
 import Product from "@/models/product";
+import { formatCategory } from "@/lib/formatCategory";
 
 const BASE_URL = "https://shagunratna.com";
 
@@ -24,7 +25,8 @@ export async function GET() {
       const summary = product.description.length > 140
         ? `${product.description.slice(0, 140).trim()}...`
         : product.description;
-      return `- [${product.productName}](${BASE_URL}/collection/${product._id}): ${purity}${product.category} — ₹${price.toLocaleString("en-IN")}. ${summary}`;
+      const category = formatCategory(product.category);
+      return `- [${product.productName}](${BASE_URL}/collection/${product._id}): ${purity}${category} — ₹${price.toLocaleString("en-IN")}. ${summary}`;
     })
     .join("\n");
 

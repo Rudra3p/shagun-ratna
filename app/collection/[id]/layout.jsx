@@ -1,6 +1,7 @@
 import { cache } from "react";
 import dbConnect from "@/db/db";
 import Product from "@/models/product";
+import { formatCategory } from "@/lib/formatCategory";
 
 const getProduct = cache(async (id) => {
   await dbConnect();
@@ -23,9 +24,10 @@ export async function generateMetadata({ params }) {
   }
 
   const materialText = product.purity ? `${product.purity} ` : "";
+  const categoryText = formatCategory(product.category) || "fine jewelry";
   const description = product.description
     ? product.description.slice(0, 160)
-    : `Shop the ${product.productName} from Shagun Ratna — ${materialText}${product.category || "fine jewelry"}.`;
+    : `Shop the ${product.productName} from Shagun Ratna — ${materialText}${categoryText}.`;
 
   return {
     // Explicit .absolute: a title from generateMetadata in a nested layout doesn't
@@ -57,7 +59,7 @@ export default async function ProductLayout({ children, params }) {
         name: product.productName,
         image: product.imageUrl ? [product.imageUrl] : undefined,
         description: product.description || undefined,
-        category: product.category || undefined,
+        category: formatCategory(product.category) || undefined,
         offers: {
           "@type": "Offer",
           priceCurrency: "INR",

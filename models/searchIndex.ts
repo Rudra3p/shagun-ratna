@@ -4,7 +4,7 @@ import { z } from 'zod';
 // 1. ZOD VALIDATION SCHEMA (For Runtime Type Safety)
 export const SearchIndexZodSchema = z.object({
   keyword: z.string().min(1, "Keyword is required").trim().toLowerCase(),
-  category: z.string().default('General').optional(),
+  category: z.array(z.string()).default(['General']).optional(),
   productRefId: z.string().min(1, "Product reference ID is required"),
 });
 
@@ -19,10 +19,9 @@ const searchIndexSchema = new Schema({
     index: true 
   },
   // Category for filtering verification
-  category: { 
-    type: String, 
-    default: 'General', 
-    trim: true 
+  category: {
+    type: [String],
+    default: ['General'],
   },
   // Direct relational pointer to your main heavy Product document
   productRefId: { 

@@ -6,7 +6,7 @@ export const ProductZodSchema = z.object({
   productName: z.string().min(1, "Name is required").trim(),
   price: z.number().positive("Price must be greater than 0"),
   imageUrl: z.string().url("A valid product image is required"),
-  category: z.string().min(1, "Category is required").trim(),
+  category: z.array(z.string().trim().min(1)).min(1, "At least one category is required"),
   purity: z.string().trim().optional(),
   description: z.string().min(1, "Details are required").trim(),
   discount: z.number().default(0).optional(),
@@ -17,7 +17,7 @@ export const ProductZodSchema = z.object({
 const productSchema = new Schema({
   productName: { type: String, required: true, trim: true },
   price: { type: Number, required: true },
-  category: { type: String, required: true, trim: true },
+  category: { type: [String], required: true, validate: [(v: string[]) => v.length > 0, "At least one category is required"] },
   purity: { type: String, trim: true }, // left unset shows no purity label, rather than falsely claiming a default
   description: { type: String, required: true, trim: true },
   discount: { type: Number, default: 0 },

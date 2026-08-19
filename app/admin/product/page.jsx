@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import Badge from '@/components/Badge';
+import { formatCategory } from '@/lib/formatCategory';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
   CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown, Sparkles, X
@@ -123,7 +124,7 @@ function ProductCard({ product, onEdit, onDelete }) {
       {/* Product info — eyebrow category → title → price hierarchy */}
       <div className="flex flex-col flex-grow px-0.5 pt-1">
         <p className="text-[9.5px] sm:text-[10.5px] font-sans font-bold uppercase tracking-[0.14em] text-gray-400 mb-1.5 truncate">
-          {product.category || 'General'}
+          {formatCategory(product.category) || 'General'}
           {product.purity && ` • ${product.purity}`}
         </p>
         <h3 className="text-sm sm:text-base font-serif font-semibold text-[#1a1a1a] group-hover:text-[#540411] transition-colors duration-300 truncate mb-2 leading-snug">
@@ -160,12 +161,12 @@ export default function Products() {
   const [hasMore, setHasMore] = useState(true);
 
   const [formData, setFormData] = useState({
-    productName: '', price: '', category: 'General', purity: '', description: '', discount: 0, offerPrice: 0, offertime: ''
+    productName: '', price: '', category: ['General'], purity: '', description: '', discount: 0, offerPrice: 0, offertime: ''
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [categoryOther, setCategoryOther] = useState(false); // true when Category is set to a custom (non-preset) value
+  const [customCategoryInput, setCustomCategoryInput] = useState(''); // typing buffer for the "add your own category" field
   const [openPopover, setOpenPopover] = useState(null); // 'purity' | 'category' | 'discount' | null
 
   const [editingId, setEditingId] = useState(null);
@@ -273,7 +274,7 @@ export default function Products() {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!formData.productName.trim() || !formData.category.trim() || !formData.price || !formData.description.trim()) {
+    if (!formData.productName.trim() || !formData.category?.length || !formData.price || !formData.description.trim()) {
       showToast('error', 'Please fill in all required fields before saving.');
       return;
     }
@@ -334,10 +335,14 @@ export default function Products() {
   };
 
   const startEdit = (product) => {
+    // Legacy documents may still hold a single string; normalize to an array either way.
+    const categories = Array.isArray(product.category)
+      ? product.category
+      : (product.category ? [product.category] : ['General']);
     setFormData({
       productName: product.productName,
       price: product.price,
-      category: product.category,
+      category: categories,
       purity: product.purity || '',
       description: product.description || '',
       discount: product.discount,
@@ -346,7 +351,7 @@ export default function Products() {
       imageUrl: product.imageUrl || ''
     });
     setImagePreview(product.imageUrl || null);
-    setCategoryOther(!!product.category && !CATEGORY_PRESETS.includes(product.category));
+    setCustomCategoryInput('');
     setEditingId(product._id);
     setView('edit');
   };
@@ -368,10 +373,10 @@ export default function Products() {
   };
 
   const resetForm = () => {
-    setFormData({ productName: '', price: '', category: 'General', purity: '', description: '', discount: 0, offerPrice: 0, offertime: '' });
+    setFormData({ productName: '', price: '', category: ['General'], purity: '', description: '', discount: 0, offerPrice: 0, offertime: '' });
     setImageFile(null);
     setImagePreview(null);
-    setCategoryOther(false);
+    setCustomCategoryInput('');
     setEditingId(null);
     setOpenPopover(null);
   };
@@ -496,56 +501,98 @@ export default function Products() {
                 {formData.purity && <span className="text-[#9C8253]/50">•</span>}
 
                 <EditPopover
+                  width="w-72"
                   isOpen={openPopover === 'category'}
                   onClose={() => setOpenPopover(null)}
                   trigger={
                     <button
                       type="button"
                       onClick={() => setOpenPopover(openPopover === 'category' ? null : 'category')}
-                      className="flex items-center gap-0.5 border-b-2 border-dashed border-transparent hover:border-[#9C8253]/50 focus:outline-none focus-visible:border-primary transition-colors"
+                      className="flex items-center gap-0.5 border-b-2 border-dashed border-transparent hover:border-[#9C8253]/50 focus:outline-none focus-visible:border-primary transition-colors max-w-[220px] truncate"
                     >
-                      {categoryOther ? (formData.category || 'Custom') : (formData.category || 'General')}
-                      <ChevronDown size={10} strokeWidth={2.5} />
+                      {formData.category?.length ? formData.category.join(', ') : 'General'}
+                      <ChevronDown size={10} strokeWidth={2.5} className="shrink-0" />
                     </button>
                   }
                 >
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Category<Required /></p>
-                  <div className="flex flex-wrap gap-1.5 mb-3 max-h-40 overflow-y-auto">
-                    {CATEGORY_PRESETS.map((preset) => (
-                      <button
-                        key={preset}
-                        type="button"
-                        onClick={() => { setCategoryOther(false); setFormData({...formData, category: preset}); setOpenPopover(null); }}
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
-                          !categoryOther && formData.category === preset
-                            ? 'bg-primary border-primary text-white'
-                            : 'bg-white border-outline text-gray-600 hover:border-primary/50'
-                        }`}
-                      >
-                        {preset}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => { setCategoryOther(true); setFormData({ ...formData, category: '' }); }}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
-                        categoryOther ? 'bg-primary border-primary text-white' : 'bg-white border-outline text-gray-600 hover:border-primary/50'
-                      }`}
-                    >
-                      Other
-                    </button>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Category<Required /></p>
+                  <p className="text-[10px] text-on-surface-variant mb-3">Select as many as apply — e.g. Gold + Rings.</p>
+                  <div className="flex flex-wrap gap-1.5 mb-3 max-h-36 overflow-y-auto">
+                    {CATEGORY_PRESETS.map((preset) => {
+                      const isSelected = formData.category?.includes(preset);
+                      return (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            const next = isSelected
+                              ? formData.category.filter((c) => c !== preset)
+                              : [...(formData.category || []), preset];
+                            setFormData({ ...formData, category: next });
+                          }}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
+                            isSelected
+                              ? 'bg-primary border-primary text-white'
+                              : 'bg-white border-outline text-gray-600 hover:border-primary/50'
+                          }`}
+                        >
+                          {preset}
+                        </button>
+                      );
+                    })}
                   </div>
-                  {categoryOther && (
+
+                  {/* Any selected category outside the presets (typed below) shows here as a removable tag */}
+                  {formData.category?.filter((c) => !CATEGORY_PRESETS.includes(c)).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {formData.category.filter((c) => !CATEGORY_PRESETS.includes(c)).map((custom) => (
+                        <span
+                          key={custom}
+                          className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-[11px] font-semibold bg-primary border border-primary text-white"
+                        >
+                          {custom}
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, category: formData.category.filter((c) => c !== custom) })}
+                            aria-label={`Remove ${custom}`}
+                            className="rounded-full hover:bg-white/20 p-0.5"
+                          >
+                            <X size={10} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const value = customCategoryInput.trim();
+                      if (value && !formData.category?.includes(value)) {
+                        setFormData({ ...formData, category: [...(formData.category || []), value] });
+                      }
+                      setCustomCategoryInput('');
+                    }}
+                    className="flex gap-1.5"
+                  >
                     <input
                       type="text"
-                      placeholder="Type a custom category"
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      required
-                      autoFocus
+                      placeholder="Type a category, press Enter"
+                      value={customCategoryInput}
+                      onChange={(e) => setCustomCategoryInput(e.target.value)}
                       className={`${FIELD_INPUT} normal-case`}
                     />
-                  )}
+                  </form>
+
+                  <div className="flex justify-end pt-3 mt-3 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setOpenPopover(null)}
+                      className={`px-3 py-1.5 bg-primary text-white rounded-lg font-semibold text-[11px] ${BUTTON_FOCUS}`}
+                    >
+                      Done
+                    </button>
+                  </div>
                 </EditPopover>
               </div>
 

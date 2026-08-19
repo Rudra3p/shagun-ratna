@@ -9,6 +9,7 @@ import userApi from '@/lib/userApi';
 import Badge from '@/components/Badge';
 import ProductDetailSkeleton from '@/components/skeletons/ProductDetailSkeleton';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { formatCategory } from '@/lib/formatCategory';
 import { ArrowLeft, Heart, Gem, AlertCircle } from 'lucide-react';
 
 const FAVORITES_STORAGE_KEY = 'shagun_ratna_favorites';
@@ -154,7 +155,7 @@ export default function ProductDetail() {
             {/* Details */}
             <div className="flex flex-col pt-2">
               <p className="text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] mb-3">
-                {[product.purity, product.category || "Fine Jewelry"].filter(Boolean).join(" • ")}
+                {[product.purity, formatCategory(product.category) || "Fine Jewelry"].filter(Boolean).join(" • ")}
               </p>
               <h1 className="font-brand text-3xl sm:text-4xl text-[#1a1a1a] mb-5 leading-tight">
                 {product.productName}

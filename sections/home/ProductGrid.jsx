@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import userApi from '@/lib/userApi';
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
+import { formatCategory } from '@/lib/formatCategory';
 
 export default function ProductGrid() {
   const [products, setProducts] = useState([]);
@@ -95,7 +96,7 @@ export default function ProductGrid() {
                     {/* Subtle Glassmorphic Category Badge */}
                     <div className="absolute top-4 left-4 md:top-5 md:left-5 z-10 bg-[#FDFBF7]/90 backdrop-blur-sm border border-[#C5A059]/25 text-[#90060c] px-3.5 py-1 md:px-4 md:py-1.5 rounded-full shadow-sm">
                       <p className="text-[9px] uppercase tracking-[0.2em] font-bold">
-                        {product.category || "Fine Jewelry"}
+                        {formatCategory(product.category) || "Fine Jewelry"}
                       </p>
                     </div>
 
