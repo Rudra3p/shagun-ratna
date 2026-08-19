@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import Badge from '@/components/Badge';
-import { formatCategory } from '@/lib/formatCategory';
+import { formatCategory, MATERIAL_CATEGORIES } from '@/lib/formatCategory';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
   CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown, Sparkles, X
@@ -12,8 +12,7 @@ import {
 const PURITY_PRESETS = ['22K Pure Gold', '18K Gold', '14K Gold', '925 Silver', 'Platinum'];
 
 const CATEGORY_PRESETS = [
-  'General', 'Gold', 'Silver', 'Platinum', 'Diamond', 'Gemstone',
-  'Ruby', 'Emerald', 'Sapphire', 'Bridal', 'Heirloom', 'Contemporary',
+  'General', ...MATERIAL_CATEGORIES, 'Bridal', 'Heirloom', 'Contemporary',
   'Traditional', 'Rings', 'Necklaces', 'Earrings', 'Bangles', 'Bracelets', 'Pendants'
 ];
 
@@ -168,6 +167,9 @@ export default function Products() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState(''); // typing buffer for the "add your own category" field
   const [isAddingCategory, setIsAddingCategory] = useState(false); // true while the inline "+ Add" pill is showing its text input
+  // Custom (non-preset) categories typed in this session — kept separate from formData.category
+  // so deselecting one (the X button) just toggles it off instead of deleting it from the list.
+  const [customCategoriesAdded, setCustomCategoriesAdded] = useState([]);
   const [openPopover, setOpenPopover] = useState(null); // 'purity' | 'category' | 'discount' | null
 
   const [editingId, setEditingId] = useState(null);
@@ -353,6 +355,7 @@ export default function Products() {
     });
     setImagePreview(product.imageUrl || null);
     setCustomCategoryInput('');
+    setCustomCategoriesAdded(categories.filter((c) => !CATEGORY_PRESETS.includes(c)));
     setEditingId(product._id);
     setView('edit');
   };
@@ -379,6 +382,7 @@ export default function Products() {
     setImagePreview(null);
     setCustomCategoryInput('');
     setIsAddingCategory(false);
+    setCustomCategoriesAdded([]);
     setEditingId(null);
     setOpenPopover(null);
   };
@@ -512,16 +516,17 @@ export default function Products() {
                       onClick={() => setOpenPopover(openPopover === 'category' ? null : 'category')}
                       className="flex items-center gap-0.5 border-b-2 border-dashed border-transparent hover:border-[#9C8253]/50 focus:outline-none focus-visible:border-primary transition-colors max-w-[220px] truncate"
                     >
-                      {formData.category?.length ? formData.category.join(', ') : 'General'}
+                      {formatCategory(formData.category) || 'General'}
                       <ChevronDown size={10} strokeWidth={2.5} className="shrink-0" />
                     </button>
                   }
                 >
                   <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Category<Required /></p>
-                  <p className="text-[10px] text-on-surface-variant mb-3">Select as many as apply — e.g. Gold + Rings.</p>
+                  <p className="text-[10px] text-on-surface-variant mb-3">Select as many as apply — e.g. Gold + Rings. Only materials show on the badge; type tags like Rings stay selected for search.</p>
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    {/* Presets plus any custom category already added to this product — one unified list of options */}
-                    {[...CATEGORY_PRESETS, ...(formData.category || []).filter((c) => !CATEGORY_PRESETS.includes(c))].map((option) => {
+                    {/* Presets plus every custom category added this session — options stay visible (and
+                        re-selectable) even after being deselected, instead of disappearing when toggled off */}
+                    {[...CATEGORY_PRESETS, ...customCategoriesAdded].map((option) => {
                       const isSelected = formData.category?.includes(option);
                       const toggle = () => {
                         const next = isSelected
@@ -572,8 +577,13 @@ export default function Products() {
                         }}
                         onBlur={() => {
                           const value = customCategoryInput.trim();
-                          if (value && !formData.category?.includes(value)) {
-                            setFormData({ ...formData, category: [...(formData.category || []), value] });
+                          if (value) {
+                            if (!formData.category?.includes(value)) {
+                              setFormData({ ...formData, category: [...(formData.category || []), value] });
+                            }
+                            if (!customCategoriesAdded.includes(value) && !CATEGORY_PRESETS.includes(value)) {
+                              setCustomCategoriesAdded([...customCategoriesAdded, value]);
+                            }
                           }
                           setCustomCategoryInput('');
                           setIsAddingCategory(false);
