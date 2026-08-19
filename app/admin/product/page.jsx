@@ -167,6 +167,7 @@ export default function Products() {
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState(''); // typing buffer for the "add your own category" field
+  const [isAddingCategory, setIsAddingCategory] = useState(false); // true while the inline "+ Add" pill is showing its text input
   const [openPopover, setOpenPopover] = useState(null); // 'purity' | 'category' | 'discount' | null
 
   const [editingId, setEditingId] = useState(null);
@@ -377,6 +378,7 @@ export default function Products() {
     setImageFile(null);
     setImagePreview(null);
     setCustomCategoryInput('');
+    setIsAddingCategory(false);
     setEditingId(null);
     setOpenPopover(null);
   };
@@ -517,17 +519,18 @@ export default function Products() {
                 >
                   <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Category<Required /></p>
                   <p className="text-[10px] text-on-surface-variant mb-3">Select as many as apply — e.g. Gold + Rings.</p>
-                  <div className="flex flex-wrap gap-1.5 mb-3 max-h-36 overflow-y-auto">
-                    {CATEGORY_PRESETS.map((preset) => {
-                      const isSelected = formData.category?.includes(preset);
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    {/* Presets plus any custom category already added to this product — one unified list of options */}
+                    {[...CATEGORY_PRESETS, ...(formData.category || []).filter((c) => !CATEGORY_PRESETS.includes(c))].map((option) => {
+                      const isSelected = formData.category?.includes(option);
                       return (
                         <button
-                          key={preset}
+                          key={option}
                           type="button"
                           onClick={() => {
                             const next = isSelected
-                              ? formData.category.filter((c) => c !== preset)
-                              : [...(formData.category || []), preset];
+                              ? formData.category.filter((c) => c !== option)
+                              : [...(formData.category || []), option];
                             setFormData({ ...formData, category: next });
                           }}
                           className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
@@ -536,53 +539,46 @@ export default function Products() {
                               : 'bg-white border-outline text-gray-600 hover:border-primary/50'
                           }`}
                         >
-                          {preset}
+                          {option}
                         </button>
                       );
                     })}
+
+                    {/* Add-new lives right in the options row — click to reveal a tiny inline input */}
+                    {isAddingCategory ? (
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder="New category"
+                        value={customCategoryInput}
+                        onChange={(e) => setCustomCategoryInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setIsAddingCategory(false);
+                            setCustomCategoryInput('');
+                          }
+                        }}
+                        onBlur={() => {
+                          const value = customCategoryInput.trim();
+                          if (value && !formData.category?.includes(value)) {
+                            setFormData({ ...formData, category: [...(formData.category || []), value] });
+                          }
+                          setCustomCategoryInput('');
+                          setIsAddingCategory(false);
+                        }}
+                        className="w-28 px-2.5 py-1 rounded-full text-[11px] font-semibold border border-primary bg-white text-gray-900 focus:outline-none normal-case"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingCategory(true)}
+                        className={`flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border border-dashed border-outline text-gray-500 hover:border-primary hover:text-primary transition-colors ${BUTTON_FOCUS}`}
+                      >
+                        <Plus size={10} strokeWidth={3} />
+                        Add
+                      </button>
+                    )}
                   </div>
-
-                  {/* Any selected category outside the presets (typed below) shows here as a removable tag */}
-                  {formData.category?.filter((c) => !CATEGORY_PRESETS.includes(c)).length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {formData.category.filter((c) => !CATEGORY_PRESETS.includes(c)).map((custom) => (
-                        <span
-                          key={custom}
-                          className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-[11px] font-semibold bg-primary border border-primary text-white"
-                        >
-                          {custom}
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, category: formData.category.filter((c) => c !== custom) })}
-                            aria-label={`Remove ${custom}`}
-                            className="rounded-full hover:bg-white/20 p-0.5"
-                          >
-                            <X size={10} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const value = customCategoryInput.trim();
-                      if (value && !formData.category?.includes(value)) {
-                        setFormData({ ...formData, category: [...(formData.category || []), value] });
-                      }
-                      setCustomCategoryInput('');
-                    }}
-                    className="flex gap-1.5"
-                  >
-                    <input
-                      type="text"
-                      placeholder="Type a category, press Enter"
-                      value={customCategoryInput}
-                      onChange={(e) => setCustomCategoryInput(e.target.value)}
-                      className={`${FIELD_INPUT} normal-case`}
-                    />
-                  </form>
 
                   <div className="flex justify-end pt-3 mt-3 border-t border-gray-100">
                     <button
