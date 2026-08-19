@@ -152,7 +152,7 @@ export default function FeaturedCollections() {
                   </Link>
                   <Link
                     href={`/contact?product=${encodeURIComponent(product.productName)}`}
-                    className="text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/70 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
+                    className="inline-block py-2 text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/80 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
                   >
                     Enquire about this piece
                   </Link>

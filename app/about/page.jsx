@@ -30,7 +30,7 @@ export default function About() {
   };
 
   return (
-    <main className="bg-[#faf3e5] mt-5">
+    <main className="bg-[#FDFBF7] mt-5">
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger

@@ -128,7 +128,7 @@ export default function ProductDetail() {
                   priority
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-[#C9BFA8]">
+                <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-[#7a6b52]">
                   <Gem size={40} strokeWidth={1.25} />
                   <span className="font-sans text-xs font-semibold uppercase tracking-widest text-center px-2">Image Coming Soon</span>
                 </div>

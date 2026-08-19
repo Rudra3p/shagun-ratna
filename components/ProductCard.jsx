@@ -46,7 +46,7 @@ export default function ProductCard({ product, isFavorited, onToggleFavorite, pr
               className="object-cover scale-100 group-hover:scale-[1.08] transition-transform duration-700 ease-out"
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#C9BFA8]">
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#7a6b52]">
               <Gem size={28} strokeWidth={1.25} />
               <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-center px-2">Image Coming Soon</span>
             </div>

@@ -29,7 +29,7 @@ export default function CertificatePreview({ title, image, description }) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-[#faf3e5] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+            className="relative w-full max-w-lg bg-[#FDFBF7] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <button

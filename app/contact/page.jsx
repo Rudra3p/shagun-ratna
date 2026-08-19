@@ -219,7 +219,7 @@ export default function Contact() {
           <motion.div variants={itemVariants} className="lg:col-span-5">
 
             {/* Contact Details Card */}
-            <div className="bg-[#FAF7F2]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 rounded-2xl shadow-sm relative overflow-hidden">
+            <div className="bg-[#FDFBF7]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 rounded-2xl shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-[#C5A059]/5 to-transparent rounded-full pointer-events-none" />
               
               <h2 className="font-brand text-2xl tracking-[0.12em] text-[#90060c] uppercase font-light mb-8 pb-3 border-b border-[#C5A059]/20">
@@ -234,7 +234,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Flagship Boutique</h4>
-                    <p className="leading-relaxed text-gray-600">
+                    <p className="leading-relaxed text-[#1a1a1a]/70">
                       Shagun Ratna, GF/9, Akshar Complex,<br />
                       Beside Harit Zaveri, Shivranjani Cross Road,<br />
                       Satellite, Ahmedabad, Gujarat 380015
@@ -250,10 +250,10 @@ export default function Contact() {
                   <div>
                     <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Direct Lines</h4>
                     <p className="leading-relaxed">
-                      <a href="tel:+912222829800" className="text-gray-600 hover:text-[#90060c] transition-colors">+91 22 2282 9800</a>
+                      <a href="tel:+912222829800" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">+91 22 2282 9800</a>
                     </p>
                     <p className="leading-relaxed">
-                      <a href="tel:+919558888754" className="text-gray-600 hover:text-[#90060c] transition-colors">+91 95588 88754</a>
+                      <a href="tel:+919558888754" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">+91 95588 88754</a>
                     </p>
                   </div>
                 </div>
@@ -266,10 +266,10 @@ export default function Contact() {
                   <div>
                     <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Client Services</h4>
                     <p className="leading-relaxed">
-                      <a href="mailto:concierge@shagunratna.com" className="text-gray-600 hover:text-[#90060c] transition-colors">concierge@shagunratna.com</a>
+                      <a href="mailto:concierge@shagunratna.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">concierge@shagunratna.com</a>
                     </p>
                     <p className="leading-relaxed">
-                      <a href="mailto:info@shagunratna.com" className="text-gray-600 hover:text-[#90060c] transition-colors">info@shagunratna.com</a>
+                      <a href="mailto:info@shagunratna.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">info@shagunratna.com</a>
                     </p>
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Boutique Hours</h4>
-                    <p className="leading-relaxed text-gray-600">Monday – Saturday: 11:00 AM – 8:00 PM</p>
+                    <p className="leading-relaxed text-[#1a1a1a]/70">Monday – Saturday: 11:00 AM – 8:00 PM</p>
                     <p className="leading-relaxed text-[#C5A059] italic mt-0.5">Sunday: Private Viewings by Appointment Only</p>
                   </div>
                 </div>
@@ -328,11 +328,11 @@ export default function Contact() {
 
           {/* Right Column: Inquiry Form */}
           <motion.div variants={itemVariants} className="lg:col-span-7">
-            <div className="bg-[#FAF7F2]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 md:p-10 rounded-2xl shadow-sm">
+            <div className="bg-[#FDFBF7]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 md:p-10 rounded-2xl shadow-sm">
               <h2 className="font-brand text-2xl tracking-[0.12em] text-[#90060c] uppercase font-light mb-2">
                 Send An Inquiry
               </h2>
-              <p className="font-sans text-xs tracking-wide text-gray-500 mb-8">
+              <p className="font-sans text-xs tracking-wide text-[#1a1a1a]/60 mb-8">
                 Our advisors will connect with you via call or WhatsApp within 24 business hours.
               </p>
 
@@ -355,7 +355,7 @@ export default function Contact() {
                     <h3 className="font-brand text-2xl tracking-wider text-[#1a1a1a] uppercase font-light mb-4">
                       Thank You, Beloved Client
                     </h3>
-                    <p className="font-sans text-xs leading-relaxed text-gray-600 max-w-sm mb-8">
+                    <p className="font-sans text-xs leading-relaxed text-[#1a1a1a]/70 max-w-sm mb-8">
                       Your inquiry has been logged securely in our registers. A dedicated concierge advisor will contact you shortly.
                     </p>
                     <button 
@@ -497,7 +497,7 @@ export default function Contact() {
             </h3>
             <div className="h-[1px] flex-1 bg-[#C5A059]/20" />
           </div>
-          <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FAF7F2]">
+          <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FDFBF7]">
             <iframe
               src="https://www.google.com/maps?q=Shagunratna+Gems+%26+Jewellers,+23.0245069,+72.5288626&z=17&output=embed"
               width="100%"
@@ -508,7 +508,7 @@ export default function Contact() {
               referrerPolicy="no-referrer-when-downgrade"
               className="contrast-110 opacity-90 group-hover:opacity-100 transition-all duration-700"
             />
-            <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FAF7F2] rounded-2xl" />
+            <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FDFBF7] rounded-2xl" />
           </div>
         </motion.div>
 

@@ -87,7 +87,7 @@ export default function ProductGrid() {
                         className="object-cover scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#F5EFE6] to-[#EDE2CC] text-[#C9BFA8] text-[10px] font-sans font-semibold uppercase tracking-widest">
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#F5EFE6] to-[#EDE2CC] text-[#7a6b52] text-[10px] font-sans font-semibold uppercase tracking-widest">
                         Image Coming Soon
                       </div>
                     )}
@@ -119,10 +119,10 @@ export default function ProductGrid() {
 
                 {/* Secondary CTA — sits outside the card's main Link so it can route
                     to Contact independently without nesting anchor tags */}
-                <div className="text-center mt-2">
+                <div className="text-center mt-1">
                   <Link
                     href={`/contact?product=${encodeURIComponent(product.productName)}`}
-                    className="inline-block text-[10px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/70 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
+                    className="inline-block py-2 px-1 text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/80 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
                   >
                     Enquire about this piece
                   </Link>
