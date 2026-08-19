@@ -523,21 +523,33 @@ export default function Products() {
                     {/* Presets plus any custom category already added to this product — one unified list of options */}
                     {[...CATEGORY_PRESETS, ...(formData.category || []).filter((c) => !CATEGORY_PRESETS.includes(c))].map((option) => {
                       const isSelected = formData.category?.includes(option);
-                      return (
+                      const toggle = () => {
+                        const next = isSelected
+                          ? formData.category.filter((c) => c !== option)
+                          : [...(formData.category || []), option];
+                        setFormData({ ...formData, category: next });
+                      };
+                      return isSelected ? (
+                        <span
+                          key={option}
+                          className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-[11px] font-semibold bg-primary border border-primary text-white"
+                        >
+                          {option}
+                          <button
+                            type="button"
+                            onClick={toggle}
+                            aria-label={`Remove ${option}`}
+                            className={`rounded-full hover:bg-white/20 p-0.5 ${BUTTON_FOCUS}`}
+                          >
+                            <X size={10} strokeWidth={3} />
+                          </button>
+                        </span>
+                      ) : (
                         <button
                           key={option}
                           type="button"
-                          onClick={() => {
-                            const next = isSelected
-                              ? formData.category.filter((c) => c !== option)
-                              : [...(formData.category || []), option];
-                            setFormData({ ...formData, category: next });
-                          }}
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
-                            isSelected
-                              ? 'bg-primary border-primary text-white'
-                              : 'bg-white border-outline text-gray-600 hover:border-primary/50'
-                          }`}
+                          onClick={toggle}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border bg-white border-outline text-gray-600 hover:border-primary/50 transition-colors ${BUTTON_FOCUS}`}
                         >
                           {option}
                         </button>
