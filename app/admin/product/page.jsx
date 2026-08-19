@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import Badge from '@/components/Badge';
 import {
-  Search, Tag, Plus, Edit2, Trash2, ArrowLeft, ArrowRight, Upload, Loader2,
-  CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown, Sparkles
+  Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
+  CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown, Sparkles, X
 } from 'lucide-react';
 
 const PURITY_PRESETS = ['22K Pure Gold', '18K Gold', '14K Gold', '925 Silver', 'Platinum'];
@@ -18,12 +18,10 @@ const CATEGORY_PRESETS = [
 
 // Shared field styling so every input in the form meets WCAG AA contrast and gets a
 // consistent keyboard focus-visible ring (see :root tokens in app/globals.css)
-const FIELD_LABEL = "text-[12px] font-bold text-on-surface-variant uppercase tracking-wider font-sans";
 const FIELD_INPUT = "w-full px-4 py-2.5 bg-white border border-outline rounded-lg text-[14px] text-gray-900 placeholder:text-on-surface-variant shadow-sm transition-all focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
-const SECTION_GROUP = "space-y-5 pb-6 border-b border-outline/15";
 const BUTTON_FOCUS = "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white";
 
-// Step 1 is a live mirror of the real product page — these inputs are borderless until
+// The form is a live mirror of the real product page — these inputs are borderless until
 // you interact with them (hover shows a faint dashed line, focus shows the brand color),
 // so editing feels like clicking directly into the final page rather than filling a form.
 const GHOST_INPUT = "bg-transparent border-b-2 border-dashed border-transparent hover:border-outline/40 focus:border-primary focus:outline-none transition-colors";
@@ -32,6 +30,33 @@ const GHOST_INPUT = "bg-transparent border-b-2 border-dashed border-transparent 
 // "required" to screen readers, so the asterisk itself is hidden from assistive tech.
 function Required() {
   return <span className="text-primary font-bold ml-0.5" aria-hidden="true">*</span>;
+}
+
+// Small click-to-edit popover — closes on outside click. Used for Purity, Category, and
+// Discount/Offer so the main view stays an exact, uncluttered mirror of the live product
+// page, with the editing controls tucked behind a click rather than always on screen.
+function EditPopover({ trigger, isOpen, onClose, children, width = 'w-64' }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) onClose();
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isOpen, onClose]);
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      {trigger}
+      {isOpen && (
+        <div className={`absolute z-30 top-full left-0 mt-2 ${width} bg-white rounded-xl shadow-xl border border-gray-100 p-4 animate-in fade-in zoom-in-95 duration-150`}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ProductCardSkeleton() {
@@ -131,7 +156,6 @@ function toDatetimeLocalValue(isoString) {
 
 export default function Products() {
   const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
-  const [step, setStep] = useState(1); // 1 = required fields, 2 = optional fields
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -142,6 +166,7 @@ export default function Products() {
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [categoryOther, setCategoryOther] = useState(false); // true when Category is set to a custom (non-preset) value
+  const [openPopover, setOpenPopover] = useState(null); // 'purity' | 'category' | 'discount' | null
 
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -245,30 +270,16 @@ export default function Products() {
   };
   const handleFileChange = (e) => applyImageFile(e.target.files[0]);
 
-  const handleNextStep = () => {
-    if (!formData.productName.trim() || !formData.category.trim() || !formData.price || !formData.description.trim()) {
-      showToast('error', 'Please fill in all required fields before continuing.');
-      return;
-    }
-    if (!imageFile && !formData.imageUrl) {
-      showToast('error', 'Please upload a product image.');
-      return;
-    }
-    setStep(2);
-  };
-
   const handleSave = async (e) => {
     e.preventDefault();
 
     if (!formData.productName.trim() || !formData.category.trim() || !formData.price || !formData.description.trim()) {
-      showToast('error', 'Please fill in all required fields before continuing.');
-      setStep(1);
+      showToast('error', 'Please fill in all required fields before saving.');
       return;
     }
 
     if (!imageFile && !formData.imageUrl) {
       showToast('error', 'Please upload a product image.');
-      setStep(1);
       return;
     }
 
@@ -337,7 +348,6 @@ export default function Products() {
     setImagePreview(product.imageUrl || null);
     setCategoryOther(!!product.category && !CATEGORY_PRESETS.includes(product.category));
     setEditingId(product._id);
-    setStep(1);
     setView('edit');
   };
 
@@ -363,12 +373,20 @@ export default function Products() {
     setImagePreview(null);
     setCategoryOther(false);
     setEditingId(null);
-    setStep(1);
+    setOpenPopover(null);
   };
 
   const visibleProducts = showOfferOnly ? products.filter(p => p.discount > 0) : products;
   const showSkeleton = loading && products.length === 0;
   const showEmpty = !loading && visibleProducts.length === 0;
+
+  // Live discount preview for the form — mirrors the exact hasDiscount logic used on
+  // the actual product page/card, so what the admin sees while editing matches reality.
+  const formPrice = Number(formData.price) || 0;
+  const formOfferPrice = Number(formData.offerPrice) || 0;
+  const formDiscount = Number(formData.discount) || 0;
+  const hasDiscountPreview = formPrice > 0 && (formOfferPrice > 0 || formDiscount > 0) && formOfferPrice !== formPrice;
+  const effectivePrice = formOfferPrice > 0 ? formOfferPrice : formPrice * (1 - formDiscount / 100);
 
   // --- RENDERING FORM VIEW (ADD / EDIT) ---
   if (view === 'add' || view === 'edit') {
@@ -385,203 +403,78 @@ export default function Products() {
             <h1 className="text-[20px] font-sans font-bold text-[#721c24] tracking-tight">
               {view === 'add' ? 'Add New Product' : 'Edit Product'}
             </h1>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">
-              {step === 1 ? 'Step 1 of 2 — Required details' : 'Step 2 of 2 — Optional details'}
+            <p className="flex items-center gap-1.5 text-[13px] text-on-surface-variant mt-0.5">
+              <Sparkles size={12} className="text-primary" />
+              This is exactly how it'll look on the site — edit it directly below
             </p>
           </div>
         </div>
 
-        {/* Step indicator — inactive step keeps a readable (not faint) label/number via the
-            on-surface-variant token, hierarchy comes from the filled vs. outlined badge, not from washing the text out */}
-        <div className="flex items-center gap-2 mb-6 px-1">
-          <div className={`flex items-center gap-2 text-[12px] font-bold ${step === 1 ? 'text-primary' : 'text-on-surface-variant'}`}>
-            <span className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] ${step === 1 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant ring-1 ring-outline/30'}`}>1</span>
-            Required
-          </div>
-          <div className="flex-1 h-px bg-outline/20" />
-          <div className={`flex items-center gap-2 text-[12px] font-bold ${step === 2 ? 'text-primary' : 'text-on-surface-variant'}`}>
-            <span className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] ${step === 2 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant ring-1 ring-outline/30'}`}>2</span>
-            Optional
-          </div>
-        </div>
-
-        <form onSubmit={handleSave} className="bg-white border border-gray-100 rounded-[20px] p-8 shadow-[0_2px_10px_rgba(0,0,0,0.04)] space-y-6">
-          {step === 1 ? (
-            <>
-              {/* Live-preview cue — this whole block is styled exactly like the real
-                  product page, so editing it should read as "editing the page itself" */}
-              <p className="flex items-center gap-1.5 text-[11px] font-sans font-bold uppercase tracking-[0.15em] text-primary/80 -mt-1">
-                <Sparkles size={12} />
-                Edit directly below — this is exactly how it'll look on the site
-              </p>
-
-              <div className="grid sm:grid-cols-2 gap-8 sm:gap-6">
-                {/* Left: image, same frame/ratio/gradient as the live product page */}
-                <div className="group/img space-y-1.5">
-                  <div
-                    className={`relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 transition-all duration-300 has-focus-visible:ring-2 has-focus-visible:ring-primary has-focus-visible:ring-offset-2 ${
-                      isDragOver ? 'ring-2 ring-primary' : 'ring-[#EBE3D5] has-hover:ring-primary/60'
-                    }`}
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      onDragEnter={() => setIsDragOver(true)}
-                      onDragLeave={() => setIsDragOver(false)}
-                      onDrop={() => setIsDragOver(false)}
-                      required={!imagePreview}
-                      aria-label="Upload product image"
-                      className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <div className="pointer-events-none flex flex-col items-center justify-center w-full h-full">
-                      {imagePreview ? (
-                        <>
-                          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${imagePreview})` }} />
-                          <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-sm text-white text-[10px] font-sans font-semibold opacity-0 group-hover/img:opacity-100 transition-opacity">
-                            Click to replace
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-center px-6 text-[#B8A888]">
-                          <Upload className="w-9 h-9 mb-3" strokeWidth={1.5} />
-                          <p className="text-[13px] font-sans font-bold text-[#8a7a5f]">Click or drag a photo here</p>
-                          <p className="text-[11px] font-sans mt-1">This becomes the main product photo<Required /></p>
-                        </div>
-                      )}
+        <form onSubmit={handleSave} className="bg-white border border-gray-100 rounded-[20px] p-8 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+          <div className="grid sm:grid-cols-2 gap-8 sm:gap-10">
+            {/* Left: image, same frame/ratio/gradient as the live product page */}
+            <div className="group/img space-y-1.5">
+              <div
+                className={`relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-gradient-to-b from-[#F5EFE6] to-[#EDE2CC] ring-1 transition-all duration-300 has-focus-visible:ring-2 has-focus-visible:ring-primary has-focus-visible:ring-offset-2 ${
+                  isDragOver ? 'ring-2 ring-primary' : 'ring-[#EBE3D5] has-hover:ring-primary/60'
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  onDragEnter={() => setIsDragOver(true)}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={() => setIsDragOver(false)}
+                  required={!imagePreview}
+                  aria-label="Upload product image"
+                  className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="pointer-events-none flex flex-col items-center justify-center w-full h-full">
+                  {imagePreview ? (
+                    <>
+                      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${imagePreview})` }} />
+                      <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-sm text-white text-[10px] font-sans font-semibold opacity-0 group-hover/img:opacity-100 transition-opacity">
+                        Click to replace
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center px-6 text-[#B8A888]">
+                      <Upload className="w-9 h-9 mb-3" strokeWidth={1.5} />
+                      <p className="text-[13px] font-sans font-bold text-[#8a7a5f]">Click or drag a photo here</p>
+                      <p className="text-[11px] font-sans mt-1">This becomes the main product photo<Required /></p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Right: editable content, same hierarchy as the live product page */}
-                <div className="flex flex-col pt-1">
-                  <div className="flex items-baseline gap-2 mb-3">
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={categoryOther ? 'other' : (formData.category || 'General')}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === 'other') {
-                            setCategoryOther(true);
-                            setFormData({ ...formData, category: '' });
-                          } else {
-                            setCategoryOther(false);
-                            setFormData({ ...formData, category: value });
-                          }
-                        }}
-                        required
-                        aria-label="Category"
-                        className="appearance-none bg-transparent text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] pr-4 py-0.5 cursor-pointer border-b-2 border-dashed border-transparent hover:border-[#9C8253]/50 focus:outline-none focus:border-primary transition-colors"
-                      >
-                        {CATEGORY_PRESETS.map((preset) => (
-                          <option key={preset} value={preset}>{preset}</option>
-                        ))}
-                        <option value="other">Other (type custom)</option>
-                      </select>
-                      <ChevronDown size={10} strokeWidth={2.5} className="pointer-events-none absolute right-0 text-[#9C8253]" />
-                    </div>
-                  </div>
-                  {categoryOther && (
-                    <input
-                      type="text"
-                      placeholder="Custom category"
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      required
-                      aria-label="Custom category"
-                      className="w-fit -mt-2 mb-3 text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253] placeholder:text-[#9C8253]/50 border-b-2 border-dashed border-[#9C8253]/40 bg-transparent focus:outline-none focus:border-primary transition-colors"
-                    />
                   )}
-
-                  <input
-                    type="text"
-                    placeholder="Product Name"
-                    value={formData.productName}
-                    onChange={(e) => setFormData({...formData, productName: e.target.value})}
-                    required
-                    aria-label="Product Name"
-                    className={`font-brand text-3xl sm:text-4xl text-[#1a1a1a] leading-tight placeholder:text-[#1a1a1a]/35 w-full mb-5 pb-1 ${GHOST_INPUT}`}
-                  />
-
-                  <div className="h-px w-12 bg-[#C5A059]/50 mb-6" />
-
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]">₹</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={formData.price}
-                      onChange={(e) => setFormData({...formData, price: e.target.value})}
-                      required
-                      aria-label="Original Price"
-                      className={`text-2xl sm:text-3xl font-sans font-bold text-[#2D2926] placeholder:text-[#2D2926]/35 w-36 pb-1 ${GHOST_INPUT}`}
-                    />
-                  </div>
-
-                  <textarea
-                    rows={5}
-                    placeholder="Add a description — craftsmanship notes, materials, or anything else shown on the piece's detail page…"
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    required
-                    aria-label="Details"
-                    className="mt-6 text-sm leading-7 text-[#5f5a53] placeholder:text-[#5f5a53]/50 resize-none w-full rounded-lg -mx-2 px-2 py-1 border border-dashed border-transparent hover:border-outline/30 focus:border-primary/50 focus:outline-none bg-transparent transition-colors"
-                  />
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center justify-end gap-3 pt-6 mt-2 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => { resetForm(); setView('list'); }}
-                  className={`px-5 py-2.5 border border-outline text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-semibold text-[13px] shadow-sm ${BUTTON_FOCUS}`}
+            {/* Right: editable content, same hierarchy as the live product page */}
+            <div className="flex flex-col pt-1">
+              {/* Purity, then Category — same order/format as the live eyebrow ("22K Gold • Necklaces"),
+                  each a click-to-edit popover so the main view stays uncluttered */}
+              <div className="flex items-center flex-wrap gap-1.5 mb-3 text-[11px] font-sans font-semibold uppercase tracking-wide text-[#9C8253]">
+                <EditPopover
+                  isOpen={openPopover === 'purity'}
+                  onClose={() => setOpenPopover(null)}
+                  trigger={
+                    <button
+                      type="button"
+                      onClick={() => setOpenPopover(openPopover === 'purity' ? null : 'purity')}
+                      className="border-b-2 border-dashed border-transparent hover:border-[#9C8253]/50 focus:outline-none focus-visible:border-primary transition-colors"
+                    >
+                      {formData.purity || '+ Add Purity'}
+                    </button>
+                  }
                 >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNextStep}
-                  className={`flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg shadow-md hover:bg-on-primary-fixed transition-all font-semibold text-[13px] ${BUTTON_FOCUS}`}
-                >
-                  Next: Optional Details
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Live price preview — reflects Discount/Offer Price below exactly as it'll
-                  render on the product page, so the effect of each field is immediate */}
-              <div className="flex items-baseline gap-3 pb-6 -mt-1 border-b border-gray-100">
-                {(Number(formData.discount) > 0 || Number(formData.offerPrice) > 0) ? (
-                  <>
-                    <span className="text-2xl sm:text-3xl font-sans font-bold text-primary">
-                      ₹{(Number(formData.offerPrice) || (Number(formData.price || 0) * (1 - Number(formData.discount || 0) / 100))).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                    <span className="text-base text-gray-400 font-medium line-through">
-                      ₹{Number(formData.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]">
-                    ₹{Number(formData.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                )}
-                <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-on-surface-variant ml-1">Live price</span>
-              </div>
-
-              {/* Material */}
-              <div className={SECTION_GROUP}>
-                <div className="space-y-1.5">
-                  <label className={FIELD_LABEL}>Purity / Material</label>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Purity / Material</p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
                     {PURITY_PRESETS.map((preset) => (
                       <button
                         key={preset}
                         type="button"
-                        onClick={() => setFormData({...formData, purity: preset})}
-                        className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
+                        onClick={() => { setFormData({...formData, purity: preset}); setOpenPopover(null); }}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
                           formData.purity === preset
                             ? 'bg-primary border-primary text-white'
                             : 'bg-white border-outline text-gray-600 hover:border-primary/50'
@@ -593,86 +486,206 @@ export default function Products() {
                   </div>
                   <input
                     type="text"
-                    placeholder="Or type a custom purity/material — leave blank to show none"
+                    placeholder="Or type custom — leave blank for none"
                     value={formData.purity}
                     onChange={(e) => setFormData({...formData, purity: e.target.value})}
-                    className={FIELD_INPUT}
+                    className={`${FIELD_INPUT} normal-case`}
                   />
-                  <p className="text-[11px] text-on-surface-variant">Only shows on the product card and detail page if set — leaving it blank shows no purity label at all.</p>
-                </div>
+                </EditPopover>
+
+                {formData.purity && <span className="text-[#9C8253]/50">•</span>}
+
+                <EditPopover
+                  isOpen={openPopover === 'category'}
+                  onClose={() => setOpenPopover(null)}
+                  trigger={
+                    <button
+                      type="button"
+                      onClick={() => setOpenPopover(openPopover === 'category' ? null : 'category')}
+                      className="flex items-center gap-0.5 border-b-2 border-dashed border-transparent hover:border-[#9C8253]/50 focus:outline-none focus-visible:border-primary transition-colors"
+                    >
+                      {categoryOther ? (formData.category || 'Custom') : (formData.category || 'General')}
+                      <ChevronDown size={10} strokeWidth={2.5} />
+                    </button>
+                  }
+                >
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Category<Required /></p>
+                  <div className="flex flex-wrap gap-1.5 mb-3 max-h-40 overflow-y-auto">
+                    {CATEGORY_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => { setCategoryOther(false); setFormData({...formData, category: preset}); setOpenPopover(null); }}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
+                          !categoryOther && formData.category === preset
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-white border-outline text-gray-600 hover:border-primary/50'
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => { setCategoryOther(true); setFormData({ ...formData, category: '' }); }}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
+                        categoryOther ? 'bg-primary border-primary text-white' : 'bg-white border-outline text-gray-600 hover:border-primary/50'
+                      }`}
+                    >
+                      Other
+                    </button>
+                  </div>
+                  {categoryOther && (
+                    <input
+                      type="text"
+                      placeholder="Type a custom category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      required
+                      autoFocus
+                      className={`${FIELD_INPUT} normal-case`}
+                    />
+                  )}
+                </EditPopover>
               </div>
 
-              {/* Pricing */}
-              <div className={SECTION_GROUP}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className={FIELD_LABEL}>Discount (%)</label>
-                    <input
-                      type="number"
-                      placeholder="0"
-                      value={formData.discount}
-                      onChange={(e) => setFormData({...formData, discount: e.target.value})}
-                      className={FIELD_INPUT}
-                    />
-                  </div>
+              <input
+                type="text"
+                placeholder="Product Name"
+                value={formData.productName}
+                onChange={(e) => setFormData({...formData, productName: e.target.value})}
+                required
+                aria-label="Product Name"
+                className={`font-brand text-3xl sm:text-4xl text-[#1a1a1a] leading-tight placeholder:text-[#1a1a1a]/35 w-full mb-5 pb-1 ${GHOST_INPUT}`}
+              />
 
-                  <div className="space-y-1.5">
-                    <label className={FIELD_LABEL}>Offer Price (₹)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={formData.offerPrice}
-                      onChange={(e) => setFormData({...formData, offerPrice: e.target.value})}
-                      className={FIELD_INPUT}
-                    />
-                  </div>
-                </div>
-              </div>
+              <div className="h-px w-12 bg-[#C5A059]/50 mb-6" />
 
-              {/* Scheduling */}
-              <div className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className={FIELD_LABEL}>Offer Ends At</label>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                {hasDiscountPreview && (
+                  <span className="text-2xl sm:text-3xl font-sans font-bold text-primary">
+                    ₹{effectivePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+                <span className="flex items-baseline gap-1.5">
+                  {!hasDiscountPreview && <span className="text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]">₹</span>}
                   <input
-                    type="datetime-local"
-                    value={formData.offertime}
-                    onChange={(e) => setFormData({...formData, offertime: e.target.value})}
-                    className={FIELD_INPUT}
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    required
+                    aria-label="Original Price"
+                    className={
+                      hasDiscountPreview
+                        ? `text-base text-gray-400 font-medium line-through placeholder:text-gray-300 w-20 pb-1 ${GHOST_INPUT}`
+                        : `text-2xl sm:text-3xl font-sans font-bold text-[#2D2926] placeholder:text-[#2D2926]/35 w-36 pb-1 ${GHOST_INPUT}`
+                    }
                   />
-                  <p className="text-[11px] text-on-surface-variant">Shows a live countdown badge on the storefront card until this time. Leave blank for no countdown.</p>
-                </div>
+                </span>
+
+                <EditPopover
+                  width="w-72"
+                  isOpen={openPopover === 'discount'}
+                  onClose={() => setOpenPopover(null)}
+                  trigger={
+                    <button
+                      type="button"
+                      onClick={() => setOpenPopover(openPopover === 'discount' ? null : 'discount')}
+                      className="text-[11px] font-sans font-semibold uppercase tracking-wide text-primary/70 hover:text-primary underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-primary transition-colors"
+                    >
+                      {hasDiscountPreview ? 'Edit discount' : '+ Add discount / offer'}
+                    </button>
+                  }
+                >
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Discount & Offer</p>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Discount (%)</label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={formData.discount}
+                        onChange={(e) => setFormData({...formData, discount: e.target.value})}
+                        className={FIELD_INPUT}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Offer Price (₹)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={formData.offerPrice}
+                        onChange={(e) => setFormData({...formData, offerPrice: e.target.value})}
+                        className={FIELD_INPUT}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Offer Ends At</label>
+                      <input
+                        type="datetime-local"
+                        value={formData.offertime}
+                        onChange={(e) => setFormData({...formData, offertime: e.target.value})}
+                        className={FIELD_INPUT}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({...formData, discount: 0, offerPrice: 0, offertime: ''});
+                          setOpenPopover(null);
+                        }}
+                        className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOpenPopover(null)}
+                        className={`flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded-lg font-semibold text-[11px] ${BUTTON_FOCUS}`}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                </EditPopover>
               </div>
 
-              <div className="flex items-center justify-between gap-3 pt-2">
+              <textarea
+                rows={5}
+                placeholder="Add a description — craftsmanship notes, materials, or anything else shown on the piece's detail page…"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                required
+                aria-label="Details"
+                className="mt-6 text-sm leading-7 text-[#5f5a53] placeholder:text-[#5f5a53]/50 resize-none w-full rounded-lg -mx-2 px-2 py-1 border border-dashed border-transparent hover:border-outline/30 focus:border-primary/50 focus:outline-none bg-transparent transition-colors"
+              />
+
+              {/* Same two buttons as the live product page (Inquire / Save), repurposed
+                  here as the form's real actions — visually identical, functionally admin */}
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex items-center justify-center gap-2 px-8 py-3.5 bg-[#90060C] hover:bg-[#730509] text-white font-sans text-xs font-semibold uppercase tracking-[0.2em] rounded-full transition-colors duration-300 shadow-sm disabled:opacity-60"
+                >
+                  {submitting && <Loader2 size={14} className="animate-spin" />}
+                  {view === 'add' ? 'Create Product' : 'Save Changes'}
+                </button>
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
-                  className={`flex items-center gap-2 px-5 py-2.5 border border-outline text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-semibold text-[13px] shadow-sm ${BUTTON_FOCUS}`}
+                  onClick={() => { resetForm(); setView('list'); }}
+                  className="flex items-center justify-center gap-2 px-8 py-3.5 border border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] font-sans text-xs font-semibold uppercase tracking-[0.2em] rounded-full transition-colors duration-300 cursor-pointer"
                 >
-                  <ArrowLeft size={14} />
-                  Back
+                  <X size={14} />
+                  Cancel
                 </button>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={`px-5 py-2.5 border border-outline text-gray-700 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-60 transition-colors font-semibold text-[13px] shadow-sm ${BUTTON_FOCUS}`}
-                  >
-                    Skip
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={`flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg shadow-md hover:bg-on-primary-fixed disabled:bg-gray-400 transition-all font-semibold text-[13px] ${BUTTON_FOCUS}`}
-                  >
-                    {submitting && <Loader2 size={14} className="animate-spin" />}
-                    {view === 'add' ? 'Create Product' : 'Save Changes'}
-                  </button>
-                </div>
               </div>
-            </>
-          )}
+            </div>
+          </div>
         </form>
       </div>
     );
