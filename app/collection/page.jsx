@@ -23,6 +23,9 @@ const CATEGORIES = [
   "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
 ];
 
+// Cards fetched per auto-loaded batch as the reader scrolls.
+const PAGE_SIZE = 10;
+
 export default function Collection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,20 +68,33 @@ export default function Collection() {
   const loadCollectionItems = async (pageNumber = 1, currentSearch = "", currentCategories = []) => {
     if (pageNumber === 1) setLoading(true);
     else setLoadingMore(true);
+    setError(null);
 
     try {
-      let endpoint = `/products?page=${pageNumber}&limit=10`;
-      if (currentSearch.trim() !== "") {
-        endpoint = `/products?search=${encodeURIComponent(currentSearch.trim())}`;
-      } else if (currentCategories.length > 0) {
-        endpoint = `/products?search=${encodeURIComponent(currentCategories.join(' '))}`;
-      }
+      // Search and category filters run through the same paginated endpoint as the
+      // full catalog, so scrolling keeps pulling results in every mode (previously
+      // filtered views were capped at the first page and could never load more).
+      const query = currentSearch.trim() !== ""
+        ? currentSearch.trim()
+        : currentCategories.length > 0
+          ? currentCategories.join(' ')
+          : "";
+
+      const endpoint = query !== ""
+        ? `/products?search=${encodeURIComponent(query)}&page=${pageNumber}&limit=${PAGE_SIZE}`
+        : `/products?page=${pageNumber}&limit=${PAGE_SIZE}`;
 
       const res = await userApi.get(endpoint);
       const incomingItems = res.data.products || [];
 
-      setProducts(prev => (pageNumber === 1 ? incomingItems : [...prev, ...incomingItems]));
-      setHasMore(currentSearch.trim() !== "" || currentCategories.length > 0 ? false : incomingItems.length === 10);
+      setProducts(prev => {
+        if (pageNumber === 1) return incomingItems;
+        // Guard against a page overlapping with what's already on screen — duplicate
+        // _ids would collide as React keys.
+        const seen = new Set(prev.map((p) => p._id));
+        return [...prev, ...incomingItems.filter((p) => !seen.has(p._id))];
+      });
+      setHasMore(incomingItems.length === PAGE_SIZE);
       setPage(pageNumber);
     } catch (err) {
       console.error("Database connection failure:", err);
@@ -108,6 +124,41 @@ export default function Collection() {
     loadRecommendations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // --- Infinite scroll -----------------------------------------------------
+  // An invisible sentinel sits below the grid; when it comes near the viewport
+  // the next page loads on its own, so there's no "Load More" button to press.
+  const sentinelRef = useRef(null);
+  const loadMoreRef = useRef(() => {});
+
+  // Kept fresh on every render so the observer callback below always sees the
+  // current page/filter state without having to be torn down and rebuilt.
+  useEffect(() => {
+    loadMoreRef.current = () => {
+      if (loading || loadingMore || !hasMore || error) return;
+      loadCollectionItems(page + 1, appliedSearch, selectedCategories);
+    };
+  });
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMoreRef.current();
+      },
+      // Fire well before the sentinel is actually on screen so the next row is
+      // already in place by the time the reader gets there.
+      { rootMargin: '600px 0px' }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+    // Re-observing after each batch re-fires the callback if the sentinel is still
+    // in view (a short page), which keeps filling until the viewport is covered —
+    // IntersectionObserver only reports transitions, so a static sentinel would stall.
+  }, [products.length, hasMore]);
 
   const handleClearFilters = () => {
     setTypedSearch("");
@@ -233,7 +284,10 @@ export default function Collection() {
                 <ProductCardSkeleton key={i} showCategoryLine />
               ))}
             </motion.div>
-          ) : error ? (
+          ) : error && products.length === 0 ? (
+            // Only takes over the page when there's nothing to show. A failure partway
+            // through scrolling keeps the loaded pieces on screen and offers a retry
+            // down by the sentinel instead of blanking the grid.
             <motion.div key="error" {...fadeProps} className="text-center py-16 bg-[#90060C]/5 border border-[#90060C]/20 rounded-2xl max-w-xl mx-auto text-[#90060C] font-serif">
               {error}
             </motion.div>
@@ -268,22 +322,42 @@ export default function Collection() {
                 />
               ))}
 
-              {/* Load More Button Trigger Pagination system */}
-              {hasMore && (
-                <div className="col-span-full mt-20 text-center">
-                  <button
-                    disabled={loadingMore}
-                    onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategories)}
-                    className="px-10 py-4 border border-[#90060C] text-[#90060C] bg-transparent hover:bg-[#90060C] hover:text-white font-medium transition-all duration-300 font-sans text-xs uppercase tracking-[0.2em] rounded-full inline-flex items-center gap-2.5 shadow-md cursor-pointer"
-                  >
-                    {loadingMore && <Loader2 size={14} className="animate-spin mr-2" />}
-                    {loadingMore ? 'Syncing Vault...' : 'Load More Masterpieces'}
-                  </button>
-                </div>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Infinite-scroll sentinel — kept mounted (not inside the AnimatePresence
+            branches) so the observer has a stable node to watch from first paint. */}
+        <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
+
+        {!loading && products.length > 0 && (
+          <div className="mt-16 flex justify-center" aria-live="polite">
+            {error ? (
+              // Auto-loading stops on failure (so it can't spin in a retry loop) —
+              // this is the one case that still needs a tap to continue.
+              <div className="flex flex-col items-center gap-3 text-center">
+                <p className="font-sans text-xs text-[#90060C]">{error}</p>
+                <button
+                  onClick={() => loadCollectionItems(page + 1, appliedSearch, selectedCategories)}
+                  className="px-8 py-3 border border-[#90060C] text-[#90060C] hover:bg-[#90060C] hover:text-white font-sans text-xs uppercase tracking-[0.2em] rounded-full transition-all duration-300 cursor-pointer"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : loadingMore ? (
+              <span className="inline-flex items-center gap-2.5 font-sans text-xs uppercase tracking-[0.2em] text-[#90060C]">
+                <Loader2 size={14} className="animate-spin" />
+                Unveiling more masterpieces…
+              </span>
+            ) : hasMore ? null : (
+              <span className="inline-flex items-center gap-3 font-sans text-[11px] uppercase tracking-[0.25em] text-[#A8A196]">
+                <span className="h-px w-8 bg-[#D9CFBB]" />
+                You&rsquo;ve seen the full collection
+                <span className="h-px w-8 bg-[#D9CFBB]" />
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Right-side Filter Drawer */}

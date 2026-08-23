@@ -72,6 +72,21 @@ export const logMemoryStatus = () => {
   console.log(`[RAM STATUS]: ${used}MB used / ${total}MB total (${percentage}%)`);
 };
 
+// Ties the domain to the brand and its common misspellings/variants, so queries like
+// "shagunratna jewellers" or "shagun ratna gems" resolve to this site as one entity.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Shagun Ratna",
+  alternateName: [
+    "Shagunratna",
+    "Shagun Ratna Jewellers",
+    "Shagunratna Gems & Jewellers",
+    "Shagun Ratna Jewelry",
+  ],
+  url: 'https://shagunratna.com',
+};
+
 const businessJsonLd = {
   "@context": "https://schema.org",
   "@type": "JewelryStore",
@@ -124,6 +139,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${cormorant.variable}`}>
       <body className="bg-[#FDFBF7] font-sans">
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
