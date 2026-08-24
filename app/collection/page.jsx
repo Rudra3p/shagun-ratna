@@ -6,6 +6,7 @@ import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { useSurvey } from '@/components/SurveyProvider';
 import { Loader2, Search, SearchX, X, SlidersHorizontal } from 'lucide-react';
 
 // Shared crossfade so skeleton -> content/error/empty swaps never hard-cut
@@ -36,6 +37,7 @@ export default function Collection() {
   const [favorites, setFavorites] = usePersistedState(FAVORITES_STORAGE_KEY, {});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
+  const { survey } = useSurvey();
 
   const [typedSearch, setTypedSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -107,23 +109,34 @@ export default function Collection() {
     }
   };
 
-  const loadRecommendations = async () => {
+  const loadRecommendations = async (currentSurvey) => {
+    // Nothing to personalise from until the visitor has filled in the survey.
+    if (!currentSurvey?.age || !currentSurvey?.gender) {
+      setRecommendedProducts([]);
+      return;
+    }
     try {
-      const res = await userApi.get('/recommendations');
-      if (res.data.recommended) {
-        setRecommendedProducts(res.data.products || []);
-      }
+      const res = await userApi.get(
+        `/recommendations?age=${encodeURIComponent(currentSurvey.age)}&gender=${encodeURIComponent(currentSurvey.gender)}`
+      );
+      setRecommendedProducts(res.data.recommended ? (res.data.products || []) : []);
     } catch (err) {
-      // Guests and users without a matching collection simply get no recommendations
+      // A failure here only costs the "Recommended" badges — the catalog still renders
       console.error("Failed to load recommendations:", err);
     }
   };
 
   useEffect(() => {
     loadCollectionItems(1, "", []);
-    loadRecommendations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-runs whenever the survey is filled in, updated, or cleared, so the
+  // "Recommended" badges track the visitor's answers without a page reload.
+  useEffect(() => {
+    loadRecommendations(survey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [survey?.age, survey?.gender]);
 
   // --- Infinite scroll -----------------------------------------------------
   // An invisible sentinel sits below the grid; when it comes near the viewport

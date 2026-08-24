@@ -3,6 +3,8 @@ import Showcase from "@/models/showcase";
 import Product from "@/models/product";
 import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
+import { readRates } from "@/controllers/metalRateController";
+import { applyPricingToList } from "@/lib/pricing";
 
 interface PopulatedProduct {
   _id: unknown;
@@ -86,18 +88,21 @@ export const getHomepageShowcase = async (): Promise<NextResponse> => {
 
     const featuredProducts = await Product.find({ featured: true })
       .sort({ updatedAt: -1 })
-      .limit(HOMEPAGE_GRID_SLOTS);
+      .limit(HOMEPAGE_GRID_SLOTS)
+      .lean();
 
     const usedIds = featuredProducts.map((p) => p._id);
     const emptySlots = HOMEPAGE_GRID_SLOTS - featuredProducts.length;
 
     const fillerProducts = emptySlots > 0
-      ? await Product.find({ _id: { $nin: usedIds } }).sort({ createdAt: -1 }).limit(emptySlots)
+      ? await Product.find({ _id: { $nin: usedIds } }).sort({ createdAt: -1 }).limit(emptySlots).lean()
       : [];
 
     const products = [...featuredProducts, ...fillerProducts];
 
-    return NextResponse.json({ products }, { status: 200 });
+    // Formula-priced pieces reflect the current gold/silver rate here too
+    const rates = await readRates();
+    return NextResponse.json({ products: applyPricingToList(products, rates) }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to load homepage showcase" }, { status: 500 });
   }

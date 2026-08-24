@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { Heart, Menu, X } from 'lucide-react'; // Added Menu and X icons
+import { Heart, Menu, X, Sparkles } from 'lucide-react'; // Added Menu and X icons
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSurvey } from '@/components/SurveyProvider';
 
 const Navbar = () => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [userName, setUserName] = useState(null);
   const [isOpen, setIsOpen] = useState(false); // Mobile menu state
+  const { survey, openSurvey } = useSurvey();
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 50);
@@ -21,25 +22,9 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Re-verify sign-in state on every route change via the httpOnly session cookie —
-  // localStorage can be faked by the client, so it isn't proof of an active session.
-  // Calling the profile endpoint directly (not through the userApi instance) avoids
-  // its 401-retry interceptor, which would otherwise redirect guests to /auth just
-  // for not being signed in.
+  // Close the mobile drawer whenever the route changes
   useEffect(() => {
     setIsOpen(false);
-
-    let cancelled = false;
-    fetch('/api/user/profile', { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled) setUserName(data?.user?.name || null);
-      })
-      .catch(() => {
-        if (!cancelled) setUserName(null);
-      });
-
-    return () => { cancelled = true; };
   }, [pathname]);
 
   return (
@@ -75,21 +60,14 @@ const Navbar = () => {
 
         {/* Actions on the Right - Hidden on Mobile */}
         <div className="hidden md:flex items-center gap-6 lg:gap-10 font-sans text-xs tracking-[0.2em] font-semibold">
-          {userName ? (
-            <NavLink 
-              label="Profile"
-              href="/profile"
-              className="border border-[#90060c] text-[#90060c] px-5 py-2.5 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-[11px] tracking-[0.25em]" 
-              noUnderline 
-            />
-          ) : (
-            <NavLink 
-              label="Sign In"
-              href="/auth"
-              className="border border-[#90060c] text-[#90060c] px-5 py-2.5 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-[11px] tracking-[0.25em]" 
-              noUnderline 
-            />
-          )}
+          <button
+            type="button"
+            onClick={openSurvey}
+            className="flex items-center gap-2 border border-[#90060c] text-[#90060c] px-5 py-2.5 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-[11px] tracking-[0.25em] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] focus-visible:ring-offset-2"
+          >
+            <Sparkles size={13} strokeWidth={2} />
+            {survey ? survey.name.split(' ')[0] : 'For You'}
+          </button>
           <Link
             href="/liked-collection"
             className="hover:text-[#C5A059] transition-colors duration-500 flex items-center gap-1.5"
@@ -132,21 +110,14 @@ const Navbar = () => {
         ))}
         
         <div className="mt-4 pt-4 border-t border-[#90060c]/20 flex flex-col gap-4">
-          {userName ? (
-            <NavLink 
-              label="Profile"
-              href="/profile"
-              className="border border-[#90060c] text-center text-[#90060c] px-6 py-3 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-xs justify-center" 
-              noUnderline 
-            />
-          ) : (
-            <NavLink 
-              label="Sign In"
-              href="/auth"
-              className="border border-[#90060c] text-center text-[#90060c] px-6 py-3 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-xs justify-center" 
-              noUnderline 
-            />
-          )}
+          <button
+            type="button"
+            onClick={() => { setIsOpen(false); openSurvey(); }}
+            className="flex items-center justify-center gap-2 border border-[#90060c] text-[#90060c] px-6 py-3 rounded-full hover:bg-[#90060c] hover:text-[#faf3e5] transition-all duration-500 text-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c]"
+          >
+            <Sparkles size={14} strokeWidth={2} />
+            {survey ? survey.name.split(' ')[0] : 'For You'}
+          </button>
         </div>
       </div>
     </>

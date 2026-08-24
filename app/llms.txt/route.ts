@@ -1,6 +1,8 @@
 import dbConnect from "@/db/db";
 import Product from "@/models/product";
 import { formatCategory } from "@/lib/formatCategory";
+import { readRates } from "@/controllers/metalRateController";
+import { applyPricingToList } from "@/lib/pricing";
 
 const BASE_URL = "https://shagunratna.com";
 
@@ -9,14 +11,16 @@ const MAX_PRODUCTS = 300;
 
 export async function GET() {
   await dbConnect();
-  const [products, totalCount] = await Promise.all([
+  const [rawProducts, totalCount, rates] = await Promise.all([
     Product.find()
-      .select("productName price category purity description offerPrice featured")
+      .select("productName price category purity description offerPrice featured pricingMode metal metalWeight labourCost discount")
       .sort({ featured: -1, createdAt: -1 })
       .limit(MAX_PRODUCTS)
       .lean(),
     Product.countDocuments(),
+    readRates(),
   ]);
+  const products = applyPricingToList(rawProducts, rates);
 
   const productLines = products
     .map((product) => {

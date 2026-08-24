@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
 import Product from "@/models/product";
 import Review from "@/models/reviews";
-import User from "@/models/user";
 import Inquiry from "@/models/Inquiry";
 
 export const getDashboardStats = async (): Promise<NextResponse> => {
   try {
     await dbConnect();
 
-    const [totalProducts, totalUsers, pendingInquiries, reviewStats] = await Promise.all([
+    // No user accounts on the site any more (visitors answer a local-only survey
+    // instead of registering), so there is no registered-user count to report.
+    const [totalProducts, pendingInquiries, reviewStats] = await Promise.all([
       Product.countDocuments(),
-      User.countDocuments(),
       Inquiry.countDocuments(),
       Review.aggregate([
         { $group: { _id: null, totalReviews: { $sum: 1 }, avgRating: { $avg: "$rating" } } },
@@ -22,7 +22,6 @@ export const getDashboardStats = async (): Promise<NextResponse> => {
 
     const dashboardData = {
       totalProducts,
-      totalUsers,
       pendingInquiries,
       totalReviews,
       avgRating: Number(avgRating.toFixed(1)),

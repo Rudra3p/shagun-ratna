@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
 import Inquiry from "@/models/Inquiry";
 import Review from "@/models/reviews";
-import User from "@/models/user";
 import VisitLog from "@/models/VisitLog";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -30,16 +29,14 @@ export const getHistoryStats = async (req: Request): Promise<NextResponse> => {
     const startDate = new Date(now.getTime() - (totalDays - 1) * DAY_MS);
     startDate.setUTCHours(0, 0, 0, 0);
 
-    const [inquiries, reviews, users, visits] = await Promise.all([
+    const [inquiries, reviews, visits] = await Promise.all([
       Inquiry.find({ createdAt: { $gte: startDate } }).select("createdAt").lean(),
       Review.find({ createdAt: { $gte: startDate } }).select("createdAt").lean(),
-      User.find({ createdAt: { $gte: startDate } }).select("createdAt").lean(),
       VisitLog.find({ date: { $gte: toDateKey(startDate) } }).select("date count").lean(),
     ]);
 
     const inquiryByDay = countByDay(inquiries as { createdAt: Date }[]);
     const reviewByDay = countByDay(reviews as { createdAt: Date }[]);
-    const userByDay = countByDay(users as { createdAt: Date }[]);
 
     const visitByDay = new Map<string, number>();
     for (const v of visits as { date: string; count: number }[]) {
@@ -57,7 +54,6 @@ export const getHistoryStats = async (req: Request): Promise<NextResponse> => {
       visitors: visitByDay.get(key) || 0,
       inquiries: inquiryByDay.get(key) || 0,
       reviews: reviewByDay.get(key) || 0,
-      newUsers: userByDay.get(key) || 0,
     }));
 
     if (range === "daily") {
@@ -74,7 +70,6 @@ export const getHistoryStats = async (req: Request): Promise<NextResponse> => {
         visitors: bucket.reduce((sum, d) => sum + d.visitors, 0),
         inquiries: bucket.reduce((sum, d) => sum + d.inquiries, 0),
         reviews: bucket.reduce((sum, d) => sum + d.reviews, 0),
-        newUsers: bucket.reduce((sum, d) => sum + d.newUsers, 0),
       });
     }
 

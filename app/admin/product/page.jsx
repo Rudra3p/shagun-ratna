@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import Badge from '@/components/Badge';
 import { formatCategory, MATERIAL_CATEGORIES } from '@/lib/formatCategory';
+import { computeFormulaPrice, purityFactor } from '@/lib/pricing';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
   CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown, Sparkles, X
@@ -160,8 +161,11 @@ export default function Products() {
   const [hasMore, setHasMore] = useState(true);
 
   const [formData, setFormData] = useState({
-    productName: '', price: '', category: ['General'], purity: '', description: '', discount: 0, offerPrice: 0, offertime: ''
+    productName: '', price: '', category: ['General'], purity: '', description: '', discount: 0, offerPrice: 0, offertime: '',
+    pricingMode: 'manual', metal: '', metalWeight: '', labourCost: ''
   });
+  // Current gold/silver rates, so the formula price can be previewed live in the form
+  const [metalRates, setMetalRates] = useState({ goldRatePerGram: 0, silverRatePerGram: 0 });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -225,6 +229,10 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts(1);
+    // Needed to preview the formula price while editing
+    adminApi.get('/metal-rates')
+      .then(({ data }) => setMetalRates(data.rates || { goldRatePerGram: 0, silverRatePerGram: 0 }))
+      .catch((err) => console.error('Failed to load metal rates:', err));
   }, []);
 
   // Track search query variations instantly to clear junk if input is wiped out empty
@@ -277,8 +285,14 @@ export default function Products() {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!formData.productName.trim() || !formData.category?.length || !formData.price || !formData.description.trim()) {
-      showToast('error', 'Please fill in all required fields before saving.');
+    const priceIsSet = formData.pricingMode === 'formula' ? formulaPrice > 0 : !!formData.price;
+    if (!formData.productName.trim() || !formData.category?.length || !priceIsSet || !formData.description.trim()) {
+      showToast(
+        'error',
+        formData.pricingMode === 'formula' && !priceIsSet
+          ? 'Set the metal, weight and current rate — the calculated price is still ₹0.'
+          : 'Please fill in all required fields before saving.'
+      );
       return;
     }
 
@@ -311,10 +325,14 @@ export default function Products() {
       const payload = {
         ...formData,
         imageUrl,
-        price: parseFloat(formData.price),
+        // In formula mode the server recomputes and overwrites this from the live
+        // rates — sending the previewed value keeps the two in step meanwhile.
+        price: formData.pricingMode === 'formula' ? formulaPrice : parseFloat(formData.price),
         discount: parseFloat(formData.discount),
         offerPrice: parseFloat(formData.offerPrice),
-        offertime: formData.offertime ? new Date(formData.offertime).toISOString() : null
+        offertime: formData.offertime ? new Date(formData.offertime).toISOString() : null,
+        metalWeight: parseFloat(formData.metalWeight) || 0,
+        labourCost: parseFloat(formData.labourCost) || 0,
       };
 
       const wasAdding = view === 'add';
@@ -351,7 +369,11 @@ export default function Products() {
       discount: product.discount,
       offerPrice: product.offerPrice,
       offertime: toDatetimeLocalValue(product.offertime),
-      imageUrl: product.imageUrl || ''
+      imageUrl: product.imageUrl || '',
+      pricingMode: product.pricingMode === 'formula' ? 'formula' : 'manual',
+      metal: product.metal || '',
+      metalWeight: product.metalWeight ? String(product.metalWeight) : '',
+      labourCost: product.labourCost ? String(product.labourCost) : '',
     });
     setImagePreview(product.imageUrl || null);
     setCustomCategoryInput('');
@@ -377,7 +399,10 @@ export default function Products() {
   };
 
   const resetForm = () => {
-    setFormData({ productName: '', price: '', category: ['General'], purity: '', description: '', discount: 0, offerPrice: 0, offertime: '' });
+    setFormData({
+      productName: '', price: '', category: ['General'], purity: '', description: '', discount: 0, offerPrice: 0, offertime: '',
+      pricingMode: 'manual', metal: '', metalWeight: '', labourCost: ''
+    });
     setImageFile(null);
     setImagePreview(null);
     setCustomCategoryInput('');
@@ -393,7 +418,18 @@ export default function Products() {
 
   // Live discount preview for the form — mirrors the exact hasDiscount logic used on
   // the actual product page/card, so what the admin sees while editing matches reality.
-  const formPrice = Number(formData.price) || 0;
+  // Formula pricing preview — mirrors lib/pricing.js so the admin sees the exact
+  // figure that will be stored and shown on the storefront.
+  const isFormula = formData.pricingMode === 'formula';
+  const activeRate = formData.metal === 'Silver'
+    ? Number(metalRates.silverRatePerGram) || 0
+    : Number(metalRates.goldRatePerGram) || 0;
+  const formulaPrice = computeFormulaPrice(
+    { ...formData, metalWeight: Number(formData.metalWeight) || 0, labourCost: Number(formData.labourCost) || 0, pricingMode: 'formula' },
+    metalRates
+  ) || 0;
+
+  const formPrice = isFormula ? formulaPrice : (Number(formData.price) || 0);
   const formOfferPrice = Number(formData.offerPrice) || 0;
   const formDiscount = Number(formData.discount) || 0;
   const hasDiscountPreview = formPrice > 0 && (formOfferPrice > 0 || formDiscount > 0) && formOfferPrice !== formPrice;
@@ -634,21 +670,144 @@ export default function Products() {
                 )}
                 <span className="flex items-baseline gap-1.5">
                   {!hasDiscountPreview && <span className="text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]">₹</span>}
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    required
-                    aria-label="Original Price"
-                    className={
-                      hasDiscountPreview
-                        ? `text-base text-gray-400 font-medium line-through placeholder:text-gray-300 w-20 pb-1 ${GHOST_INPUT}`
-                        : `text-2xl sm:text-3xl font-sans font-bold text-[#2D2926] placeholder:text-[#2D2926]/35 w-36 pb-1 ${GHOST_INPUT}`
-                    }
-                  />
+                  {isFormula ? (
+                    // Formula mode: the price isn't typed, it's derived — show the
+                    // computed figure here so this still reads like the live page.
+                    <span
+                      className={
+                        hasDiscountPreview
+                          ? 'text-base text-gray-400 font-medium line-through'
+                          : 'text-2xl sm:text-3xl font-sans font-bold text-[#2D2926]'
+                      }
+                    >
+                      {formulaPrice > 0 ? formulaPrice.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
+                    </span>
+                  ) : (
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.price}
+                      onChange={(e) => setFormData({...formData, price: e.target.value})}
+                      required
+                      aria-label="Original Price"
+                      className={
+                        hasDiscountPreview
+                          ? `text-base text-gray-400 font-medium line-through placeholder:text-gray-300 w-20 pb-1 ${GHOST_INPUT}`
+                          : `text-2xl sm:text-3xl font-sans font-bold text-[#2D2926] placeholder:text-[#2D2926]/35 w-36 pb-1 ${GHOST_INPUT}`
+                      }
+                    />
+                  )}
                 </span>
+
+                <EditPopover
+                  width="w-80"
+                  isOpen={openPopover === 'pricing'}
+                  onClose={() => setOpenPopover(null)}
+                  trigger={
+                    <button
+                      type="button"
+                      onClick={() => setOpenPopover(openPopover === 'pricing' ? null : 'pricing')}
+                      className="text-[11px] font-sans font-semibold uppercase tracking-wide text-primary/70 hover:text-primary underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-primary transition-colors"
+                    >
+                      {isFormula ? 'By weight' : 'Manual price'}
+                    </button>
+                  }
+                >
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">How is this priced?</p>
+
+                  <div className="flex gap-1.5 mb-4">
+                    {[
+                      { value: 'manual', label: 'Manual' },
+                      { value: 'formula', label: 'By weight' },
+                    ].map((mode) => (
+                      <button
+                        key={mode.value}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, pricingMode: mode.value })}
+                        className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
+                          formData.pricingMode === mode.value
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-white border-outline text-gray-600 hover:border-primary/50'
+                        }`}
+                      >
+                        {mode.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {isFormula ? (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Metal</label>
+                        <div className="flex gap-1.5">
+                          {['Gold', 'Silver'].map((m) => (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, metal: m })}
+                              className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${BUTTON_FOCUS} ${
+                                formData.metal === m
+                                  ? 'bg-primary border-primary text-white'
+                                  : 'bg-white border-outline text-gray-600 hover:border-primary/50'
+                              }`}
+                            >
+                              {m}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Weight (grams)</label>
+                        <input
+                          type="number" min="0" step="0.001" placeholder="0.000"
+                          value={formData.metalWeight}
+                          onChange={(e) => setFormData({ ...formData, metalWeight: e.target.value })}
+                          className={FIELD_INPUT}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Labour / making (₹)</label>
+                        <input
+                          type="number" min="0" step="1" placeholder="0"
+                          value={formData.labourCost}
+                          onChange={(e) => setFormData({ ...formData, labourCost: e.target.value })}
+                          className={FIELD_INPUT}
+                        />
+                      </div>
+
+                      <div className="pt-3 border-t border-gray-100 text-[11px] text-on-surface-variant space-y-1">
+                        <div className="flex justify-between">
+                          <span>{formData.metal || 'Metal'} rate</span>
+                          <span className="font-semibold text-gray-800">₹{activeRate.toLocaleString()}/g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Purity ({formData.purity || 'not set'})</span>
+                          <span className="font-semibold text-gray-800">×{purityFactor(formData.purity)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Labour</span>
+                          <span className="font-semibold text-gray-800">₹{(Number(formData.labourCost) || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between pt-1.5 mt-1.5 border-t border-gray-100 text-[13px]">
+                          <span className="font-bold text-gray-900">Price</span>
+                          <span className="font-bold text-primary">₹{formulaPrice.toLocaleString()}</span>
+                        </div>
+                        {activeRate <= 0 && (
+                          <p className="text-[10px] text-red-600 pt-1.5">
+                            Set the {formData.metal || 'metal'} rate in Metal Rates before saving.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                      You type the price directly and it stays fixed — metal rate changes won&rsquo;t touch it.
+                    </p>
+                  )}
+                </EditPopover>
 
                 <EditPopover
                   width="w-72"

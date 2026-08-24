@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/api", "/auth", "/profile", "/liked-collection"],
+      disallow: ["/admin", "/api", "/liked-collection"],
     },
     sitemap: "https://shagunratna.com/sitemap.xml",
   };

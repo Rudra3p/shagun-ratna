@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest, NextFetchEvent } from 'next/server';
 import { adminMiddleware } from './middlewares/adminMiddleware';
-import { userMiddleware } from './middlewares/userMiddleware';
 import { trackVisit } from './lib/trackVisit';
 
 const VISIT_COOKIE = 'sr_visit_date';
@@ -33,16 +32,9 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return adminResponse || NextResponse.next();
   }
 
-  // 4. USER UI PROTECTION (real account-only pages — not the public storefront)
-  // Liked Collection is intentionally open: it's backed by localStorage, not an
-  // account, so anyone can use the wishlist without signing in first.
-  const USER_PROTECTED_PATHS = ['/profile'];
-  let response: NextResponse;
-  if (USER_PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
-    response = (await userMiddleware(request)) || NextResponse.next();
-  } else {
-    response = NextResponse.next();
-  }
+  // 4. The public storefront has no gated pages — there are no user accounts.
+  // Wishlist and survey answers both live in the visitor's own localStorage.
+  const response: NextResponse = NextResponse.next();
 
   // 5. VISITOR TRACKING (storefront pages only, once per visitor per day)
   const todayKey = new Date().toISOString().slice(0, 10);

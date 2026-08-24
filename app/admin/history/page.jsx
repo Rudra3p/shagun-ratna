@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-import { Eye, Inbox, MessageSquare, UserPlus } from 'lucide-react';
+import { Eye, Inbox, MessageSquare } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 
 const parseDateKey = (key) => {
@@ -26,11 +26,12 @@ const formatWeekRange = (startKey, endKey, index) => {
   return index === 0 ? `This Week (${range})` : range;
 };
 
+// "New Users" dropped along with account registration — visitors now answer a
+// survey that never leaves their browser, so there's nothing to count here.
 const METRICS = [
   { key: 'visitors', label: 'Visitors', icon: Eye },
   { key: 'inquiries', label: 'Inquiries', icon: Inbox },
   { key: 'reviews', label: 'Reviews', icon: MessageSquare },
-  { key: 'newUsers', label: 'New Users', icon: UserPlus },
 ];
 
 export default function HistoryPage() {

@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
 import Review from "@/models/reviews";
-import { verifyUserSession } from "@/lib/verifyUserSession";
 
 export const addReview = async (req: Request): Promise<NextResponse> => {
   try {
     await dbConnect();
 
-    // Reviews are open to everyone. If the visitor happens to be signed in, we still
-    // attach their userId so "Your Review" on the reviews page can find it later.
-    const userId = await verifyUserSession(req.headers.get("cookie"));
-
+    // Reviews are open to everyone — there are no accounts, so a review is
+    // identified only by the name the reviewer types in.
     const body = await req.json();
 
     const newReview = new Review({
-      userId: userId || undefined,
       name: body.name,
       product: body.product,
       text: body.text,

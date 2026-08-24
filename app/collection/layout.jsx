@@ -1,6 +1,8 @@
 import dbConnect from "@/db/db";
 import Product from "@/models/product";
 import { SITE_URL, breadcrumbJsonLd, JsonLd } from "@/lib/seo";
+import { readRates } from "@/controllers/metalRateController";
+import { applyPricingToList } from "@/lib/pricing";
 
 // The grid itself is client-fetched, so the server HTML carries no product text for
 // crawlers to read. Emitting the catalog as ItemList structured data below gives
@@ -43,11 +45,13 @@ export const metadata = {
 
 export default async function CollectionLayout({ children }) {
   await dbConnect();
-  const products = await Product.find()
-    .select("productName imageUrl price offerPrice updatedAt")
+  const rawProducts = await Product.find()
+    // Formula fields included so structured-data prices match what shoppers see
+    .select("productName imageUrl price offerPrice updatedAt purity pricingMode metal metalWeight labourCost discount")
     .sort({ featured: -1, createdAt: -1 })
     .limit(MAX_LISTED)
     .lean();
+  const products = applyPricingToList(rawProducts, await readRates());
 
   const collectionJsonLd = {
     "@context": "https://schema.org",

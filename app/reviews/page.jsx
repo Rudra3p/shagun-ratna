@@ -1,9 +1,6 @@
 import { Star } from "lucide-react";
-import { cookies } from "next/headers";
 import dbConnect from "@/db/db";
-import Review from "@/models/reviews";
 import { getReviews } from "@/controllers/reviewsController";
-import { verifyUserSession } from "@/lib/verifyUserSession";
 import GiveReviewButton from "@/components/reviews/GiveReviewButton";
 
 export const metadata = {
@@ -23,32 +20,8 @@ async function getApprovedReviews() {
   return { reviews: data?.reviews || [], total: data?.total || 0 };
 }
 
-async function getMyReview(userId) {
-  if (!userId) return null;
-  await dbConnect();
-  const review = await Review.findOne({ userId }).sort({ createdAt: -1 }).lean();
-  if (!review) return null;
-
-  return {
-    product: review.product,
-    text: review.text,
-    rating: review.rating,
-    approved: review.approved,
-  };
-}
-
 export default async function ReviewsPage() {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map(({ name, value }) => `${name}=${value}`)
-    .join("; ");
-  const userId = await verifyUserSession(cookieHeader);
-
-  const [{ reviews, total }, myReview] = await Promise.all([
-    getApprovedReviews(),
-    getMyReview(userId),
-  ]);
+  const { reviews, total } = await getApprovedReviews();
 
   const averageRating = reviews.length
     ? reviews.reduce((sum, review) => sum + Number(review.rating), 0) / reviews.length
@@ -97,7 +70,8 @@ export default async function ReviewsPage() {
               Customer <span className="text-[#90060c]">Reviews</span>
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#5f5a53] md:text-base">
-              See what customers are saying about their Shagun Ratna pieces, and tell us about your own experience.
+              See what customers are saying about their Shagun Ratna pieces. Visited the boutique?
+              Share your experience on our Google listing — it helps others find us.
             </p>
           </div>
           <GiveReviewButton />
@@ -109,35 +83,27 @@ export default async function ReviewsPage() {
             <p className="mt-3 text-4xl font-light text-[#90060c]">{total}</p>
           </div>
 
-          <div className="rounded-[2rem] border border-[#C5A059]/20 bg-white p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7f69]">Your Review</p>
-
-            {myReview ? (
+          {/* Replaced the old "Your Review" panel — that relied on a signed-in userId,
+              and the site no longer has accounts. Average rating is a better use of the
+              space and needs no identity. */}
+          <div className="flex flex-col items-center justify-center rounded-[2rem] border border-[#C5A059]/20 bg-white p-8 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7f69]">Average Rating</p>
+            {averageRating ? (
               <>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8d7f69]">{myReview.product}</p>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
-                      myReview.approved ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-                    }`}
-                  >
-                    {myReview.approved ? "Approved" : "Pending Approval"}
-                  </span>
-                </div>
+                <p className="mt-3 text-4xl font-light text-[#90060c]">{averageRating.toFixed(1)}</p>
                 <div className="mt-2 flex gap-1">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <Star
                       key={value}
                       size={14}
-                      className={value <= Number(myReview.rating) ? "fill-[#C5A059] text-[#C5A059]" : "text-[#d8cbb4]"}
+                      className={value <= Math.round(averageRating) ? "fill-[#C5A059] text-[#C5A059]" : "text-[#d8cbb4]"}
                     />
                   ))}
                 </div>
-                <p className="mt-3 text-sm leading-6 text-[#5f5a53]">{myReview.text}</p>
               </>
             ) : (
               <p className="mt-3 text-sm leading-7 text-[#5f5a53]">
-                You haven&apos;t submitted a review yet. Use the Give Feedback button above to share your experience — no account needed.
+                No ratings yet — be the first to share your experience.
               </p>
             )}
           </div>
