@@ -100,7 +100,7 @@ export const getHomepageShowcase = async (): Promise<NextResponse> => {
 
     const products = [...featuredProducts, ...fillerProducts];
 
-    // Formula-priced pieces reflect the current gold/silver rate here too
+    // Formula-priced pieces reflect the current metal rates here too
     const rates = await readRates();
     return NextResponse.json({ products: applyPricingToList(products, rates) }, { status: 200 });
   } catch (error) {

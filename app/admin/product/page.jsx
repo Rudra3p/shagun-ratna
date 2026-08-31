@@ -4,13 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import Badge from '@/components/Badge';
 import { formatCategory, MATERIAL_CATEGORIES } from '@/lib/formatCategory';
-import { computeFormulaPrice, purityFactor } from '@/lib/pricing';
+import { computeFormulaPrice, purityFactor, rateFieldFor } from '@/lib/pricing';
 import {
   Search, Tag, Plus, Edit2, Trash2, ArrowLeft, Upload, Loader2,
   CheckCircle2, AlertCircle, PackageSearch, ImageOff, ChevronDown, Sparkles, X
 } from 'lucide-react';
 
-const PURITY_PRESETS = ['22K Pure Gold', '18K Gold', '14K Gold', '925 Silver', 'Platinum'];
+const PURITY_PRESETS = ['22K Pure Gold', '18K Gold', '14K Gold', '925 Silver', 'PT950 Platinum', 'PT900 Platinum'];
+
+const FORMULA_METALS = ['Gold', 'Silver', 'Platinum'];
 
 const CATEGORY_PRESETS = [
   'General', ...MATERIAL_CATEGORIES, 'Bridal', 'Heirloom', 'Contemporary',
@@ -164,8 +166,8 @@ export default function Products() {
     productName: '', price: '', category: ['General'], purity: '', description: '', discount: 0, offerPrice: 0, offertime: '',
     pricingMode: 'manual', metal: '', metalWeight: '', labourCost: ''
   });
-  // Current gold/silver rates, so the formula price can be previewed live in the form
-  const [metalRates, setMetalRates] = useState({ goldRatePerGram: 0, silverRatePerGram: 0 });
+  // Current metal rates, so the formula price can be previewed live in the form
+  const [metalRates, setMetalRates] = useState({ goldRatePerGram: 0, silverRatePerGram: 0, platinumRatePerGram: 0 });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -231,7 +233,7 @@ export default function Products() {
     fetchProducts(1);
     // Needed to preview the formula price while editing
     adminApi.get('/metal-rates')
-      .then(({ data }) => setMetalRates(data.rates || { goldRatePerGram: 0, silverRatePerGram: 0 }))
+      .then(({ data }) => setMetalRates(data.rates || { goldRatePerGram: 0, silverRatePerGram: 0, platinumRatePerGram: 0 }))
       .catch((err) => console.error('Failed to load metal rates:', err));
   }, []);
 
@@ -421,9 +423,7 @@ export default function Products() {
   // Formula pricing preview — mirrors lib/pricing.js so the admin sees the exact
   // figure that will be stored and shown on the storefront.
   const isFormula = formData.pricingMode === 'formula';
-  const activeRate = formData.metal === 'Silver'
-    ? Number(metalRates.silverRatePerGram) || 0
-    : Number(metalRates.goldRatePerGram) || 0;
+  const activeRate = Number(metalRates[rateFieldFor(formData.metal)]) || 0;
   const formulaPrice = computeFormulaPrice(
     { ...formData, metalWeight: Number(formData.metalWeight) || 0, labourCost: Number(formData.labourCost) || 0, pricingMode: 'formula' },
     metalRates
@@ -741,7 +741,7 @@ export default function Products() {
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Metal</label>
                         <div className="flex gap-1.5">
-                          {['Gold', 'Silver'].map((m) => (
+                          {FORMULA_METALS.map((m) => (
                             <button
                               key={m}
                               type="button"

@@ -63,7 +63,7 @@ export const addProduct = async (req: Request): Promise<NextResponse> => {
       if (computed === null || computed <= 0) {
         return NextResponse.json({
           success: false,
-          error: "Set the metal, weight and current gold/silver rate before saving a formula-priced piece.",
+          error: "Set the metal, weight and that metal’s current rate before saving a formula-priced piece.",
         }, { status: 400 });
       }
       sanitizedData.price = computed;
@@ -252,7 +252,7 @@ export const updateProduct = async (req: Request): Promise<NextResponse> => {
       const computed = computeFormulaPrice(patch, await readRates());
       if (computed === null || computed <= 0) {
         return NextResponse.json({
-          error: "Set the metal, weight and current gold/silver rate before saving a formula-priced piece.",
+          error: "Set the metal, weight and that metal’s current rate before saving a formula-priced piece.",
         }, { status: 400 });
       }
       patch.price = computed;

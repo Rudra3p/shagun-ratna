@@ -8,6 +8,7 @@ const metalRateSchema = new Schema({
   singleton: { type: String, default: 'current', unique: true, immutable: true },
   goldRatePerGram: { type: Number, required: true, default: 0, min: 0 },
   silverRatePerGram: { type: Number, required: true, default: 0, min: 0 },
+  platinumRatePerGram: { type: Number, required: true, default: 0, min: 0 },
   updatedBy: { type: String, trim: true },
 }, { timestamps: true });
 

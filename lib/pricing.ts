@@ -2,12 +2,14 @@
 //
 //   price = (metal rate/gram × purity factor × weight) + labour cost
 //
-// The admin sets gold and silver rates by hand in Admin → Metal Rates. Products
-// on 'manual' mode keep whatever price was typed in and ignore all of this.
+// The admin sets the gold, silver and platinum rates by hand in Admin → Metal
+// Rates. Products on 'manual' mode keep whatever price was typed in and ignore
+// all of this.
 
 export interface MetalRates {
   goldRatePerGram?: number;
   silverRatePerGram?: number;
+  platinumRatePerGram?: number;
 }
 
 export interface PricedProduct {
@@ -32,7 +34,22 @@ const PURITY_FACTORS: { match: RegExp; factor: number }[] = [
   { match: /14\s*k/i, factor: 0.585 },
   { match: /925/, factor: 0.925 },   // sterling silver
   { match: /999/, factor: 0.999 },   // fine silver
+  { match: /950/, factor: 0.95 },    // PT950 platinum
+  { match: /900/, factor: 0.9 },     // PT900 platinum
 ];
+
+// Which rate on the shared rate document prices a given metal. Rows saved before
+// Platinum existed can still have a blank metal; they were priced off gold, so
+// that stays the fallback rather than silently unpricing them.
+const RATE_FIELD_BY_METAL: Record<string, keyof MetalRates> = {
+  Gold: 'goldRatePerGram',
+  Silver: 'silverRatePerGram',
+  Platinum: 'platinumRatePerGram',
+};
+
+export function rateFieldFor(metal?: string): keyof MetalRates {
+  return RATE_FIELD_BY_METAL[metal ?? ''] ?? 'goldRatePerGram';
+}
 
 export function purityFactor(purity?: string): number {
   if (!purity) return 1;
@@ -49,9 +66,7 @@ export function computeFormulaPrice(product: PricedProduct | null | undefined, r
   const labour = Number(product.labourCost) || 0;
   if (weight <= 0) return null;
 
-  const perGram = product.metal === 'Silver'
-    ? Number(rates?.silverRatePerGram) || 0
-    : Number(rates?.goldRatePerGram) || 0;
+  const perGram = Number(rates?.[rateFieldFor(product.metal)]) || 0;
   if (perGram <= 0) return null;
 
   const metalValue = perGram * purityFactor(product.purity) * weight;

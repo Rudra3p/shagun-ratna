@@ -14,7 +14,7 @@ export const ProductZodSchema = z.object({
   offertime: z.coerce.date().nullable().optional(),
   // Formula pricing (see lib/pricing.js)
   pricingMode: z.enum(['manual', 'formula']).default('manual').optional(),
-  metal: z.enum(['Gold', 'Silver', '']).optional(),
+  metal: z.enum(['Gold', 'Silver', 'Platinum', '']).optional(),
   metalWeight: z.number().min(0).default(0).optional(),
   labourCost: z.number().min(0).default(0).optional(),
 });
@@ -36,9 +36,9 @@ const productSchema = new Schema({
   // --- Pricing mode ---------------------------------------------------------
   // 'manual'  — admin types the price directly (full control, one-off pieces)
   // 'formula' — price derives from metal weight × current rate + labour, so
-  //             updating the gold/silver rate reprices every piece at once.
+  //             updating a metal rate reprices every piece on that metal at once.
   pricingMode: { type: String, enum: ['manual', 'formula'], default: 'manual' },
-  metal: { type: String, enum: ['Gold', 'Silver', ''], default: '' },
+  metal: { type: String, enum: ['Gold', 'Silver', 'Platinum', ''], default: '' },
   metalWeight: { type: Number, default: 0, min: 0 }, // grams
   labourCost: { type: Number, default: 0, min: 0 },  // making charges etc, flat ₹
 }, { timestamps: true });

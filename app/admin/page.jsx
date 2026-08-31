@@ -21,6 +21,7 @@ import {
   Cell,
 } from "recharts";
 import adminApi from "@/lib/adminApi";
+import MetalRateStatus from "@/components/MetalRateStatus";
 
 const VISITOR_SYNC_SECONDS = 60;
 
@@ -111,6 +112,8 @@ export default function DashboardView() {
           </button>
         </div>
       </div>
+
+      <MetalRateStatus />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
