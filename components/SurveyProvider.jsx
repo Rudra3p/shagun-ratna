@@ -5,6 +5,12 @@ import { X, Sparkles } from 'lucide-react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 
 export const SURVEY_STORAGE_KEY = 'shagun_ratna_survey';
+// Remembers that the invitation has already been shown, so it opens itself once
+// per browser instead of interrupting on every visit.
+export const SURVEY_PROMPTED_KEY = 'shagun_ratna_survey_prompted';
+
+// Long enough for the first fold to land before the dialog asks for attention.
+const AUTO_PROMPT_DELAY_MS = 5000;
 
 const SurveyContext = createContext({
   survey: null,
@@ -28,24 +34,45 @@ export function SurveyProvider({ children }) {
   // Survey answers replace the old account system — they live only in this
   // browser and are used purely to personalise recommendations.
   const [survey, setSurvey] = usePersistedState(SURVEY_STORAGE_KEY, null);
+  const [prompted, setPrompted] = usePersistedState(SURVEY_PROMPTED_KEY, false);
   const [isOpen, setIsOpen] = useState(false);
+  // Drives the softer wording when the dialog let itself in, rather than being
+  // asked for from the nav.
+  const [autoOpened, setAutoOpened] = useState(false);
   const [form, setForm] = useState({ name: '', age: '', gender: '' });
   const [errors, setErrors] = useState({});
 
-  const openSurvey = useCallback(() => {
+  const openDialog = useCallback((auto) => {
     setForm({
       name: survey?.name || '',
       age: survey?.age ? String(survey.age) : '',
       gender: survey?.gender || '',
     });
     setErrors({});
+    setAutoOpened(auto);
+    // Seeing the dialog at all counts as being prompted, so opening it from the
+    // nav also stops the timer from interrupting later.
+    setPrompted(true);
     setIsOpen(true);
-  }, [survey]);
+  }, [survey, setPrompted]);
+
+  // Consumers (nav, collection page) always open it deliberately. Wrapped rather
+  // than passed through so a click event can never be read as the `auto` flag.
+  const openSurvey = useCallback(() => openDialog(false), [openDialog]);
 
   const clearSurvey = useCallback(() => {
     setSurvey(null);
     setIsOpen(false);
   }, [setSurvey]);
+
+  // First-time visitors are invited on their own after a short pause. It fires
+  // once per browser and never for someone who has already answered or already
+  // opened it themselves, so it can't turn into a nag.
+  useEffect(() => {
+    if (survey || prompted) return;
+    const timer = setTimeout(() => openDialog(true), AUTO_PROMPT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [survey, prompted, openDialog]);
 
   // Escape closes, and the page behind shouldn't scroll while the modal is up
   useEffect(() => {
@@ -103,13 +130,15 @@ export function SurveyProvider({ children }) {
             <form onSubmit={handleSubmit} className="p-8">
               <div className="flex items-center gap-2 text-[#C5A059] mb-2">
                 <Sparkles size={14} />
-                <span className="font-sans text-[10px] font-bold uppercase tracking-[0.25em]">Personalise</span>
+                <span className="font-sans text-[10px] font-bold uppercase tracking-[0.25em]">
+                  {autoOpened ? 'Welcome' : 'Personalise'}
+                </span>
               </div>
               <h2 id="survey-heading" className="font-brand text-2xl text-[#1a1a1a] mb-1.5">
                 Pieces chosen for you
               </h2>
               <p className="font-sans text-xs text-[#1a1a1a]/60 leading-relaxed mb-6">
-                Answer three quick questions and we&rsquo;ll highlight the pieces best suited to you.
+                Answer three quick questions and we&rsquo;ll find the best collections for you.
                 No account needed — this stays on your device.
               </p>
 
@@ -185,15 +214,15 @@ export function SurveyProvider({ children }) {
                 >
                   {survey ? 'Update' : 'Show My Pieces'}
                 </button>
-                {survey && (
-                  <button
-                    type="button"
-                    onClick={clearSurvey}
-                    className="px-5 py-3.5 font-sans text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/60 border border-[#C5A059]/40 rounded-full hover:text-[#90060c] hover:border-[#90060c] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c]/40"
-                  >
-                    Clear
-                  </button>
-                )}
+                {/* Someone who hasn't answered yet needs a way out that isn't the
+                    corner X — especially when the dialog opened on its own. */}
+                <button
+                  type="button"
+                  onClick={survey ? clearSurvey : () => setIsOpen(false)}
+                  className="px-5 py-3.5 font-sans text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/60 border border-[#C5A059]/40 rounded-full hover:text-[#90060c] hover:border-[#90060c] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c]/40"
+                >
+                  {survey ? 'Clear' : 'Skip'}
+                </button>
               </div>
             </form>
           </div>
