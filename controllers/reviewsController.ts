@@ -1,21 +1,29 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
 import Review from "@/models/reviews";
+import { fetchGooglePlace, isGoogleReviewsConfigured } from "@/lib/googleReviews";
 
-export const addReview = async (req: Request): Promise<NextResponse> => {
+// Saves one review typed into the admin panel — normally the client copying a review
+// across from their Google listing when the Places API isn't set up. Takes an already
+// parsed body rather than a Request, because the route reads it first to route on
+// `action`.
+export const addReview = async (body: Record<string, unknown>): Promise<NextResponse> => {
   try {
     await dbConnect();
 
-    // Reviews are open to everyone — there are no accounts, so a review is
-    // identified only by the name the reviewer types in.
-    const body = await req.json();
-
     const newReview = new Review({
       name: body.name,
-      product: body.product,
+      // The small line under the name. Defaults to crediting Google, since that's
+      // where these are copied from.
+      product: body.product || "Google Review",
       text: body.text,
       rating: Number(body.rating),
-      approved: Boolean(body.approved),
+      authorImage: body.authorImage || "",
+      authorUrl: body.authorUrl || "",
+      // No moderation queue — whoever typed it in has already vetted it. Showing it
+      // on the homepage stays a separate, deliberate choice.
+      approved: body.approved === undefined ? true : Boolean(body.approved),
+      source: "site",
     });
 
     const savedReview = await newReview.save();
@@ -96,6 +104,126 @@ export const updateReview = async (req: Request): Promise<NextResponse> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Failed to update review";
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+};
+
+// Stores a copy of the listing's Google reviews in the database. The site renders
+// Google live (see getPublicReviews), so this isn't what visitors normally see — it's
+// the safety net that keeps reviews on the page if Google is down, rate-limited, or
+// the key expires. Upserts on the Google review id, so re-running refreshes photos and
+// edited text rather than duplicating.
+export const importGoogleReviews = async (): Promise<NextResponse> => {
+  try {
+    await dbConnect();
+
+    if (!isGoogleReviewsConfigured()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Google reviews aren't configured yet. Add GOOGLE_PLACES_API_KEY and GOOGLE_PLACE_ID to the environment.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const place = await fetchGooglePlace();
+    const googleReviews = place?.reviews ?? [];
+
+    let changed = 0;
+    for (const review of googleReviews) {
+      // updateOne skips the document-level zod hook, which is fine — fetchGoogleReviews
+      // already drops anything too thin to satisfy it.
+      const result = await Review.updateOne(
+        { googleReviewId: review.googleReviewId },
+        {
+          $set: {
+            name: review.name,
+            text: review.text,
+            rating: review.rating,
+            authorImage: review.authorImage,
+            authorUrl: review.authorUrl,
+            source: "google",
+            approved: true,
+          },
+          $setOnInsert: {
+            googleReviewId: review.googleReviewId,
+            product: "Google Review",
+          },
+        },
+        { upsert: true }
+      );
+
+      if (result.upsertedCount > 0 || result.modifiedCount > 0) changed += 1;
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: googleReviews.length
+          ? `Synced ${googleReviews.length} Google review${googleReviews.length === 1 ? "" : "s"} (${changed} new or updated).`
+          : "Google returned no reviews with text for this listing.",
+        total: googleReviews.length,
+        changed,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to import Google reviews";
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+};
+
+// A Google review dressed as a stored one, so the pages don't care where it came from.
+type GoogleReview = {
+  googleReviewId: string;
+  name: string;
+  authorImage: string;
+  authorUrl: string;
+  text: string;
+  rating: number;
+  relativeTime: string;
+};
+
+const toPublicReview = (review: GoogleReview) => ({
+  _id: review.googleReviewId,
+  name: review.name,
+  product: "Google Review", // rendered as the small line under the name
+  text: review.text,
+  rating: review.rating,
+  authorImage: review.authorImage,
+  authorUrl: review.authorUrl,
+  relativeTime: review.relativeTime,
+  source: "google",
+});
+
+// What every public page reads. Google is the live source — new reviews land on the
+// site by themselves, photos and all — and the database is the fallback for when
+// Google isn't configured, errors, or returns nothing with text in it.
+export const getPublicReviews = async (req: Request): Promise<NextResponse> => {
+  try {
+    const url = new URL(req.url);
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+
+    const place = await fetchGooglePlace();
+
+    if (place && place.reviews.length > 0) {
+      return NextResponse.json(
+        {
+          success: true,
+          source: "google",
+          reviews: place.reviews.slice(0, limit).map(toPublicReview),
+          // The listing's real figures — not just the handful of reviews Google hands back.
+          total: place.totalRatings || place.reviews.length,
+          averageRating: place.rating,
+        },
+        { status: 200 }
+      );
+    }
+
+    return await getReviews(req);
+  } catch (error) {
+    console.error("Live Google reviews unavailable, serving stored reviews:", error);
+    return await getReviews(req);
   }
 };
 

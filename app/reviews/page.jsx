@@ -1,7 +1,14 @@
 import { Star } from "lucide-react";
 import dbConnect from "@/db/db";
-import { getReviews } from "@/controllers/reviewsController";
+import { getPublicReviews } from "@/controllers/reviewsController";
 import GiveReviewButton from "@/components/reviews/GiveReviewButton";
+import ReviewerAvatar from "@/components/reviews/ReviewerAvatar";
+import { GOOGLE_REVIEW_URL } from "@/lib/googleReview";
+
+// Rebuild this page every 6 hours so new Google reviews actually turn up. Without
+// it the page bakes at build time and stays frozen — the underlying fetch can't hint
+// its own revalidate here, because it's skipped entirely while Google is unconfigured.
+export const revalidate = 21600;
 
 export const metadata = {
   title: "Customer Reviews",
@@ -11,21 +18,34 @@ export const metadata = {
   },
 };
 
-async function getApprovedReviews() {
+// Reads the Google listing live (revalidated every 6h by the fetch underneath), and
+// falls back to stored reviews on its own if Google is unreachable. dbConnect stays
+// because that fallback path queries Mongo.
+async function getPageReviews() {
   await dbConnect();
-  const response = await getReviews(
+  const response = await getPublicReviews(
     new Request("http://internal/api/reviews?approved=true&limit=6")
   );
   const data = await response.json();
-  return { reviews: data?.reviews || [], total: data?.total || 0 };
+
+  return {
+    reviews: data?.reviews || [],
+    total: data?.total || 0,
+    // Google reports the listing's true average across every rating, not just the
+    // handful of reviews it hands back — prefer it over averaging what we can see.
+    averageRating: data?.averageRating ?? null,
+    fromGoogle: data?.source === "google",
+  };
 }
 
 export default async function ReviewsPage() {
-  const { reviews, total } = await getApprovedReviews();
+  const { reviews, total, averageRating: listingRating, fromGoogle } = await getPageReviews();
 
-  const averageRating = reviews.length
-    ? reviews.reduce((sum, review) => sum + Number(review.rating), 0) / reviews.length
-    : null;
+  const averageRating =
+    listingRating ??
+    (reviews.length
+      ? reviews.reduce((sum, review) => sum + Number(review.rating), 0) / reviews.length
+      : null);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -81,6 +101,9 @@ export default async function ReviewsPage() {
           <div className="flex flex-col items-center justify-center rounded-[2rem] border border-[#C5A059]/20 bg-white p-8 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7f69]">Total Reviews</p>
             <p className="mt-3 text-4xl font-light text-[#90060c]">{total}</p>
+            {fromGoogle ? (
+              <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[#8d7f69]">on Google</p>
+            ) : null}
           </div>
 
           {/* Replaced the old "Your Review" panel — that relied on a signed-in userId,
@@ -111,14 +134,46 @@ export default async function ReviewsPage() {
 
         {reviews.length > 0 ? (
           <div className="mt-10 rounded-[2rem] border border-[#C5A059]/20 bg-white p-8">
-            <h2 className="text-lg font-semibold uppercase tracking-[0.16em] text-[#1a1a1a]">What Customers Are Saying</h2>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-lg font-semibold uppercase tracking-[0.16em] text-[#1a1a1a]">What Customers Are Saying</h2>
+              {/* Google requires that reviews shown elsewhere are credited to Google. */}
+              {fromGoogle ? (
+                <p className="text-xs text-[#8d7f69]">
+                  Live from our{" "}
+                  <a
+                    href={GOOGLE_REVIEW_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-[#90060c] hover:underline"
+                  >
+                    Google listing
+                  </a>
+                </p>
+              ) : null}
+            </div>
             <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {reviews.map((review) => (
                 <article key={review._id} className="rounded-2xl border border-[#C5A059]/15 bg-[#fffaf2] p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-[#90060c]">{review.name}</p>
-                      <p className="text-xs uppercase tracking-[0.18em] text-[#8d7f69]">{review.product}</p>
+                    <div className="flex items-center gap-3">
+                      <ReviewerAvatar src={review.authorImage} name={review.name} size={40} />
+                      <div>
+                        {/* Google asks that a displayed review credit its author — the name
+                            links back to their contributor page when we imported one. */}
+                        {review.authorUrl ? (
+                          <a
+                            href={review.authorUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-[#90060c] hover:underline"
+                          >
+                            {review.name}
+                          </a>
+                        ) : (
+                          <p className="font-semibold text-[#90060c]">{review.name}</p>
+                        )}
+                        <p className="text-xs uppercase tracking-[0.18em] text-[#8d7f69]">{review.product}</p>
+                      </div>
                     </div>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((value) => (
@@ -127,6 +182,9 @@ export default async function ReviewsPage() {
                     </div>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-[#5f5a53]">{review.text}</p>
+                  {review.relativeTime ? (
+                    <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-[#a3988a]">{review.relativeTime}</p>
+                  ) : null}
                 </article>
               ))}
             </div>

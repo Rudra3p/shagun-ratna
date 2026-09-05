@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react'; // Added Star icon
+import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -43,10 +44,10 @@ export default function Testimonials() {
     return () => { cancelled = true; };
   }, []);
 
-  // Real reviews the admin has chosen to feature take priority; falls back to the
-  // default copy until at least one review is uploaded from /admin/reviews.
+  // /api/reviews serves the Google listing live (falling back to stored reviews when
+  // Google is unreachable). The default copy below only shows if both come back empty.
   const testimonials = featuredReviews && featuredReviews.length > 0
-    ? featuredReviews.map((r) => ({ key: r._id, name: r.name, quote: r.text, role: r.product, rating: r.rating, image: r.productImage }))
+    ? featuredReviews.map((r) => ({ key: r._id, name: r.name, quote: r.text, role: r.product, rating: r.rating, avatar: r.authorImage }))
     : DEFAULT_TESTIMONIALS.map((t, i) => ({ key: i, ...t }));
 
   return (
@@ -115,14 +116,9 @@ export default function Testimonials() {
               <div>
                 <div className="h-[1px] w-8 bg-[#C5A059]/40 mb-4" />
                 <div className="flex items-center gap-3">
-                  {t.image && (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={t.image}
-                      alt=""
-                      className="w-11 h-11 rounded-full object-cover ring-1 ring-[#C5A059]/40 shrink-0"
-                    />
-                  )}
+                  {/* The reviewer's Google profile photo, or their initials — the piece
+                      they bought is described in the quote, it doesn't belong here. */}
+                  <ReviewerAvatar src={t.avatar} name={t.name} />
                   <div>
                     <h4 className="font-brand text-xl md:text-2xl text-[#90060c] font-normal">{t.name}</h4>
                     <p className="text-[9px] uppercase tracking-[0.25em] text-[#C5A059] mt-2 font-bold">{t.role}</p>

@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Star, Filter, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Star, Filter, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, RefreshCw, Plus, X, Camera } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
+import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
+
+// "Google Review" is the default label because these are normally copied across from
+// the client's Google listing — it shows as the small line under the reviewer's name.
+const EMPTY_FORM = { name: '', product: 'Google Review', rating: 5, text: '', authorImage: '' };
 
 export default function ReviewsView() {
   const [reviews, setReviews] = useState([]);
@@ -10,6 +15,11 @@ export default function ReviewsView() {
   const [deletingId, setDeletingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [uploading, setUploading] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [toast, setToast] = useState(null);
 
   const fetchReviews = async () => {
@@ -43,6 +53,70 @@ export default function ReviewsView() {
       else next.add(id);
       return next;
     });
+  };
+
+  // The site already shows Google reviews live, so this isn't needed day to day — it
+  // saves a copy to the database as the safety net for when Google is down or the API
+  // key lapses. Matches on the Google id, so it never duplicates.
+  const handleImportFromGoogle = async () => {
+    setImporting(true);
+    try {
+      const { data } = await adminApi.post('/reviews', { action: 'import-google' });
+      await fetchReviews();
+      showToast('success', data?.message || 'Google reviews imported.');
+    } catch (err) {
+      console.error("Failed to import Google reviews:", err);
+      showToast('error', err?.response?.data?.error || 'Could not reach Google. Please try again.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // The reviewer's photo goes into R2 like any other site image. Hot-linking Google's
+  // own photo URL would look fine today and 404 in six months.
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setPhotoUploading(true);
+    try {
+      const { data } = await adminApi.post('/reviews', {
+        action: 'get-upload-url',
+        fileName: file.name,
+        fileType: file.type,
+      });
+
+      await fetch(data.signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+
+      setForm((prev) => ({ ...prev, authorImage: data.publicUrl }));
+    } catch (err) {
+      console.error("Reviewer photo upload failed:", err);
+      showToast('error', 'Photo upload failed. Please try again.');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handleSaveReview = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await adminApi.post('/reviews', form);
+      setForm(EMPTY_FORM);
+      setShowForm(false);
+      await fetchReviews();
+      showToast('success', 'Review added. Tick "Show on Homepage" to feature it.');
+    } catch (err) {
+      console.error("Failed to save review:", err);
+      showToast('error', err?.response?.data?.error || 'Could not save the review.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleUploadToWeb = async () => {
@@ -130,6 +204,23 @@ export default function ReviewsView() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-primary">Customer Feedback</h3>
+          <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowForm((open) => !open)}
+            className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-secondary rounded-lg font-semibold text-sm hover:bg-primary-fixed hover:text-primary transition-colors"
+          >
+            {showForm ? <X size={18} /> : <Plus size={18} />}
+            {showForm ? 'Cancel' : 'Add Review'}
+          </button>
+          <button
+            onClick={handleImportFromGoogle}
+            disabled={importing}
+            className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-secondary rounded-lg font-semibold text-sm hover:bg-primary-fixed hover:text-primary transition-colors disabled:opacity-60"
+            title="Save a backup copy of the Google reviews — used only if Google is unreachable"
+          >
+            {importing ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+            Back Up Google Reviews
+          </button>
           <button
             onClick={handleUploadToWeb}
             disabled={uploading}
@@ -138,7 +229,117 @@ export default function ReviewsView() {
             {uploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
             Upload to Web {selectedIds.size > 0 && `(${selectedIds.size})`}
           </button>
+          </div>
         </div>
+
+        {showForm && (
+          <form
+            onSubmit={handleSaveReview}
+            className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/30 mb-6"
+          >
+            <h4 className="font-bold text-primary">Add a review by hand</h4>
+            <p className="text-xs text-secondary mt-1 mb-6">
+              Open the Google listing, then copy a review across — name, stars, words, and a
+              screenshot of the reviewer&apos;s photo. It goes live on the reviews page straight away.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-6">
+              {/* Photo — this is the avatar circle visitors will see */}
+              <div className="flex flex-col items-center gap-2 shrink-0">
+                <ReviewerAvatar src={form.authorImage} name={form.name} size={72} />
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary cursor-pointer transition-colors">
+                  {photoUploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                  {form.authorImage ? 'Change' : 'Add photo'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={photoUploading} />
+                </label>
+                <p className="text-[10px] text-secondary/70 text-center max-w-[110px] leading-tight">
+                  Optional — initials are used instead
+                </p>
+              </div>
+
+              <div className="flex-1 flex flex-col gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="review-name" className="block text-xs font-semibold text-secondary mb-1.5">Reviewer name</label>
+                    <input
+                      id="review-name"
+                      type="text"
+                      required
+                      minLength={2}
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="Priya Sharma"
+                      className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="review-product" className="block text-xs font-semibold text-secondary mb-1.5">Label under the name</label>
+                    <input
+                      id="review-product"
+                      type="text"
+                      required
+                      minLength={2}
+                      value={form.product}
+                      onChange={(e) => setForm({ ...form, product: e.target.value })}
+                      placeholder="Google Review"
+                      className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <span className="block text-xs font-semibold text-secondary mb-1.5">Rating</span>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setForm({ ...form, rating: value })}
+                        aria-label={`${value} star${value === 1 ? '' : 's'}`}
+                        aria-pressed={form.rating === value}
+                        className="p-1 rounded hover:scale-110 transition-transform"
+                      >
+                        <Star size={22} className={value <= form.rating ? "fill-[#C5A059] text-[#C5A059]" : "text-outline-variant"} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="review-text" className="block text-xs font-semibold text-secondary mb-1.5">What they wrote</label>
+                  <textarea
+                    id="review-text"
+                    rows={4}
+                    required
+                    minLength={5}
+                    value={form.text}
+                    onChange={(e) => setForm({ ...form, text: e.target.value })}
+                    placeholder="Paste the review exactly as it appears on Google…"
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm leading-6 text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={saving || photoUploading}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+                  >
+                    {saving ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                    Save Review
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setForm(EMPTY_FORM); setShowForm(false); }}
+                    className="text-sm font-semibold text-secondary hover:text-primary transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        )}
 
         {loading ? (
           <p className="text-sm text-on-surface-variant">Loading reviews...</p>
@@ -159,9 +360,12 @@ export default function ReviewsView() {
                   </button>
                 </div>
                 <div className="flex justify-between items-start pr-8">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-primary">{review.name}</span>
-                    <span className="text-xs text-secondary mt-0.5">{review.product}</span>
+                  <div className="flex items-center gap-3">
+                    <ReviewerAvatar src={review.authorImage} name={review.name} size={38} />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-primary">{review.name}</span>
+                      <span className="text-xs text-secondary mt-0.5">{review.product}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-1">

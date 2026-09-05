@@ -7,7 +7,7 @@ export const ReviewZodSchema = z.object({
   text: z.string().min(5, "Review text is required").trim(),
   rating: z.coerce.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
   approved: z.boolean().optional().default(false),
-  productImage: z.string().url().optional().or(z.literal("")),
+  authorImage: z.string().url().optional().or(z.literal("")),
 });
 
 const reviewSchema = new Schema(
@@ -19,7 +19,13 @@ const reviewSchema = new Schema(
     rating: { type: Number, required: true, min: 1, max: 5 },
     approved: { type: Boolean, default: false },
     featured: { type: Boolean, default: false }, // shown in the homepage Testimonials section
-    productImage: { type: String, trim: true }, // optional thumbnail shown next to the review on the homepage
+    // The reviewer's Google profile photo, imported with the review. This is what
+    // fills the avatar circle — it used to hold a product shot, which read as if the
+    // jewellery were the person who left the review.
+    authorImage: { type: String, trim: true },
+    authorUrl: { type: String, trim: true }, // the reviewer's Google Maps contributor page
+    source: { type: String, enum: ["site", "google"], default: "site" },
+    googleReviewId: { type: String, trim: true, index: true, sparse: true }, // dedupe key for re-imports
   },
   { timestamps: true }
 );
