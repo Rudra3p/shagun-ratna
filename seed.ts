@@ -36,9 +36,12 @@ const seedAdmin = async () => {
     
     const hashedPassword = await bcrypt.hash('1234567890', 10);
 
+    // The client's own address, and deliberately the one that owns the Resend account:
+    // while MAIL_FROM is still Resend's sandbox sender, login codes are delivered to
+    // that address and nowhere else. Change both together, or logins stop arriving.
     await Admin.create({
-      username: 'rudra',
-      email: 'rudra090207@gmail.com',
+      username: 'shagunratna',
+      email: 'shagunratna.app@gmail.com',
       mobile: 9876543210, // Added default numeric mobile field value
       password: hashedPassword,
       loginAttempts: 0,
@@ -49,7 +52,7 @@ const seedAdmin = async () => {
 
     console.log("-----------------------------------------");
     console.log("✅ SEED SUCCESSFUL: ADMIN CREATED");
-    console.log("📧 Email: rudra090207@gmail.com");
+    console.log("📧 Email: shagunratna.app@gmail.com");
     console.log("📱 Mobile: 9876543210");
     console.log("🔑 Password: 1234567890");
     console.log("-----------------------------------------");

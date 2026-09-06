@@ -7,6 +7,21 @@ import { Resend } from "resend";
 import { LoginSchema, OtpVerifySchema, UpdateProfileSchema } from "@/schemas/authAdminSchemas";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Who the login code appears to come from.
+//
+// The default, onboarding@resend.dev, is Resend's shared sandbox sender: it delivers
+// ONLY to the address that owns the Resend account, and silently drops everything
+// else. That's fine while testing, and a lockout waiting to happen in production —
+// an admin whose email isn't the account owner never receives their code.
+//
+// The fix is to verify shagunratna.com in Resend (Domains -> Add Domain, then the
+// DNS records it gives you), and set MAIL_FROM=no-reply@shagunratna.com. After that
+// codes reach any address.
+const MAIL_FROM = process.env.MAIL_FROM || "onboarding@resend.dev";
+const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME;
+const MAIL_SENDER = MAIL_FROM_NAME ? `${MAIL_FROM_NAME} <${MAIL_FROM}>` : MAIL_FROM;
+
 // Fallback to 2 minutes (120000ms) if ENV is missing
 const OTP_COOLDOWN = Number(process.env.OTP_COOLDOWN_MS) || 120000;
 
@@ -97,7 +112,7 @@ export const adminLogin = async (req: Request) => {
         await admin.save();
 
         await resend.emails.send({
-          from: 'onboarding@resend.dev',
+          from: MAIL_SENDER,
           to: email,
           subject: 'Security Alert: Verification Code',
           html: `Your security code is: <strong>${directOTP}</strong>`
