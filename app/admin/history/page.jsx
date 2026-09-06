@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-import { Eye, Inbox, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
+import { Eye, Inbox, MessageSquare, Package } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 
 const parseDateKey = (key) => {
@@ -28,10 +29,14 @@ const formatWeekRange = (startKey, endKey, index) => {
 
 // "New Users" dropped along with account registration — visitors now answer a
 // survey that never leaves their browser, so there's nothing to count here.
+//
+// Each tile links to the page that shows the underlying records: seeing "3 reviews
+// this week" and wanting to read them is the obvious next click.
 const METRICS = [
-  { key: 'visitors', label: 'Visitors', icon: Eye },
-  { key: 'inquiries', label: 'Inquiries', icon: Inbox },
-  { key: 'reviews', label: 'Reviews', icon: MessageSquare },
+  { key: 'visitors', label: 'Visitors', icon: Eye, href: '/admin' },
+  { key: 'inquiries', label: 'Inquiries', icon: Inbox, href: '/admin/inquiries' },
+  { key: 'reviews', label: 'Reviews', icon: MessageSquare, href: '/admin/reviews' },
+  { key: 'products', label: 'Products Added', icon: Package, href: '/admin/product' },
 ];
 
 export default function HistoryPage() {
@@ -64,7 +69,7 @@ export default function HistoryPage() {
         <div>
           <h1 className="text-xl font-bold text-primary">Activity History</h1>
           <p className="text-sm text-on-surface-variant mt-1">
-            Visitors, inquiries, reviews, and new users over time.
+            Visitors, inquiries, reviews, and products added over time.
           </p>
         </div>
 
@@ -124,10 +129,11 @@ export default function HistoryPage() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {METRICS.map(({ key, label, icon: Icon }) => (
-                  <div
+                {METRICS.map(({ key, label, icon: Icon, href }) => (
+                  <Link
                     key={key}
-                    className="flex items-center gap-3 bg-surface-container-low rounded-xl p-4"
+                    href={href}
+                    className="flex items-center gap-3 bg-surface-container-low rounded-xl p-4 hover:bg-primary-fixed/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
                   >
                     <div className="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary shrink-0">
                       <Icon size={18} />
@@ -138,7 +144,7 @@ export default function HistoryPage() {
                       </p>
                       <p className="text-xs text-secondary font-label mt-1 truncate">{label}</p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

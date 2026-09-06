@@ -1,13 +1,30 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Star, Filter, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, Plus, X, Camera } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Star, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, Plus, X, Camera, ExternalLink } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
+import { GOOGLE_REVIEW_URL } from '@/lib/googleReview';
 
 // "Google Review" is the default label because these are normally copied across from
 // the client's Google listing — it shows as the small line under the reviewer's name.
 const EMPTY_FORM = { name: '', product: 'Google Review', rating: 5, text: '', authorImage: '' };
+
+const RATING_OPTIONS = [
+  { value: 'all', label: 'All Ratings' },
+  { value: '5', label: '5 Stars' },
+  { value: '4', label: '4 Stars' },
+  { value: '3', label: '3 Stars' },
+  { value: '2', label: '2 Stars' },
+  { value: '1', label: '1 Star' },
+];
+
+const SORT_OPTIONS = [
+  { value: 'recent', label: 'Most Recent' },
+  { value: 'oldest', label: 'Oldest First' },
+  { value: 'highest', label: 'Highest Rated' },
+  { value: 'lowest', label: 'Lowest Rated' },
+];
 
 export default function ReviewsView() {
   const [reviews, setReviews] = useState([]);
@@ -20,6 +37,8 @@ export default function ReviewsView() {
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoBusyId, setPhotoBusyId] = useState(null);
+  const [ratingFilter, setRatingFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('recent');
   const [toast, setToast] = useState(null);
 
   const fetchReviews = async () => {
@@ -167,6 +186,28 @@ export default function ReviewsView() {
     ? (reviews.reduce((sum, r) => sum + Number(r.rating), 0) / reviews.length).toFixed(1)
     : '0.0';
 
+  // Filtering and sorting happen here rather than server-side: the list is already
+  // fetched whole (limit=100), so a round trip per dropdown change would be slower
+  // and no more correct. The stats above deliberately stay over ALL reviews — an
+  // average that moved when you filtered to 5 stars would be meaningless.
+  const visibleReviews = useMemo(() => {
+    const filtered = ratingFilter === 'all'
+      ? reviews
+      : reviews.filter((r) => Number(r.rating) === Number(ratingFilter));
+
+    const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+
+    // Ties fall back to newest first, so equal ratings still read in a sensible order.
+    const comparators = {
+      recent: byNewest,
+      oldest: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      highest: (a, b) => Number(b.rating) - Number(a.rating) || byNewest(a, b),
+      lowest: (a, b) => Number(a.rating) - Number(b.rating) || byNewest(a, b),
+    };
+
+    return [...filtered].sort(comparators[sortBy] || comparators.recent);
+  }, [reviews, ratingFilter, sortBy]);
+
   return (
     <div className="animate-in fade-in duration-500 pb-10">
       <header className="w-full mb-10 bg-primary-container text-on-primary-container p-8 md:p-10 rounded-2xl shadow-md relative overflow-hidden">
@@ -194,29 +235,49 @@ export default function ReviewsView() {
         </div>
       </header>
 
+      {/* The product filter that used to sit here is gone — reviews are copied from the
+          Google listing and aren't tied to a product, so it had nothing to filter on. */}
       <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full">
           <div className="w-full sm:w-auto">
             <FilterSelect
-              options={['All Ratings', '5 Stars', '4 Stars']}
+              label="Filter by rating"
+              value={ratingFilter}
+              onChange={setRatingFilter}
+              options={RATING_OPTIONS}
             />
           </div>
 
           <div className="w-full sm:w-auto">
             <FilterSelect
-              options={['Most Recent', 'Oldest First', 'Highest Rated']}
+              label="Sort reviews"
+              value={sortBy}
+              onChange={setSortBy}
+              options={SORT_OPTIONS}
             />
           </div>
 
-          <div className="w-full sm:w-auto">
-            <FilterSelect
-              options={['All Products', 'Rings', 'Pendants']}
-            />
-          </div>
+          {ratingFilter !== 'all' && (
+            <p className="text-xs font-semibold text-secondary">
+              Showing {visibleReviews.length} of {reviews.length}
+            </p>
+          )}
       </div>
       <div>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-primary">Customer Feedback</h3>
           <div className="flex items-center gap-3">
+          {/* Reviews are copied across by hand, so the listing is the first stop of
+              that job — not worth hunting for a tab every time. */}
+          <a
+            href={GOOGLE_REVIEW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-secondary rounded-lg font-semibold text-sm hover:bg-primary-fixed hover:text-primary transition-colors"
+            title="Open the Google listing to read new reviews"
+          >
+            <ExternalLink size={18} />
+            Open Google Listing
+          </a>
           <button
             onClick={() => setShowForm((open) => !open)}
             className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-secondary rounded-lg font-semibold text-sm hover:bg-primary-fixed hover:text-primary transition-colors"
@@ -348,9 +409,13 @@ export default function ReviewsView() {
           <p className="text-sm text-on-surface-variant">Loading reviews...</p>
         ) : reviews.length === 0 ? (
           <p className="text-sm text-on-surface-variant">No reviews yet.</p>
+        ) : visibleReviews.length === 0 ? (
+          <p className="text-sm text-on-surface-variant">
+            No reviews with that rating. Choose &ldquo;All Ratings&rdquo; to see every review.
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {reviews.map((review) => (
+            {visibleReviews.map((review) => (
               <div key={review._id} className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col gap-4 group hover:shadow-md transition-all hover:border-primary/50 relative">
                 <div className="absolute top-6 right-6">
                   <button
@@ -437,12 +502,17 @@ export default function ReviewsView() {
   );
 }
 
-function FilterSelect({ options }) {
+function FilterSelect({ label, value, onChange, options }) {
   return (
     <div className="text-primary border-primary relative flex items-center group">
-      <select className="appearance-none bg-transparent border-none focus:ring-0 text-sm font-semibold text-on-surface-variant cursor-pointer pr-8 py-2 outline-none">
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="appearance-none bg-transparent border-none focus:ring-0 text-sm font-semibold text-on-surface-variant cursor-pointer pr-8 py-2 outline-none"
+      >
         {options.map((opt) => (
-          <option key={opt}>{opt}</option>
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
       </select>
       <ChevronDown size={16} className="absolute right-2 text-secondary pointer-events-none group-hover:text-primary transition-colors" />
