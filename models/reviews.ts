@@ -19,13 +19,10 @@ const reviewSchema = new Schema(
     rating: { type: Number, required: true, min: 1, max: 5 },
     approved: { type: Boolean, default: false },
     featured: { type: Boolean, default: false }, // shown in the homepage Testimonials section
-    // The reviewer's Google profile photo, imported with the review. This is what
-    // fills the avatar circle — it used to hold a product shot, which read as if the
-    // jewellery were the person who left the review.
+    // The reviewer's photo, uploaded through the admin panel. This is what fills the
+    // avatar circle — it used to hold a product shot, which read as if the jewellery
+    // were the person who left the review. Blank falls back to their initials.
     authorImage: { type: String, trim: true },
-    authorUrl: { type: String, trim: true }, // the reviewer's Google Maps contributor page
-    source: { type: String, enum: ["site", "google"], default: "site" },
-    googleReviewId: { type: String, trim: true, index: true, sparse: true }, // dedupe key for re-imports
   },
   { timestamps: true }
 );

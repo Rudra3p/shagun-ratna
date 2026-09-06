@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Star, Filter, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, RefreshCw, Plus, X, Camera } from 'lucide-react';
+import { Star, Filter, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, Plus, X, Camera } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
 
@@ -15,11 +15,11 @@ export default function ReviewsView() {
   const [deletingId, setDeletingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [uploading, setUploading] = useState(false);
-  const [importing, setImporting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoBusyId, setPhotoBusyId] = useState(null);
   const [toast, setToast] = useState(null);
 
   const fetchReviews = async () => {
@@ -55,25 +55,25 @@ export default function ReviewsView() {
     });
   };
 
-  // The site already shows Google reviews live, so this isn't needed day to day — it
-  // saves a copy to the database as the safety net for when Google is down or the API
-  // key lapses. Matches on the Google id, so it never duplicates.
-  const handleImportFromGoogle = async () => {
-    setImporting(true);
-    try {
-      const { data } = await adminApi.post('/reviews', { action: 'import-google' });
-      await fetchReviews();
-      showToast('success', data?.message || 'Google reviews imported.');
-    } catch (err) {
-      console.error("Failed to import Google reviews:", err);
-      showToast('error', err?.response?.data?.error || 'Could not reach Google. Please try again.');
-    } finally {
-      setImporting(false);
-    }
-  };
-
   // The reviewer's photo goes into R2 like any other site image. Hot-linking Google's
   // own photo URL would look fine today and 404 in six months.
+  const uploadPhoto = async (file) => {
+    const { data } = await adminApi.post('/reviews', {
+      action: 'get-upload-url',
+      fileName: file.name,
+      fileType: file.type,
+    });
+
+    await fetch(data.signedUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type },
+    });
+
+    return data.publicUrl;
+  };
+
+  // Photo picked while filling in the new-review form — nothing is saved yet.
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     e.target.value = '';
@@ -81,24 +81,36 @@ export default function ReviewsView() {
 
     setPhotoUploading(true);
     try {
-      const { data } = await adminApi.post('/reviews', {
-        action: 'get-upload-url',
-        fileName: file.name,
-        fileType: file.type,
-      });
-
-      await fetch(data.signedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
-
-      setForm((prev) => ({ ...prev, authorImage: data.publicUrl }));
+      const publicUrl = await uploadPhoto(file);
+      setForm((prev) => ({ ...prev, authorImage: publicUrl }));
     } catch (err) {
       console.error("Reviewer photo upload failed:", err);
       showToast('error', 'Photo upload failed. Please try again.');
     } finally {
       setPhotoUploading(false);
+    }
+  };
+
+  // Photo set or replaced on a review that already exists — saved immediately.
+  const handleCardPhoto = async (reviewId, e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setPhotoBusyId(reviewId);
+    try {
+      const publicUrl = await uploadPhoto(file);
+      await adminApi.patch(`/reviews?id=${reviewId}`, { authorImage: publicUrl });
+
+      setReviews((prev) =>
+        prev.map((r) => (r._id === reviewId ? { ...r, authorImage: publicUrl } : r))
+      );
+      showToast('success', 'Photo updated.');
+    } catch (err) {
+      console.error("Failed to update reviewer photo:", err);
+      showToast('error', 'Photo update failed. Please try again.');
+    } finally {
+      setPhotoBusyId(null);
     }
   };
 
@@ -211,15 +223,6 @@ export default function ReviewsView() {
           >
             {showForm ? <X size={18} /> : <Plus size={18} />}
             {showForm ? 'Cancel' : 'Add Review'}
-          </button>
-          <button
-            onClick={handleImportFromGoogle}
-            disabled={importing}
-            className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-secondary rounded-lg font-semibold text-sm hover:bg-primary-fixed hover:text-primary transition-colors disabled:opacity-60"
-            title="Save a backup copy of the Google reviews — used only if Google is unreachable"
-          >
-            {importing ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
-            Back Up Google Reviews
           </button>
           <button
             onClick={handleUploadToWeb}
@@ -361,7 +364,26 @@ export default function ReviewsView() {
                 </div>
                 <div className="flex justify-between items-start pr-8">
                   <div className="flex items-center gap-3">
-                    <ReviewerAvatar src={review.authorImage} name={review.name} size={38} />
+                    {/* Click the circle to set or swap this reviewer's photo. Saves on
+                        pick — there's no other edit UI, so it has to be self-evident. */}
+                    <label
+                      className="relative cursor-pointer group/photo shrink-0"
+                      title={review.authorImage ? 'Change photo' : 'Add photo'}
+                    >
+                      <ReviewerAvatar src={review.authorImage} name={review.name} size={38} />
+                      <span className="absolute inset-0 grid place-items-center rounded-full bg-black/55 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity">
+                        {photoBusyId === review._id
+                          ? <Loader2 size={14} className="animate-spin" />
+                          : <Camera size={14} />}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={photoBusyId === review._id}
+                        onChange={(e) => handleCardPhoto(review._id, e)}
+                      />
+                    </label>
                     <div className="flex flex-col">
                       <span className="font-bold text-primary">{review.name}</span>
                       <span className="text-xs text-secondary mt-0.5">{review.product}</span>

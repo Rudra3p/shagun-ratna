@@ -3,9 +3,9 @@ import dbConnect from "@/db/db";
 import {
   getReviews,
   addReview,
+  updateReview,
   deleteReview,
   syncFeaturedReviews,
-  importGoogleReviews,
 } from "@/controllers/reviewsController";
 import { generateUploadUrl } from "@/lib/r2Service";
 
@@ -16,9 +16,8 @@ export async function GET(req: Request) {
   return await getReviews(req);
 }
 
-// POST does three jobs, told apart by `action`:
+// POST does two jobs, told apart by `action`:
 //   'get-upload-url' -> presigned R2 URL for a reviewer photo, same flow as site images
-//   'import-google'  -> back up the live Google reviews to the database
 //   (no action)      -> save a review typed into the admin panel
 export async function POST(req: Request) {
   await ensureDB();
@@ -37,16 +36,20 @@ export async function POST(req: Request) {
     });
   }
 
-  if (body.action === "import-google") {
-    return await importGoogleReviews();
-  }
-
   return await addReview(body);
 }
 
 export async function PUT(req: Request) {
   await ensureDB();
   return await syncFeaturedReviews(req);
+}
+
+// PATCH /api/admin/reviews?id=<id> — edit one review in place. Used for setting or
+// replacing the reviewer's photo after the review already exists; PUT is taken by the
+// homepage featuring sync, so the single-review edit lives here.
+export async function PATCH(req: Request) {
+  await ensureDB();
+  return await updateReview(req);
 }
 
 export async function DELETE(req: Request) {

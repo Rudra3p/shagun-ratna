@@ -44,8 +44,8 @@ export default function Testimonials() {
     return () => { cancelled = true; };
   }, []);
 
-  // /api/reviews serves the Google listing live (falling back to stored reviews when
-  // Google is unreachable). The default copy below only shows if both come back empty.
+  // Reviews the admin has ticked for the homepage. The default copy below shows until
+  // at least one is featured from /admin/reviews.
   const testimonials = featuredReviews && featuredReviews.length > 0
     ? featuredReviews.map((r) => ({ key: r._id, name: r.name, quote: r.text, role: r.product, rating: r.rating, avatar: r.authorImage }))
     : DEFAULT_TESTIMONIALS.map((t, i) => ({ key: i, ...t }));
