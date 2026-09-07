@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useSurvey } from '@/components/SurveyProvider';
+import { weaveRecommended } from '@/lib/weaveRecommended';
 import { Loader2, Search, SearchX, X, SlidersHorizontal } from 'lucide-react';
 
 // Shared crossfade so skeleton -> content/error/empty swaps never hard-cut
@@ -19,7 +21,8 @@ const fadeProps = {
 
 const CATEGORIES = [
   "Gold", "Silver", "Platinum", "Diamond", "Gemstone",
-  "Ruby", "Emerald", "Sapphire",
+  "Ruby", "Emerald", "Sapphire", "Pearl", "Red Coral",
+  "Yellow Sapphire", "Blue Sapphire",
   "Bridal", "Heirloom", "Contemporary", "Traditional",
   "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
 ];
@@ -27,7 +30,34 @@ const CATEGORIES = [
 // Cards fetched per auto-loaded batch as the reader scrolls.
 const PAGE_SIZE = 10;
 
-export default function Collection() {
+// useSearchParams opts the tree below it out of prerendering, so the grid sits
+// behind its own boundary rather than taking the whole route with it. The
+// fallback mirrors the grid's own first paint — it starts in its loading state
+// regardless — so the prerendered HTML still arrives with skeletons in place
+// instead of an empty page.
+export default function CollectionPage() {
+  return (
+    <Suspense fallback={<CollectionFallback />}>
+      <Collection />
+    </Suspense>
+  );
+}
+
+function CollectionFallback() {
+  return (
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-6 pb-24">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
+          {[...Array(4)].map((_, i) => (
+            <ProductCardSkeleton key={i} showCategoryLine />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Collection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -38,6 +68,8 @@ export default function Collection() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const { survey } = useSurvey();
+  // A gemstone reading links here as /collection?search=Red%20Coral.
+  const urlSearch = useSearchParams().get('search') || "";
 
   const [typedSearch, setTypedSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -110,15 +142,29 @@ export default function Collection() {
   };
 
   const loadRecommendations = async (currentSurvey) => {
-    // Nothing to personalise from until the visitor has filled in the survey.
-    if (!currentSurvey?.age || !currentSurvey?.gender) {
+    // The stone alone is enough to personalise from, so someone who gave a birth
+    // date but skipped the rest still gets recommendations.
+    const stone = currentSurvey?.gemstone;
+    // The primary stone and its Hindi name first, then the lighter upratna, so the
+    // catalogue matches whichever wording the admin used on the product.
+    const gemstones = stone
+      ? [...(stone.searchTerms || []), ...(stone.alternatives || [])].join(',')
+      : '';
+    const hasAudience = currentSurvey?.age && currentSurvey?.gender;
+
+    if (!hasAudience && !gemstones) {
       setRecommendedProducts([]);
       return;
     }
     try {
-      const res = await userApi.get(
-        `/recommendations?age=${encodeURIComponent(currentSurvey.age)}&gender=${encodeURIComponent(currentSurvey.gender)}`
-      );
+      const query = new URLSearchParams();
+      if (hasAudience) {
+        query.set('age', currentSurvey.age);
+        query.set('gender', currentSurvey.gender);
+      }
+      if (gemstones) query.set('gemstones', gemstones);
+
+      const res = await userApi.get(`/recommendations?${query}`);
       setRecommendedProducts(res.data.recommended ? (res.data.products || []) : []);
     } catch (err) {
       // A failure here only costs the "Recommended" badges — the catalog still renders
@@ -126,17 +172,22 @@ export default function Collection() {
     }
   };
 
+  // Loads the catalog on arrival, and again whenever the URL's search term
+  // changes — someone already on this page who follows their gemstone link
+  // navigates client-side, so the component never remounts to pick it up.
   useEffect(() => {
-    loadCollectionItems(1, "", []);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setTypedSearch(urlSearch);
+    setAppliedSearch(urlSearch);
+    setSelectedCategories([]);
+    loadCollectionItems(1, urlSearch, []);
+  }, [urlSearch]);
 
   // Re-runs whenever the survey is filled in, updated, or cleared, so the
   // "Recommended" badges track the visitor's answers without a page reload.
   useEffect(() => {
     loadRecommendations(survey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [survey?.age, survey?.gender]);
+  }, [survey?.age, survey?.gender, survey?.gemstone?.stone]);
 
   // --- Infinite scroll -----------------------------------------------------
   // An invisible sentinel sits below the grid; when it comes near the viewport
@@ -202,10 +253,15 @@ export default function Collection() {
     setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Recommended pieces stay right where they'd normally sort in the catalog —
-  // just flagged with a badge on the card — instead of being pulled into a
-  // separate section or reordered to the front.
   const recommendedIds = new Set(recommendedProducts.map((p) => p._id));
+
+  // Weaving only makes sense on the unfiltered catalogue. Someone who searched for
+  // "gold bangles" is answering their own question, and lifting a ruby ring to the
+  // top of their results would read as the site ignoring them.
+  const arrangedProducts = useMemo(
+    () => (hasActiveFilter ? products : weaveRecommended(products, recommendedProducts)),
+    [products, recommendedProducts, hasActiveFilter],
+  );
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2D2926] antialiased">
@@ -324,7 +380,7 @@ export default function Collection() {
             </motion.div>
           ) : (
             <motion.div key="content" {...fadeProps} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
-              {products.map((product, index) => (
+              {arrangedProducts.map((product, index) => (
                 <ProductCard
                   key={product._id}
                   product={product}
