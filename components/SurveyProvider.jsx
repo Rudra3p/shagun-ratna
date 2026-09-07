@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { X, Sparkles, Gem, MapPin, Info, ArrowLeft } from 'lucide-react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { readGemstone, ageFromBirthDate } from '@/lib/jyotish';
+import { HOURS_12, MINUTES, to24Hour, from24Hour } from '@/lib/clock12';
 import {
   INDIA_UTC_OFFSET_MINUTES,
   UTC_OFFSET_OPTIONS,
@@ -46,11 +47,16 @@ const emptyForm = {
   name: '',
   birthDate: '',
   gender: '',
-  birthTime: '',
+  birthHour: '',
+  birthMinute: '',
+  birthMeridiem: '',
   placeQuery: '',
   bornOutsideIndia: false,
   utcOffsetMinutes: INDIA_UTC_OFFSET_MINUTES,
 };
+
+// Shared so the three parts of the clock line up as one control.
+const TIME_SELECT_CLASS = 'flex-1 min-w-0 bg-white border border-[#C5A059]/40 rounded-xl px-3 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans';
 
 export function SurveyProvider({ children }) {
   // Survey answers replace the old account system — they live only in this
@@ -79,7 +85,7 @@ export function SurveyProvider({ children }) {
       name: survey?.name || '',
       birthDate: survey?.birthDate || '',
       gender: survey?.gender || '',
-      birthTime: survey?.birthTime || '',
+      ...from24Hour(survey?.birthTime),
       placeQuery: survey?.birthPlace?.city || '',
       bornOutsideIndia: survey
         ? survey.utcOffsetMinutes !== undefined && survey.utcOffsetMinutes !== INDIA_UTC_OFFSET_MINUTES
@@ -189,6 +195,14 @@ export function SurveyProvider({ children }) {
 
     if (!form.gender) next.gender = 'Please choose one.';
 
+    // The time is optional, but half a time is worse than none — it would be read
+    // as a real birth moment and quietly change which stone comes back.
+    const timeParts = [form.birthHour, form.birthMinute, form.birthMeridiem];
+    const filledParts = timeParts.filter(Boolean).length;
+    if (filledParts > 0 && filledParts < 3) {
+      next.birthTime = 'Please complete the time, or clear all three.';
+    }
+
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -196,9 +210,13 @@ export function SurveyProvider({ children }) {
       ? form.utcOffsetMinutes
       : INDIA_UTC_OFFSET_MINUTES;
 
+    const birthTime = filledParts === 3
+      ? to24Hour(form.birthHour, form.birthMinute, form.birthMeridiem)
+      : null;
+
     const reading = readGemstone({
       date: form.birthDate,
-      time: form.birthTime || null,
+      time: birthTime,
       utcOffsetMinutes,
     });
 
@@ -214,7 +232,7 @@ export function SurveyProvider({ children }) {
       age,
       gender: form.gender,
       birthDate: form.birthDate,
-      birthTime: form.birthTime || null,
+      birthTime,
       birthPlace,
       utcOffsetMinutes,
       // Flattened rather than nested so anything reading the stored survey gets
@@ -330,19 +348,51 @@ export function SurveyProvider({ children }) {
                   </div>
 
                   <div>
-                    <label htmlFor="survey-time" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
+                    <span id="survey-time-label" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
                       Time of Birth <span className="font-normal normal-case tracking-normal text-[#A8A196]">— optional</span>
-                    </label>
-                    <input
-                      id="survey-time"
-                      type="time"
-                      value={form.birthTime}
-                      onChange={(e) => updateForm({ birthTime: e.target.value })}
-                      className="w-full bg-white border border-[#C5A059]/40 rounded-xl px-4 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
-                    />
-                    <p className="mt-1.5 text-[11px] text-[#1a1a1a]/45 font-sans">
-                      The moon changes sign every couple of days, so the time sharpens the reading.
-                    </p>
+                    </span>
+                    <div className="flex items-center gap-2" role="group" aria-labelledby="survey-time-label">
+                      <select
+                        aria-label="Hour of birth"
+                        value={form.birthHour}
+                        onChange={(e) => updateForm({ birthHour: e.target.value })}
+                        aria-invalid={!!errors.birthTime}
+                        className={TIME_SELECT_CLASS}
+                      >
+                        <option value="">Hour</option>
+                        {HOURS_12.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
+                      </select>
+                      <span aria-hidden="true" className="text-[#A8A196] font-sans">:</span>
+                      <select
+                        aria-label="Minute of birth"
+                        value={form.birthMinute}
+                        onChange={(e) => updateForm({ birthMinute: e.target.value })}
+                        aria-invalid={!!errors.birthTime}
+                        className={TIME_SELECT_CLASS}
+                      >
+                        <option value="">Min</option>
+                        {MINUTES.map((minute) => <option key={minute} value={minute}>{minute}</option>)}
+                      </select>
+                      <select
+                        aria-label="AM or PM"
+                        value={form.birthMeridiem}
+                        onChange={(e) => updateForm({ birthMeridiem: e.target.value })}
+                        aria-invalid={!!errors.birthTime}
+                        className={TIME_SELECT_CLASS}
+                      >
+                        <option value="">AM/PM</option>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                    </div>
+                    {errors.birthTime
+                      ? <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.birthTime}</p>
+                      : (
+                        <p className="mt-1.5 text-[11px] text-[#1a1a1a]/45 font-sans">
+                          The moon changes sign every couple of days, so the time sharpens the reading.
+                          Midnight is 12 AM, midday is 12 PM.
+                        </p>
+                      )}
                   </div>
 
                   <div ref={placeFieldRef}>
