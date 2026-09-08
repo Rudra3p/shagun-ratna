@@ -73,6 +73,7 @@ function Collection() {
 
   const [typedSearch, setTypedSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [correctedQuery, setCorrectedQuery] = useState(""); // server-corrected term (e.g. "silver" when user typed "solver")
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [toolbarHidden, setToolbarHidden] = useState(false);
 
