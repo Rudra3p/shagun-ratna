@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 import dbConnect from "@/db/db";
 import { getReviews } from "@/controllers/reviewsController";
 import GiveReviewButton from "@/components/reviews/GiveReviewButton";
-import ReviewerAvatar from "@/components/reviews/ReviewerAvatar";
+import ReviewCard from "@/components/reviews/ReviewCard";
 
 // Reviews are added in the admin panel, so this page has to re-render for a new one
 // to appear. Without a revalidate it bakes at build time and a review added today
@@ -113,23 +113,7 @@ export default async function ReviewsPage() {
             <h2 className="text-lg font-semibold uppercase tracking-[0.16em] text-[#1a1a1a]">What Customers Are Saying</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {reviews.map((review) => (
-                <article key={review._id} className="rounded-2xl border border-[#C5A059]/15 bg-[#fffaf2] p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <ReviewerAvatar src={review.authorImage} name={review.name} size={40} />
-                      <div>
-                        <p className="font-semibold text-[#90060c]">{review.name}</p>
-                        <p className="text-xs uppercase tracking-[0.18em] text-[#8d7f69]">{review.product}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((value) => (
-                        <Star key={value} size={14} className={value <= Number(review.rating) ? "fill-[#C5A059] text-[#C5A059]" : "text-[#d8cbb4]"} />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-[#5f5a53]">{review.text}</p>
-                </article>
+                <ReviewCard key={review._id} review={review} />
               ))}
             </div>
           </div>

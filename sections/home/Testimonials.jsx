@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react'; // Added Star icon
 import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
@@ -82,53 +82,80 @@ export default function Testimonials() {
         {/* Fluid Testimonial Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch">
           {testimonials.map((t, i) => (
-            <motion.div
-              key={t.key}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{
-                delay: typeof window !== 'undefined' && window.innerWidth >= 1024 ? i * 0.15 : 0,
-                duration: 0.8
-              }}
-              className={`bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-8 md:p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col justify-between ${
-                i === 2 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-[50%] sm:mx-auto lg:max-w-none lg:mx-0' : ''
-              }`}
-            >
-              <div>
-                {/* 5-Star Luxury Rating Row */}
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(t.rating)].map((_, index) => (
-                    <Star
-                      key={index}
-                      size={13}
-                      className="text-[#C5A059] fill-[#C5A059]"
-                    />
-                  ))}
-                </div>
-
-                {/* Large Decorative Quote Mark */}
-                <span className="font-brand text-6xl md:text-7xl text-[#C5A059]/30 select-none block h-4 leading-none mb-4">&ldquo;</span>
-                <p className="font-sans text-[#1a1a1a]/80 italic text-sm leading-[1.8] tracking-[0.04em] mb-8">
-                  {t.quote}
-                </p>
-              </div>
-              <div>
-                <div className="h-[1px] w-8 bg-[#C5A059]/40 mb-4" />
-                <div className="flex items-center gap-3">
-                  {/* The reviewer's Google profile photo, or their initials — the piece
-                      they bought is described in the quote, it doesn't belong here. */}
-                  <ReviewerAvatar src={t.avatar} name={t.name} />
-                  <div>
-                    <h4 className="font-brand text-xl md:text-2xl text-[#90060c] font-normal">{t.name}</h4>
-                    <p className="text-[9px] uppercase tracking-[0.25em] text-[#C5A059] mt-2 font-bold">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            <TestimonialCard key={t.key} testimonial={t} index={i} />
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+function TestimonialCard({ testimonial, index }) {
+  const quoteRef = useRef(null);
+  const [expanded, setExpanded] = useState(false);
+  const [canReadMore, setCanReadMore] = useState(false);
+
+  useEffect(() => {
+    const quoteElement = quoteRef.current;
+    if (!quoteElement) return;
+
+    setCanReadMore(quoteElement.scrollHeight > quoteElement.clientHeight + 1);
+  }, [testimonial.quote]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 25 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-30px" }}
+      transition={{
+        delay: typeof window !== 'undefined' && window.innerWidth >= 1024 ? index * 0.15 : 0,
+        duration: 0.8
+      }}
+      className={`aspect-4/6 min-h-0 bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-8 md:p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col ${
+        index === 2 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-[50%] sm:mx-auto lg:max-w-none lg:mx-0' : ''
+      }`}
+    >
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex items-center gap-1 mb-4">
+          {[...Array(testimonial.rating)].map((_, starIndex) => (
+            <Star
+              key={starIndex}
+              size={13}
+              className="text-[#C5A059] fill-[#C5A059]"
+            />
+          ))}
+        </div>
+
+        <span className="font-brand text-6xl md:text-7xl text-[#C5A059]/30 select-none block h-4 leading-none mb-4">&ldquo;</span>
+        <div
+          ref={quoteRef}
+          className={`min-h-0 overflow-y-auto pr-2 font-sans text-[#1a1a1a]/80 italic text-sm leading-[1.8] tracking-[0.04em] ${
+            expanded ? 'max-h-52' : 'max-h-26'
+          }`}
+        >
+          {testimonial.quote}
+        </div>
+        {canReadMore && (
+          <button
+            type="button"
+            onClick={() => setExpanded((isExpanded) => !isExpanded)}
+            className="mt-2 self-start text-[10px] uppercase tracking-[0.2em] text-[#90060c] underline underline-offset-4"
+          >
+            {expanded ? 'Read less' : 'Read more'}
+          </button>
+        )}
+      </div>
+
+      <div className="shrink-0 pt-5">
+        <div className="h-[1px] w-8 bg-[#C5A059]/40 mb-4" />
+        <div className="flex items-center gap-3">
+          <ReviewerAvatar src={testimonial.avatar} name={testimonial.name} />
+          <div className="min-w-0">
+            <h4 className="font-brand text-xl md:text-2xl text-[#90060c] font-normal truncate">{testimonial.name}</h4>
+            <p className="text-[9px] uppercase tracking-[0.25em] text-[#C5A059] mt-2 font-bold truncate">{testimonial.role}</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
