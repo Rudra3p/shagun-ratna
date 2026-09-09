@@ -111,7 +111,7 @@ function TestimonialCard({ testimonial, index }) {
         delay: typeof window !== 'undefined' && window.innerWidth >= 1024 ? index * 0.15 : 0,
         duration: 0.8
       }}
-      className={`aspect-3/2 min-h-0 bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-8 md:p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col ${
+      className={`aspect-4/6 min-h-0 bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-8 md:p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col ${
         index === 2 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-[50%] sm:mx-auto lg:max-w-none lg:mx-0' : ''
       }`}
     >
@@ -129,8 +129,8 @@ function TestimonialCard({ testimonial, index }) {
         <span className="font-brand text-6xl md:text-7xl text-[#C5A059]/30 select-none block h-4 leading-none mb-4">&ldquo;</span>
         <div
           ref={quoteRef}
-          className={`min-h-0 overflow-y-auto pr-2 font-sans text-[#1a1a1a]/80 italic text-sm leading-[1.8] tracking-[0.04em] ${
-            expanded ? 'max-h-52' : 'max-h-26'
+          className={`min-h-0 pr-2 font-sans text-[#1a1a1a]/80 italic text-sm leading-[1.8] tracking-[0.04em] ${
+            expanded ? 'max-h-52 overflow-y-auto' : 'max-h-26 overflow-hidden'
           }`}
         >
           {testimonial.quote}
