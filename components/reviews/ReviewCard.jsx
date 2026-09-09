@@ -17,16 +17,9 @@ export default function ReviewCard({ review }) {
   }, [review.text]);
 
   return (
-    <article className="aspect-4/5 min-h-0 rounded-2xl border border-[#C5A059]/15 bg-[#fffaf2] p-4 flex flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <ReviewerAvatar src={review.authorImage} name={review.name} size={40} />
-          <div className="min-w-0">
-            <p className="truncate font-semibold text-[#90060c]">{review.name}</p>
-            <p className="truncate text-xs uppercase tracking-[0.18em] text-[#8d7f69]">{review.product}</p>
-          </div>
-        </div>
-        <div className="flex shrink-0 gap-1">
+    <article className="aspect-4/5 min-h-0 rounded-2xl border border-[#C5A059]/15 bg-[#fffaf2] p-6 md:p-8 flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex shrink-0 items-center gap-1 mb-4">
           {[1, 2, 3, 4, 5].map((value) => (
             <Star
               key={value}
@@ -35,25 +28,37 @@ export default function ReviewCard({ review }) {
             />
           ))}
         </div>
+
+        <span className="font-brand text-6xl text-[#C5A059]/30 select-none block h-4 leading-none mb-4">&ldquo;</span>
+        <div
+          ref={reviewTextRef}
+          className={`min-h-0 pr-2 italic text-sm leading-[1.8] tracking-[0.04em] text-[#5f5a53] ${
+            expanded ? "max-h-52 overflow-y-auto" : "max-h-26 overflow-hidden"
+          }`}
+        >
+          {review.text}
+        </div>
+        {canReadMore && (
+          <button
+            type="button"
+            onClick={() => setExpanded((isExpanded) => !isExpanded)}
+            className="mt-2 self-start text-[10px] uppercase tracking-[0.2em] text-[#90060c] underline underline-offset-4"
+          >
+            {expanded ? "Read less" : "Read more"}
+          </button>
+        )}
       </div>
 
-      <div
-        ref={reviewTextRef}
-        className={`mt-3 min-h-0 pr-2 text-sm leading-6 text-[#5f5a53] ${
-          expanded ? "max-h-52 overflow-y-auto" : "max-h-26 overflow-hidden"
-        }`}
-      >
-        {review.text}
+      <div className="shrink-0 pt-5">
+        <div className="h-[1px] w-8 bg-[#C5A059]/40 mb-4" />
+        <div className="flex items-center gap-3">
+          <ReviewerAvatar src={review.authorImage} name={review.name} size={44} />
+          <div className="min-w-0">
+            <h4 className="truncate font-brand text-xl text-[#90060c] font-normal">{review.name}</h4>
+            <p className="truncate text-[9px] uppercase tracking-[0.25em] text-[#C5A059] mt-2 font-bold">{review.product}</p>
+          </div>
+        </div>
       </div>
-      {canReadMore && (
-        <button
-          type="button"
-          onClick={() => setExpanded((isExpanded) => !isExpanded)}
-          className="mt-2 self-start text-[10px] uppercase tracking-[0.2em] text-[#90060c] underline underline-offset-4"
-        >
-          {expanded ? "Read less" : "Read more"}
-        </button>
-      )}
     </article>
   );
 }
