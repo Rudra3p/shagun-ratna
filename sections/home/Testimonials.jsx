@@ -111,7 +111,7 @@ function TestimonialCard({ testimonial, index }) {
         delay: typeof window !== 'undefined' && window.innerWidth >= 1024 ? index * 0.15 : 0,
         duration: 0.8
       }}
-      className={`aspect-4/6 min-h-0 bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-8 md:p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col ${
+      className={`aspect-4/5 min-h-0 bg-[#FDFBF7]/60 backdrop-blur-sm border border-[#C5A059]/25 p-8 md:p-10 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-500 flex flex-col ${
         index === 2 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-[50%] sm:mx-auto lg:max-w-none lg:mx-0' : ''
       }`}
     >
