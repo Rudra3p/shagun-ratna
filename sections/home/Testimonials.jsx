@@ -120,7 +120,7 @@ function TestimonialCard({ testimonial, index }) {
           {[...Array(testimonial.rating)].map((_, starIndex) => (
             <Star
               key={starIndex}
-              size={13}
+              size={20}
               className="text-[#C5A059] fill-[#C5A059]"
             />
           ))}

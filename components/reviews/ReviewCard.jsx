@@ -30,7 +30,7 @@ export default function ReviewCard({ review }) {
           {[1, 2, 3, 4, 5].map((value) => (
             <Star
               key={value}
-              size={14}
+              size={21}
               className={value <= Number(review.rating) ? "fill-[#C5A059] text-[#C5A059]" : "text-[#d8cbb4]"}
             />
           ))}
