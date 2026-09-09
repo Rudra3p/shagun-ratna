@@ -17,7 +17,7 @@ export default function ReviewCard({ review }) {
   }, [review.text]);
 
   return (
-    <article className="aspect-4/6 min-h-0 rounded-2xl border border-[#C5A059]/15 bg-[#fffaf2] p-4 flex flex-col">
+    <article className="aspect-3/2 min-h-0 rounded-2xl border border-[#C5A059]/15 bg-[#fffaf2] p-4 flex flex-col">
       <div className="flex shrink-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <ReviewerAvatar src={review.authorImage} name={review.name} size={40} />
