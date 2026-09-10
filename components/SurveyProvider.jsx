@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { X, Sparkles, Gem, MapPin, Info, ArrowLeft } from 'lucide-react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { readGemstone, ageFromBirthDate } from '@/lib/jyotish';
@@ -30,8 +31,6 @@ export function useSurvey() {
   return useContext(SurveyContext);
 }
 
-// Matched against Showcase.gender in the recommendation query, which stores
-// "All" | "Male" | "Female" | "Unisex".
 const GENDERS = [
   { label: 'Woman', value: 'Female' },
   { label: 'Man', value: 'Male' },
@@ -72,6 +71,7 @@ export function SurveyProvider({ children }) {
   const [view, setView] = useState('form');
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+  const pathname = usePathname();
 
   // Birth place is a combobox: pick a listed city to also capture its
   // coordinates, or just type a town that isn't listed.
@@ -115,14 +115,23 @@ export function SurveyProvider({ children }) {
     setIsOpen(false);
   }, [setSurvey]);
 
-  // First-time visitors are invited on their own after a short pause. It fires
-  // once per browser and never for someone who has already answered or already
-  // opened it themselves, so it can't turn into a nag.
+  // First-time visitors are invited on the homepage after a short pause. The
+  // collection page has its own entry prompt below so recommendations are ready
+  // when the catalogue is opened.
   useEffect(() => {
-    if (survey || prompted) return;
+    if (pathname !== '/' || survey || prompted) return;
     const timer = setTimeout(() => openDialog(true), AUTO_PROMPT_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [survey, prompted, openDialog]);
+  }, [pathname, survey, prompted, openDialog]);
+
+  // A visitor may dismiss the homepage prompt and then go straight to the
+  // catalogue. Ask there as well, because the collection is where the reading
+  // changes the ordering and recommendation badges.
+  useEffect(() => {
+    if (pathname !== '/collection' || survey || isOpen) return;
+    const timer = setTimeout(() => openDialog(true), 700);
+    return () => clearTimeout(timer);
+  }, [pathname, survey, isOpen, openDialog]);
 
   // Escape closes, and the page behind shouldn't scroll while the modal is up
   useEffect(() => {

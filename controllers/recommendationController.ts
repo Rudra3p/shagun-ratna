@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import Product from "@/models/product";
-import Showcase from "@/models/showcase";
 import dbConnect from "@/db/db";
 import { readRates } from "@/controllers/metalRateController";
 import { applyPricingToList } from "@/lib/pricing";
@@ -40,46 +39,17 @@ export const getRecommendations = async (req: Request): Promise<NextResponse> =>
     await dbConnect();
 
     const url = new URL(req.url);
-    const ageParam = url.searchParams.get("age");
-    const gender = url.searchParams.get("gender");
     const gemstonesParam = url.searchParams.get("gemstones");
 
-    const age = Number(ageParam);
-    const hasAudience = Boolean(ageParam) && !Number.isNaN(age) && age >= 1 && age <= 120 && Boolean(gender);
-
-    if (!hasAudience && !gemstonesParam) {
-      // No survey taken yet (or an incomplete one) — nothing to personalise from.
+    if (!gemstonesParam) {
+      // No astro reading yet — nothing to personalise from.
       return NextResponse.json({ success: true, recommended: false, products: [] }, { status: 200 });
     }
 
-    // The stone is the sharper signal, so its matches are returned first and the
-    // storefront weaves those into the opening rows.
+    // Recommendations come only from the astro reading. This keeps product
+    // mapping collections out of the personalisation path.
     const gemstoneProducts = await findByGemstone(gemstonesParam);
-    const seen = new Set<string>(gemstoneProducts.map((p) => String(p._id)));
-
-    let showcaseProducts: Awaited<ReturnType<typeof findByGemstone>> = [];
-    if (hasAudience) {
-      const matchingCollections = await Showcase.find({
-        minAge: { $lte: age },
-        maxAge: { $gte: age },
-        $or: [{ gender: "All" }, { gender: "Unisex" }, { gender }],
-      }).select("productIds");
-
-      const productIdSet = new Set<string>();
-      for (const collection of matchingCollections) {
-        for (const pid of collection.productIds) {
-          const id = pid.toString();
-          // A piece already matched on its stone shouldn't be fetched or listed twice.
-          if (!seen.has(id)) productIdSet.add(id);
-        }
-      }
-
-      if (productIdSet.size > 0) {
-        showcaseProducts = await Product.find({ _id: { $in: Array.from(productIdSet) } }).lean();
-      }
-    }
-
-    const products = [...gemstoneProducts, ...showcaseProducts];
+    const products = gemstoneProducts;
     if (products.length === 0) {
       return NextResponse.json({ success: true, recommended: false, products: [] }, { status: 200 });
     }

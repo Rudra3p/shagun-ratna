@@ -151,19 +151,13 @@ function Collection() {
     const gemstones = stone
       ? [...(stone.searchTerms || []), ...(stone.alternatives || [])].join(',')
       : '';
-    const hasAudience = currentSurvey?.age && currentSurvey?.gender;
-
-    if (!hasAudience && !gemstones) {
+    if (!gemstones) {
       setRecommendedProducts([]);
       return;
     }
     try {
       const query = new URLSearchParams();
-      if (hasAudience) {
-        query.set('age', currentSurvey.age);
-        query.set('gender', currentSurvey.gender);
-      }
-      if (gemstones) query.set('gemstones', gemstones);
+      query.set('gemstones', gemstones);
 
       const res = await userApi.get(`/recommendations?${query}`);
       setRecommendedProducts(res.data.recommended ? (res.data.products || []) : []);
