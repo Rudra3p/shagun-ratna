@@ -18,9 +18,6 @@ export const SURVEY_STORAGE_KEY = 'shagun_ratna_survey';
 // per browser instead of interrupting on every visit.
 export const SURVEY_PROMPTED_KEY = 'shagun_ratna_survey_prompted';
 
-// Long enough for the first fold to land before the dialog asks for attention.
-const AUTO_PROMPT_DELAY_MS = 5000;
-
 const SurveyContext = createContext({
   survey: null,
   openSurvey: () => {},
@@ -115,23 +112,13 @@ export function SurveyProvider({ children }) {
     setIsOpen(false);
   }, [setSurvey]);
 
-  // First-time visitors are invited on the homepage after a short pause. The
-  // collection page has its own entry prompt below so recommendations are ready
-  // when the catalogue is opened.
+  // Ask on catalogue entry, because the collection is where the reading changes
+  // the ordering and recommendation badges.
   useEffect(() => {
-    if (pathname !== '/' || survey || prompted) return;
-    const timer = setTimeout(() => openDialog(true), AUTO_PROMPT_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [pathname, survey, prompted, openDialog]);
-
-  // A visitor may dismiss the homepage prompt and then go straight to the
-  // catalogue. Ask there as well, because the collection is where the reading
-  // changes the ordering and recommendation badges.
-  useEffect(() => {
-    if (pathname !== '/collection' || survey || isOpen) return;
+    if (pathname !== '/collection' || survey || prompted || isOpen) return;
     const timer = setTimeout(() => openDialog(true), 700);
     return () => clearTimeout(timer);
-  }, [pathname, survey, isOpen, openDialog]);
+  }, [pathname, survey, prompted, isOpen, openDialog]);
 
   // Escape closes, and the page behind shouldn't scroll while the modal is up
   useEffect(() => {
