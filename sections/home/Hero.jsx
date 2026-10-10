@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
-import { useSiteImage } from '@/components/SiteImagesProvider';
+import { useSiteImages } from '@/components/SiteImagesProvider';
 
 // Optimized animation variants for luxury choreography
 const containerVariants = {
@@ -28,7 +28,23 @@ const childVariants = {
 export default function HeroSection() {
   const containerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
-  const heroImage = useSiteImage('home-hero', '/hero_sec_hand.webp');
+  const [imageIndex, setImageIndex] = useState(0);
+  const siteImages = useSiteImages();
+  const heroSlides = [
+    { src: siteImages['home-hero'] || '/hero_sec_hand.webp', alt: 'Shagun Ratna gemstone jewelry' },
+    { src: '/new-launch.webp', alt: 'Shagun Ratna emerald jewelry' },
+    { src: '/gold-section.webp', alt: 'Shagun Ratna handcrafted gold jewelry' },
+    { src: '/gemstone-section.webp', alt: 'Natural gemstones at Shagun Ratna' },
+    { src: '/diamond-section.webp', alt: 'Certified diamonds at Shagun Ratna' },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setImageIndex((previousIndex) => (previousIndex + 1) % heroSlides.length);
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
 
   // Check window width to adjust parallax intensity safely
   useEffect(() => {
@@ -140,27 +156,34 @@ export default function HeroSection() {
           <div className="absolute bottom-[10%] left-[15%] w-3 h-3 border-b border-l border-[#C5A059]/40 z-0 select-none pointer-events-none" />
           <div className="absolute bottom-[10%] right-[15%] w-3 h-3 border-b border-r border-[#C5A059]/40 z-0 select-none pointer-events-none" />
 
-          {/* The hand image itself, floating borderless */}
-          <motion.div
-            animate={{
-              y: [0, -10, 0],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="absolute inset-0 z-10 flex items-center justify-center select-none pointer-events-none will-change-transform"
-          >
-            <Image
-              src={heroImage}
-              alt="Shagun Ratna Jewelry"
-              fill
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 50vw"
-              className="object-contain opacity-95 select-none pointer-events-none" 
-              priority
-            />
-          </motion.div>
+          {/* The image carousel moves one slide at a time from left to right. */}
+          <div className="absolute inset-0 z-10 overflow-hidden">
+            <AnimatePresence initial={false} mode="sync">
+              <motion.div
+                key={imageIndex}
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0 flex items-center justify-center select-none pointer-events-none will-change-transform"
+              >
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute inset-0"
+                >
+                  <Image
+                    src={heroSlides[imageIndex].src}
+                    alt={heroSlides[imageIndex].alt}
+                    fill
+                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 50vw"
+                    className="object-contain opacity-95 select-none pointer-events-none"
+                    priority={imageIndex === 0}
+                  />
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </motion.div>
 
       </div>
