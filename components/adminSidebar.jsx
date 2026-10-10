@@ -7,7 +7,7 @@ import adminApi from '@/lib/adminApi';
 import {
   LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge,
   Menu, Workflow, X, Inbox, Image as ImageIcon, LayoutGrid, TrendingUp,
-  ChevronDown, Gem, Palette, Users2, Settings
+  ChevronDown, Gem, Palette, Users2, Settings, Home, Info
 } from 'lucide-react';
 
 // Grouped nav, in the shape of the MongoDB Atlas sidebar: one standalone entry at
@@ -29,6 +29,8 @@ const NAV_GROUPS = [
     label: 'Storefront',
     icon: Palette,
     items: [
+      { label: 'Home Page', href: '/admin/home-page', icon: Home },
+      { label: 'About Page', href: '/admin/about-page', icon: Info },
       { label: 'Homepage Grid', href: '/admin/homepage-grid', icon: LayoutGrid },
       { label: 'Site Images', href: '/admin/site-images', icon: ImageIcon },
     ],
