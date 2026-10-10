@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSiteImages } from '@/components/SiteImagesProvider';
 
 // Note: a former slide 1 (about-1.webp) showed storefront signage reading
@@ -39,26 +40,61 @@ const slides = [
 
 export default function AboutHero() {
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const touchStartX = useRef(null);
   const siteImages = useSiteImages();
+
+  const goToSlide = (nextIndex, nextDirection) => {
+    setDirection(nextDirection);
+    setIndex(nextIndex);
+  };
+
+  const goToNextSlide = () => {
+    goToSlide((index + 1) % slides.length, 1);
+  };
+
+  const goToPreviousSlide = () => {
+    goToSlide((index - 1 + slides.length) % slides.length, -1);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
+      setDirection(1);
       setIndex((prev) => (prev + 1) % slides.length);
     }, 4000);
     return () => clearInterval(timer);
   }, []);
 
+  const handleTouchStart = (event) => {
+    touchStartX.current = event.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (event) => {
+    if (touchStartX.current === null) return;
+
+    const swipeDistance = touchStartX.current - event.changedTouches[0].clientX;
+    touchStartX.current = null;
+
+    if (Math.abs(swipeDistance) < 50) return;
+    if (swipeDistance > 0) goToNextSlide();
+    else goToPreviousSlide();
+  };
+
   return (
-    <section className="relative h-[60vh] md:h-[90vh] w-full overflow-hidden bg-[#90060c]">
+    <section
+      className="relative h-[60vh] md:h-[90vh] w-full overflow-hidden bg-[#90060c]"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       
       {/* Image and content move together from right to left. */}
       <div className="absolute inset-0 overflow-hidden">
         <AnimatePresence initial={false} mode="sync">
           <motion.div
             key={index}
-            initial={{ x: '100%' }}
+            initial={{ x: direction === 1 ? '100%' : '-100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
+            exit={{ x: direction === 1 ? '-100%' : '100%' }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0"
           >
@@ -87,6 +123,42 @@ export default function AboutHero() {
             </div>
           </motion.div>
         </AnimatePresence>
+      </div>
+
+      <button
+        type="button"
+        onClick={goToPreviousSlide}
+        aria-label="Previous about hero slide"
+        title="Previous slide"
+        className="absolute left-4 md:left-8 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[#faf3e5]/40 bg-black/20 p-2.5 text-[#faf3e5] backdrop-blur-sm transition-colors hover:bg-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059]"
+      >
+        <ChevronLeft size={22} />
+      </button>
+
+      <button
+        type="button"
+        onClick={goToNextSlide}
+        aria-label="Next about hero slide"
+        title="Next slide"
+        className="absolute right-4 md:right-8 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[#faf3e5]/40 bg-black/20 p-2.5 text-[#faf3e5] backdrop-blur-sm transition-colors hover:bg-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059]"
+      >
+        <ChevronRight size={22} />
+      </button>
+
+      <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+        {slides.map((slide, slideIndex) => (
+          <button
+            key={slide.key}
+            type="button"
+            onClick={() => goToSlide(slideIndex, slideIndex > index ? 1 : -1)}
+            aria-label={`Show ${slide.title} slide`}
+            aria-current={slideIndex === index ? 'true' : undefined}
+            title={slide.title}
+            className={`h-2.5 rounded-full border border-[#faf3e5]/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059] ${
+              slideIndex === index ? 'w-8 bg-[#C5A059]' : 'w-2.5 bg-[#faf3e5]/50 hover:bg-[#faf3e5]/80'
+            }`}
+          />
+        ))}
       </div>
 
     </section>
