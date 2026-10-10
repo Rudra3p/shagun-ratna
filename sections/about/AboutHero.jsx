@@ -136,8 +136,11 @@ export default function AboutHero() {
             aria-label={`Show ${slide.title} slide`}
             aria-current={slideIndex === index ? 'true' : undefined}
             title={slide.title}
-            className={`h-2.5 rounded-full border border-[#faf3e5]/80 shadow-[0_1px_8px_rgba(0,0,0,0.25)] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] ${
-              slideIndex === index ? 'w-8 bg-[#90060c]' : 'w-2.5 bg-[#90060c]/65 hover:bg-[#90060c]'
+            style={{
+              transform: `scale(${Math.max(0.4, 1 - Math.abs(slideIndex - index) * 0.2)})`,
+            }}
+            className={`h-2.5 w-2.5 rounded-full border border-[#faf3e5] shadow-[0_1px_8px_rgba(0,0,0,0.25)] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] ${
+              slideIndex === index ? 'bg-[#90060c]' : 'bg-[#faf3e5] hover:bg-[#90060c]/80'
             }`}
           />
         ))}
