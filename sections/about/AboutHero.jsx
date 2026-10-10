@@ -51,14 +51,14 @@ export default function AboutHero() {
   return (
     <section className="relative h-[60vh] md:h-[90vh] w-full overflow-hidden bg-[#90060c]">
       
-      {/* Image and content move together from left to right. */}
+      {/* Image and content move together from right to left. */}
       <div className="absolute inset-0 overflow-hidden">
         <AnimatePresence initial={false} mode="sync">
           <motion.div
             key={index}
-            initial={{ x: '-100%' }}
+            initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            exit={{ x: '-100%' }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0"
           >

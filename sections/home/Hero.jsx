@@ -156,14 +156,14 @@ export default function HeroSection() {
           <div className="absolute bottom-[10%] left-[15%] w-3 h-3 border-b border-l border-[#C5A059]/40 z-0 select-none pointer-events-none" />
           <div className="absolute bottom-[10%] right-[15%] w-3 h-3 border-b border-r border-[#C5A059]/40 z-0 select-none pointer-events-none" />
 
-          {/* The image carousel moves one slide at a time from left to right. */}
+          {/* The image carousel moves one slide at a time from right to left. */}
           <div className="absolute inset-0 z-10 overflow-hidden">
             <AnimatePresence initial={false} mode="sync">
               <motion.div
                 key={imageIndex}
-                initial={{ x: '-100%' }}
+                initial={{ x: '100%' }}
                 animate={{ x: 0 }}
-                exit={{ x: '100%' }}
+                exit={{ x: '-100%' }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute inset-0 flex items-center justify-center select-none pointer-events-none will-change-transform"
               >
