@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSiteImages } from '@/components/SiteImagesProvider';
 
 // Note: a former slide 1 (about-1.webp) showed storefront signage reading
@@ -40,7 +41,6 @@ const slides = [
 export default function AboutHero() {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
-  const pointerStartX = useRef(null);
   const siteImages = useSiteImages();
 
   const goToSlide = (nextIndex, nextDirection) => {
@@ -64,29 +64,9 @@ export default function AboutHero() {
     return () => clearInterval(timer);
   }, []);
 
-  const handlePointerStart = (event) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
-    pointerStartX.current = event.clientX;
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-  };
-
-  const handlePointerEnd = (event) => {
-    if (pointerStartX.current === null) return;
-
-    const swipeDistance = pointerStartX.current - event.clientX;
-    pointerStartX.current = null;
-
-    if (Math.abs(swipeDistance) < 50) return;
-    if (swipeDistance > 0) goToNextSlide();
-    else goToPreviousSlide();
-  };
-
   return (
     <section
-      className="relative h-[60vh] md:h-[90vh] w-full cursor-grab touch-pan-y overflow-hidden bg-[#90060c] active:cursor-grabbing"
-      onPointerDown={handlePointerStart}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={() => { pointerStartX.current = null; }}
+      className="relative h-[60vh] md:h-[90vh] w-full overflow-hidden bg-[#90060c]"
     >
       
       {/* Image and content move together from right to left. */}
@@ -127,6 +107,26 @@ export default function AboutHero() {
         </AnimatePresence>
       </div>
 
+      <button
+        type="button"
+        onClick={goToPreviousSlide}
+        aria-label="Previous about hero slide"
+        title="Previous slide"
+        className="absolute left-4 md:left-8 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[#faf3e5]/40 bg-black/20 p-2.5 text-[#faf3e5] backdrop-blur-sm transition-colors hover:bg-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059]"
+      >
+        <ChevronLeft size={22} />
+      </button>
+
+      <button
+        type="button"
+        onClick={goToNextSlide}
+        aria-label="Next about hero slide"
+        title="Next slide"
+        className="absolute right-4 md:right-8 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[#faf3e5]/40 bg-black/20 p-2.5 text-[#faf3e5] backdrop-blur-sm transition-colors hover:bg-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059]"
+      >
+        <ChevronRight size={22} />
+      </button>
+
       <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
         {slides.map((slide, slideIndex) => (
           <button
@@ -136,8 +136,8 @@ export default function AboutHero() {
             aria-label={`Show ${slide.title} slide`}
             aria-current={slideIndex === index ? 'true' : undefined}
             title={slide.title}
-            className={`h-2.5 rounded-full border border-[#faf3e5]/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A059] ${
-              slideIndex === index ? 'w-8 bg-[#C5A059]' : 'w-2.5 bg-[#faf3e5]/50 hover:bg-[#faf3e5]/80'
+            className={`h-2.5 rounded-full border border-[#faf3e5]/80 shadow-[0_1px_8px_rgba(0,0,0,0.25)] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] ${
+              slideIndex === index ? 'w-8 bg-[#90060c]' : 'w-2.5 bg-[#90060c]/65 hover:bg-[#90060c]'
             }`}
           />
         ))}
