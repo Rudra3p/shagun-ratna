@@ -135,7 +135,7 @@ const AdminSidebar = ({ collapsed = false }) => {
       {/* Sidebar Drawer (z-50: slides out from left to right OVER everything else) */}
       <aside className={`fixed top-0 bottom-0 left-0 w-65 bg-[#f1f4f9] flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 ${collapsed ? 'lg:-translate-x-full lg:pointer-events-none' : ''}`}>
+      } lg:translate-x-0 ${collapsed ? 'lg:hidden' : ''}`}>
 
         {/* Top Profile / Close Area */}
         <div className="p-6 pb-4 relative">
