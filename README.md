@@ -34,3 +34,15 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### Daily Google reviews sync
+
+The Vercel cron job at `/api/cron/google-reviews` imports up to 15 new Shagun Ratna reviews once per day. Configure these Vercel environment variables:
+
+```text
+OUTSCRAPER_API_KEY=your_outscraper_api_key
+GOOGLE_REVIEW_PLACE_ID=your_google_place_id_or_exact_maps_url
+CRON_SECRET=a_long_random_secret
+```
+
+`CRON_SECRET` must be configured in Vercel so scheduled requests are authenticated. Imported reviews are stored with a unique `sourceReviewId`, so running the job again does not create duplicates.

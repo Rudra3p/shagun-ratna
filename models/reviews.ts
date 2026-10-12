@@ -8,6 +8,7 @@ export const ReviewZodSchema = z.object({
   rating: z.coerce.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
   approved: z.boolean().optional().default(false),
   authorImage: z.string().url().optional().or(z.literal("")),
+  sourceReviewId: z.string().optional(),
 });
 
 const reviewSchema = new Schema(
@@ -19,6 +20,7 @@ const reviewSchema = new Schema(
     rating: { type: Number, required: true, min: 1, max: 5 },
     approved: { type: Boolean, default: false },
     featured: { type: Boolean, default: false }, // shown in the homepage Testimonials section
+    sourceReviewId: { type: String, trim: true, sparse: true, unique: true },
     // The reviewer's photo, uploaded through the admin panel. This is what fills the
     // avatar circle — it used to hold a product shot, which read as if the jewellery
     // were the person who left the review. Blank falls back to their initials.

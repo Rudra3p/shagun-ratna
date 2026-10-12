@@ -2,10 +2,15 @@
 import AdminSidebar from "@/components/adminSidebar";
 import AdminLogin from "@/app/admin/login/page";
 import { usePathname } from 'next/navigation';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useState } from 'react';
 
 export default function AdminLayoutWrapper({ children }) {
   const pathname = usePathname();
   const isAdminLogin = pathname === '/admin/login';
+  const isWideLayoutPage = pathname === '/admin/home-page' || pathname === '/admin/about-page';
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const shouldCollapseSidebar = isWideLayoutPage && isSidebarCollapsed;
 
   // 1. If at login page, render only the login component
   if (isAdminLogin) {
@@ -15,14 +20,21 @@ export default function AdminLayoutWrapper({ children }) {
   // 2. Otherwise, render the Sidebar and the Content area
   return (
     <div className="flex min-h-screen bg-gray-50/50">
-      <AdminSidebar />      
-      
-      {/* CHANGES MADE HERE:
-        - Removed hardcoded `ml-64`.
-        - Added `pt-20` to give space for the fixed mobile header.
-        - Added `lg:pt-8` and `lg:ml-64` so it switches beautifully on desktop layout.
-      */}
-      <main className="flex-grow pt-20 pb-8 px-4 sm:px-6 lg:ml-64 lg:pt-8 lg:p-8 transition-all duration-300 w-full">
+      <AdminSidebar collapsed={shouldCollapseSidebar} />
+
+      {isWideLayoutPage && (
+        <button
+          type="button"
+          onClick={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
+          className="hidden lg:inline-flex fixed top-6 right-8 z-40 h-10 w-10 items-center justify-center rounded-md bg-black/70 text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          aria-label={shouldCollapseSidebar ? 'Show admin sidebar' : 'Hide admin sidebar'}
+          title={shouldCollapseSidebar ? 'Show admin sidebar' : 'Hide admin sidebar'}
+        >
+          {shouldCollapseSidebar ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+        </button>
+      )}
+
+      <main className={`grow pt-20 pb-8 px-4 sm:px-6 lg:pt-8 lg:p-8 transition-[margin] duration-300 w-full ${shouldCollapseSidebar ? 'lg:ml-0' : 'lg:ml-65'}`}>
         <div className="max-w-7xl mx-auto">
           {children}
         </div>

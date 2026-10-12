@@ -98,7 +98,7 @@ export default function HeroSection() {
           <motion.p 
             variants={childVariants} 
             className="font-brand text-lg sm:text-xl md:text-2xl text-[#C5A059] tracking-[0.15em] leading-relaxed mb-8 lg:mb-10 max-w-lg italic font-light"
-          >
+         >
             Defining the art of subtlety through timeless, handcrafted elegance.
           </motion.p>
 
