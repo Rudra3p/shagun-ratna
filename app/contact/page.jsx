@@ -7,7 +7,6 @@ import {
   Phone, 
   Mail, 
   Clock, 
-  Sparkles,
   Send,
   CheckCircle2
 } from 'lucide-react';
@@ -77,18 +76,6 @@ const itemVariants = {
   }
 };
 
-// Preset options for the "Jewelry Interest" select — kept as a plain array (rather than
-// hardcoded <option> tags) so a specific piece name arriving via ?product= can be injected
-// as a real, properly-selected option instead of silently failing to match any of these.
-const INTEREST_OPTIONS = [
-  'General Inquiry',
-  'Bridal & Wedding Sets',
-  'Gold Heirlooms & Necklaces',
-  'Solitaire Diamonds & Rings',
-  'Astrological & Rashi Gems',
-  'Bespoke Commission Design',
-];
-
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
@@ -97,23 +84,15 @@ export default function Contact() {
     customizationNotes: '',
     companyWebsite: '' // honeypot — real visitors never see or fill this field
   });
-  const [customInterest, setCustomInterest] = useState(null); // a specific piece name that isn't one of INTEREST_OPTIONS
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Pre-fill from a product/collection card's "Enquire about this piece" or "Inquire About
-  // This Piece" link (?product=...). The piece's exact name rarely matches one of the preset
-  // INTEREST_OPTIONS, so it's injected as its own selected option rather than silently
-  // leaving the <select> pointed at a value with no matching option.
+  // Pre-fill from a product/collection card's "Enquire about this piece" link (?product=).
   useEffect(() => {
     const productParam = new URLSearchParams(window.location.search).get('product');
     if (productParam) {
       setFormData((prev) => ({ ...prev, productName: productParam }));
-      if (!INTEREST_OPTIONS.includes(productParam)) {
-        setCustomInterest(productParam);
-      }
     }
   }, []);
 
@@ -189,19 +168,9 @@ export default function Contact() {
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="text-center max-w-2xl mx-auto mb-16"
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <span className="font-sans text-[10px] tracking-[0.4em] uppercase text-[#C5A059] font-bold">
-              EST. 1980
-            </span>
-            <div className="h-[1px] w-8 bg-[#90060c]/30" />
-            <Sparkles size={12} className="text-[#C5A059] animate-pulse" />
-          </div>
-          <h1 className="font-brand text-4xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] uppercase font-light leading-tight mb-4">
-            Contact Our <span className="text-[#90060c] font-normal">Concierge</span>
+          <h1 className="font-brand text-4xl md:text-5xl text-[#90060c] tracking-[0.15em] uppercase font-light leading-tight">
+            Contact Us
           </h1>
-          <p className="font-brand text-md md:text-lg text-[#C5A059] tracking-[0.1em] italic font-light">
-            Schedule a private boutique viewing or coordinate a bespoke commission.
-          </p>
         </motion.div>
 
         {/* Page Divider */}
@@ -266,10 +235,10 @@ export default function Contact() {
                   <div>
                     <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Client Services</h4>
                     <p className="leading-relaxed">
-                      <a href="mailto:concierge@shagunratna.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">concierge@shagunratna.com</a>
+                      <a href="mailto:shagunratna88@yahoo.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">shagunratna88@yahoo.com</a>
                     </p>
                     <p className="leading-relaxed">
-                      <a href="mailto:info@shagunratna.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">info@shagunratna.com</a>
+                      <a href="mailto:digwa.gurjot@gmail.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">digwa.gurjot@gmail.com</a>
                     </p>
                   </div>
                 </div>
@@ -294,7 +263,7 @@ export default function Contact() {
                 </h4>
                 <div className="flex gap-4">
                   <a 
-                    href="https://instagram.com" 
+                    href="https://www.instagram.com/shagunratnagemsjewellers/?hl=en" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
@@ -303,7 +272,7 @@ export default function Contact() {
                     <InstagramIcon size={18} />
                   </a>
                   <a 
-                    href="https://facebook.com" 
+                    href="https://www.facebook.com/SHAGUNRATNA/" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
@@ -430,25 +399,21 @@ export default function Contact() {
                       </div>
                     </div>
 
-                    {/* Inquiry Interest Dropdown */}
+                    {/* Open-ended jewelry interest */}
                     <div className="space-y-2">
                       <label htmlFor="productName" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
                         Jewelry Interest *
                       </label>
-                      <select 
+                      <input
+                        type="text"
                         id="productName"
                         name="productName"
                         value={formData.productName}
                         onChange={handleChange}
-                        className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans cursor-pointer"
-                      >
-                        {customInterest && (
-                          <option value={customInterest}>{customInterest}</option>
-                        )}
-                        {INTEREST_OPTIONS.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
+                        placeholder="Gold, diamond, gemstone, or a custom piece"
+                        required
+                        className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400"
+                      />
                     </div>
 
                     {/* Customization Notes / Message */}
@@ -489,26 +454,53 @@ export default function Contact() {
 
         </motion.div>
 
-        {/* Map — full width so it doesn't get squeezed into one column and leave a dead gap beside it */}
+        {/* Branch maps stack on mobile and sit side by side on desktop. */}
         <motion.div variants={itemVariants} initial="hidden" animate="visible" className="mt-10">
           <div className="flex items-center gap-3 mb-5">
             <h3 className="font-sans text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059]">
-              Find Our Boutique
+              Find Our Boutiques
             </h3>
             <div className="h-[1px] flex-1 bg-[#C5A059]/20" />
           </div>
-          <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FDFBF7]">
-            <iframe
-              src="https://www.google.com/maps?q=Shagunratna+Gems+%26+Jewellers,+23.0245069,+72.5288626&z=17&output=embed"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="contrast-110 opacity-90 group-hover:opacity-100 transition-all duration-700"
-            />
-            <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FDFBF7] rounded-2xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-brand text-xl tracking-[0.1em] text-[#90060c] uppercase font-light mb-3">
+                Satellite Boutique
+              </h4>
+              <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FDFBF7]">
+                <iframe
+                  src="https://www.google.com/maps?q=Shagunratna+Gems+%26+Jewellers,+23.0245069,+72.5288626&z=17&output=embed"
+                  title="Shagun Ratna Satellite boutique map"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="contrast-110 opacity-90 group-hover:opacity-100 transition-all duration-700"
+                />
+                <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FDFBF7] rounded-2xl" />
+              </div>
+            </div>
+            <div>
+              <h4 className="font-brand text-xl tracking-[0.1em] text-[#90060c] uppercase font-light mb-3">
+                Manek Chowk Boutique
+              </h4>
+              <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FDFBF7]">
+                <iframe
+                  src="https://www.google.com/maps?q=Shagun+Ratna,+Shop+No.+16,+Chanlla+Oll,+Manek+Chowk+Road,+Old+City,+Danapidth,+Khadia,+Ahmedabad,+Gujarat+380001&z=17&output=embed"
+                  title="Shagun Ratna Manek Chowk boutique map"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="contrast-110 opacity-90 group-hover:opacity-100 transition-all duration-700"
+                />
+                <div className="absolute inset-0 pointer-events-none border-[6px] border-[#FDFBF7] rounded-2xl" />
+              </div>
+            </div>
           </div>
         </motion.div>
 

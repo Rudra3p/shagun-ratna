@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { ApifyClient } from "apify-client";
 import Review from "@/models/reviews";
 import { s3Client } from "@/lib/r2";
 
 const DAILY_REVIEW_LIMIT = 15;
-const OUTSCRAPER_URL = "https://api.app.outscraper.com/maps/reviews-v3";
+const DEFAULT_APIFY_ACTOR = "compass/google-maps-reviews-scraper";
+const GOOGLE_REVIEW_LOCATION = "Shagunratna Gems & Jewellers, Satellite, Ahmedabad, India";
 
 type OutscraperReview = Record<string, unknown>;
 
@@ -20,6 +22,26 @@ function numberValue(...values: unknown[]): number {
   return 0;
 }
 
+function dateValue(...values: unknown[]): Date | undefined {
+  for (const value of values) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+    if (typeof value !== "string" && typeof value !== "number") continue;
+
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+
+  return undefined;
+}
+
+function normalizeForComparison(value: string): string {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function collectReviews(value: unknown, reviews: OutscraperReview[] = []): OutscraperReview[] {
   if (Array.isArray(value)) {
     value.forEach((item) => collectReviews(item, reviews));
@@ -28,7 +50,10 @@ function collectReviews(value: unknown, reviews: OutscraperReview[] = []): Outsc
 
   if (value && typeof value === "object") {
     const record = value as OutscraperReview;
-    const hasReviewFields = ["review_text", "review_rating", "review_id", "review_link"].some((key) => key in record);
+    const hasReviewFields = [
+      "review_text", "review_rating", "review_id", "review_link",
+      "reviewText", "rating", "reviewId", "reviewerName",
+    ].some((key) => key in record);
     if (hasReviewFields) reviews.push(record);
 
     Object.values(record).forEach((item) => {
@@ -40,11 +65,29 @@ function collectReviews(value: unknown, reviews: OutscraperReview[] = []): Outsc
 }
 
 function normalizeReview(review: OutscraperReview, placeId: string) {
-  const name = stringValue(review.author_title, review.author_name, review.reviewer_name, review.name);
-  const text = stringValue(review.review_text, review.text, review.content);
-  const rating = numberValue(review.review_rating, review.rating, review.stars);
-  const authorImage = stringValue(review.author_image, review.author_photo, review.profile_photo);
-  const externalId = stringValue(review.review_id, review.review_link, review.google_id);
+  const name = stringValue(
+    review.reviewerName,
+    review.reviewer_name,
+    review.author_title,
+    review.author_name,
+    review.name,
+  );
+  const text = stringValue(review.reviewText, review.review_text, review.text, review.content);
+  const rating = numberValue(review.stars, review.review_rating, review.rating);
+  const authorImage = stringValue(
+    review.reviewerPhotoUrl,
+    review.author_image,
+    review.author_photo,
+    review.profile_photo,
+  );
+  const reviewUrl = stringValue(review.reviewUrl, review.review_link);
+  const externalId = stringValue(review.reviewId, review.review_id, review.google_id, reviewUrl);
+  const reviewDate = dateValue(
+    review.publishedAtDate,
+    review.publishedAt,
+    review.reviewDate,
+    review.review_date,
+  );
 
   if (!name || !text || rating < 1 || rating > 5) return null;
 
@@ -59,6 +102,8 @@ function normalizeReview(review: OutscraperReview, placeId: string) {
     text,
     rating,
     authorImage,
+    reviewDate,
+    reviewUrl,
     approved: true,
     featured: false,
   };
@@ -108,28 +153,25 @@ async function removeExistingExactDuplicates() {
 }
 
 export async function syncGoogleReviews() {
-  const apiKey = process.env.OUTSCRAPER_API_KEY;
+  const apiKey = process.env.APIFY_API_KEY;
   const placeId = process.env.GOOGLE_REVIEW_PLACE_ID;
 
   if (!apiKey || !placeId) {
-    throw new Error("OUTSCRAPER_API_KEY and GOOGLE_REVIEW_PLACE_ID must be configured");
+    throw new Error("APIFY_API_KEY and GOOGLE_REVIEW_PLACE_ID must be configured");
   }
 
-  const params = new URLSearchParams({
-    query: placeId,
-    reviewsLimit: String(DAILY_REVIEW_LIMIT),
-  });
-  const response = await fetch(`${OUTSCRAPER_URL}?${params}`, {
-    headers: { "X-API-KEY": apiKey },
-    cache: "no-store",
+  const client = new ApifyClient({ token: apiKey });
+  const actorId = process.env.APIFY_GOOGLE_REVIEWS_ACTOR || DEFAULT_APIFY_ACTOR;
+  const placeUrl = process.env.GOOGLE_REVIEW_PLACE_URL ||
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_REVIEW_LOCATION)}&query_place_id=${encodeURIComponent(placeId)}`;
+  const run = await client.actor(actorId).call({
+    startUrls: [{ url: placeUrl }],
+    reviewsCount: DAILY_REVIEW_LIMIT,
+    reviewsSort: "newest",
   });
 
-  if (!response.ok) {
-    throw new Error(`Outscraper request failed with status ${response.status}`);
-  }
-
-  const payload = await response.json();
-  const reviews = collectReviews(payload)
+  const dataset = await client.dataset(run.defaultDatasetId).listItems();
+  const reviews = collectReviews(dataset.items)
     .map((review) => normalizeReview(review, placeId))
     .filter((review): review is NonNullable<typeof review> => review !== null)
     .slice(0, DAILY_REVIEW_LIMIT);
@@ -138,7 +180,17 @@ export async function syncGoogleReviews() {
   const uniqueReviews = [];
 
   for (const review of reviews) {
-    const alreadyExists = await Review.exists({ name: review.name, text: review.text });
+    const namePattern = new RegExp(`^${escapeRegex(review.name)}$`, "i");
+    const sameNameReviews = await Review.find({ name: namePattern }).select("sourceReviewId text").lean();
+
+    // Verification step 1: a new author can be inserted immediately.
+    // Verification step 2: for an existing author, only a genuinely new review
+    // may be inserted. This handles repeat reviewers without duplicating a daily run.
+    const normalizedText = normalizeForComparison(review.text);
+    const alreadyExists = sameNameReviews.some((existing) =>
+      existing.sourceReviewId === review.sourceReviewId ||
+      normalizeForComparison(existing.text) === normalizedText
+    );
     if (alreadyExists) continue;
 
     const authorImage = await uploadAuthorImage(review.authorImage, review.sourceReviewId);

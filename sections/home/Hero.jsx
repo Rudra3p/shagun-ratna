@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
-import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
@@ -26,8 +26,6 @@ const childVariants = {
 };
 
 export default function HeroSection() {
-  const containerRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const siteImages = useSiteImages();
   const heroSlides = [
@@ -46,26 +44,8 @@ export default function HeroSection() {
     return () => clearInterval(timer);
   }, [heroSlides.length]);
 
-  // Check window width to adjust parallax intensity safely
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Hook into scroll position relative to this container
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-
-  // Safe Parallax: 0px offset on mobile to prevent overflow; up to 150px on desktop
-  const yOffset = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 0 : 150]);
-
   return (
     <section 
-      ref={containerRef} 
       className="min-h-screen w-full flex items-center bg-[#FDFBF7] relative overflow-hidden px-6 md:px-16 lg:px-24 pt-32 pb-24 lg:py-16 antialiased"
     >
       {/* Background elegant dotted matrix */}
@@ -130,7 +110,6 @@ export default function HeroSection() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-          style={{ y: yOffset, willChange: 'transform' }}
           className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 h-[350px] sm:h-[450px] lg:h-[550px]"
         >
           {/* Gold aura background glow */}

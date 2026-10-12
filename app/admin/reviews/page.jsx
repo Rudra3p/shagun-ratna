@@ -1,14 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Star, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, Plus, X, Camera, ExternalLink } from 'lucide-react';
+import { Star, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, Camera, ExternalLink } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
 import { GOOGLE_REVIEW_URL } from '@/lib/googleReview';
-
-// "Google Review" is the default label because these are normally copied across from
-// the client's Google listing — it shows as the small line under the reviewer's name.
-const EMPTY_FORM = { name: '', product: 'Google Review', rating: 5, text: '', authorImage: '' };
 
 const RATING_OPTIONS = [
   { value: 'all', label: 'All Ratings' },
@@ -32,10 +28,6 @@ export default function ReviewsView() {
   const [deletingId, setDeletingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [uploading, setUploading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
-  const [photoUploading, setPhotoUploading] = useState(false);
   const [photoBusyId, setPhotoBusyId] = useState(null);
   const [ratingFilter, setRatingFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
@@ -92,24 +84,6 @@ export default function ReviewsView() {
     return data.publicUrl;
   };
 
-  // Photo picked while filling in the new-review form — nothing is saved yet.
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    e.target.value = '';
-    if (!file) return;
-
-    setPhotoUploading(true);
-    try {
-      const publicUrl = await uploadPhoto(file);
-      setForm((prev) => ({ ...prev, authorImage: publicUrl }));
-    } catch (err) {
-      console.error("Reviewer photo upload failed:", err);
-      showToast('error', 'Photo upload failed. Please try again.');
-    } finally {
-      setPhotoUploading(false);
-    }
-  };
-
   // Photo set or replaced on a review that already exists — saved immediately.
   const handleCardPhoto = async (reviewId, e) => {
     const file = e.target.files[0];
@@ -130,23 +104,6 @@ export default function ReviewsView() {
       showToast('error', 'Photo update failed. Please try again.');
     } finally {
       setPhotoBusyId(null);
-    }
-  };
-
-  const handleSaveReview = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await adminApi.post('/reviews', form);
-      setForm(EMPTY_FORM);
-      setShowForm(false);
-      await fetchReviews();
-      showToast('success', 'Review added. Tick "Show on Homepage" to feature it.');
-    } catch (err) {
-      console.error("Failed to save review:", err);
-      showToast('error', err?.response?.data?.error || 'Could not save the review.');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -266,8 +223,7 @@ export default function ReviewsView() {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-primary">Customer Feedback</h3>
           <div className="flex items-center gap-3">
-          {/* Reviews are copied across by hand, so the listing is the first stop of
-              that job — not worth hunting for a tab every time. */}
+            {/* Keep the source listing available for visitors who want to verify the reviews. */}
           <a
             href={GOOGLE_REVIEW_URL}
             target="_blank"
@@ -279,13 +235,6 @@ export default function ReviewsView() {
             Open Google Listing
           </a>
           <button
-            onClick={() => setShowForm((open) => !open)}
-            className="flex items-center gap-2 px-4 py-2 border border-outline-variant text-secondary rounded-lg font-semibold text-sm hover:bg-primary-fixed hover:text-primary transition-colors"
-          >
-            {showForm ? <X size={18} /> : <Plus size={18} />}
-            {showForm ? 'Cancel' : 'Add Review'}
-          </button>
-          <button
             onClick={handleUploadToWeb}
             disabled={uploading}
             className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg font-semibold text-sm hover:bg-primary-fixed transition-colors disabled:opacity-60"
@@ -295,115 +244,6 @@ export default function ReviewsView() {
           </button>
           </div>
         </div>
-
-        {showForm && (
-          <form
-            onSubmit={handleSaveReview}
-            className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/30 mb-6"
-          >
-            <h4 className="font-bold text-primary">Add a review by hand</h4>
-            <p className="text-xs text-secondary mt-1 mb-6">
-              Open the Google listing, then copy a review across — name, stars, words, and a
-              screenshot of the reviewer&apos;s photo. It goes live on the reviews page straight away.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-6">
-              {/* Photo — this is the avatar circle visitors will see */}
-              <div className="flex flex-col items-center gap-2 shrink-0">
-                <ReviewerAvatar src={form.authorImage} name={form.name} size={72} />
-                <label className="flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary cursor-pointer transition-colors">
-                  {photoUploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                  {form.authorImage ? 'Change' : 'Add photo'}
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={photoUploading} />
-                </label>
-                <p className="text-[10px] text-secondary/70 text-center max-w-[110px] leading-tight">
-                  Optional — initials are used instead
-                </p>
-              </div>
-
-              <div className="flex-1 flex flex-col gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="review-name" className="block text-xs font-semibold text-secondary mb-1.5">Reviewer name</label>
-                    <input
-                      id="review-name"
-                      type="text"
-                      required
-                      minLength={2}
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      placeholder="Priya Sharma"
-                      className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="review-product" className="block text-xs font-semibold text-secondary mb-1.5">Label under the name</label>
-                    <input
-                      id="review-product"
-                      type="text"
-                      required
-                      minLength={2}
-                      value={form.product}
-                      onChange={(e) => setForm({ ...form, product: e.target.value })}
-                      placeholder="Google Review"
-                      className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <span className="block text-xs font-semibold text-secondary mb-1.5">Rating</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setForm({ ...form, rating: value })}
-                        aria-label={`${value} star${value === 1 ? '' : 's'}`}
-                        aria-pressed={form.rating === value}
-                        className="p-1 rounded hover:scale-110 transition-transform"
-                      >
-                        <Star size={22} className={value <= form.rating ? "fill-[#C5A059] text-[#C5A059]" : "text-outline-variant"} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="review-text" className="block text-xs font-semibold text-secondary mb-1.5">What they wrote</label>
-                  <textarea
-                    id="review-text"
-                    rows={4}
-                    required
-                    minLength={5}
-                    value={form.text}
-                    onChange={(e) => setForm({ ...form, text: e.target.value })}
-                    placeholder="Paste the review exactly as it appears on Google…"
-                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm leading-6 text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="submit"
-                    disabled={saving || photoUploading}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
-                  >
-                    {saving ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
-                    Save Review
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setForm(EMPTY_FORM); setShowForm(false); }}
-                    className="text-sm font-semibold text-secondary hover:text-primary transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-        )}
 
         {loading ? (
           <p className="text-sm text-on-surface-variant">Loading reviews...</p>

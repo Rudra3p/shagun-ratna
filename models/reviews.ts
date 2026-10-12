@@ -25,6 +25,8 @@ const reviewSchema = new Schema(
     // avatar circle — it used to hold a product shot, which read as if the jewellery
     // were the person who left the review. Blank falls back to their initials.
     authorImage: { type: String, trim: true },
+    reviewDate: { type: Date },
+    reviewUrl: { type: String, trim: true },
   },
   { timestamps: true }
 );

@@ -12,6 +12,7 @@ const collections = [
     tag: "The Collection",
     title: "Certified Diamonds",
     text: "Unrivaled brilliance, ethically sourced. Each stone is hand-selected for its fire and clarity, ensuring your piece is as unique as the moments it celebrates.",
+    searchTerm: "Diamond",
     imageKey: "home-featured-diamond",
     image: "/diamond-section.webp"
   },
@@ -19,6 +20,7 @@ const collections = [
     tag: "The Collection",
     title: "Rare Gemstones",
     text: "Stones that tell a story of origin. From deep emeralds to vibrant rubies, we curate rare treasures that bring color and life to traditional silhouettes.",
+    searchTerm: "Gemstone",
     imageKey: "home-featured-gemstone",
     image: "/gemstone-section.webp"
   },
@@ -26,6 +28,7 @@ const collections = [
     tag: "The Collection",
     title: "Gold Artistry",
     text: "Tradition captured in 22K gold. Our master artisans breathe soul into metal, creating timeless pieces that carry the legacy of generations forward.",
+    searchTerm: "Gold",
     imageKey: "home-featured-gold",
     image: "/gold-section.webp"
   }
@@ -144,7 +147,7 @@ export default function FeaturedCollections() {
               {product ? (
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                   <Link
-                    href={`/collection/${product._id}`}
+                    href={`/collection?search=${encodeURIComponent(defaultItem.searchTerm)}`}
                     className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
                   >
                     <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
@@ -158,7 +161,7 @@ export default function FeaturedCollections() {
                   </Link>
                 </div>
               ) : (
-                <Link href="/collection" className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
+                <Link href={`/collection?search=${encodeURIComponent(defaultItem.searchTerm)}`} className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
                   <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
                   <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
                 </Link>
