@@ -3,13 +3,69 @@ import dbConnect from "@/db/db";
 import MetalRate from "@/models/metalRate";
 import Product from "@/models/product";
 
+const DEFAULT_RATES = {
+  goldRatePerGram: 7850,
+  silverRatePerGram: 95,
+  platinumRatePerGram: 3200,
+} as const;
+
+const IBJA_API_BASE_URL = "https://ibja-api.vercel.app";
+
+type RateDocument = {
+  singleton: string;
+  goldRatePerGram: number;
+  silverRatePerGram: number;
+  platinumRatePerGram: number;
+  source?: string;
+  updatedBy?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+type JsonObject = Record<string, unknown>;
+
+function asObject(value: unknown): JsonObject | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as JsonObject
+    : null;
+}
+
+function asPositiveNumber(value: unknown): number | null {
+  if (typeof value !== "string" && typeof value !== "number") return null;
+
+  const numberValue = Number(String(value).replace(/[,₹\s]/g, ""));
+  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : null;
+}
+
 // Always resolves to the single rate document, creating it on first use so the
 // admin screen has something to edit rather than erroring on an empty database.
 export const readRates = async () => {
   await dbConnect();
   const existing = await MetalRate.findOne({ singleton: 'current' }).lean();
-  if (existing) return existing;
-  const created = await MetalRate.create({ singleton: 'current', goldRatePerGram: 0, silverRatePerGram: 0, platinumRatePerGram: 0 });
+  if (existing) {
+    const repairs = {
+      ...(existing.goldRatePerGram > 0 ? {} : { goldRatePerGram: DEFAULT_RATES.goldRatePerGram }),
+      ...(existing.silverRatePerGram > 0 ? {} : { silverRatePerGram: DEFAULT_RATES.silverRatePerGram }),
+      ...(existing.platinumRatePerGram > 0 ? {} : { platinumRatePerGram: DEFAULT_RATES.platinumRatePerGram }),
+    };
+
+    if (Object.keys(repairs).length === 0) return existing;
+
+    const repaired = await MetalRate.findOneAndUpdate(
+      { singleton: 'current' },
+      repairs,
+      { new: true, runValidators: true }
+    ).lean();
+
+    return repaired || { ...existing, ...repairs };
+  }
+
+  const created = await MetalRate.create({
+    singleton: 'current',
+    ...DEFAULT_RATES,
+    source: 'Safe Fallback',
+    updatedBy: 'System',
+  });
   return created.toObject();
 };
 
@@ -52,7 +108,13 @@ export const updateMetalRates = async (req: Request): Promise<NextResponse> => {
 
     const rates = await MetalRate.findOneAndUpdate(
       { singleton: 'current' },
-      { goldRatePerGram: gold, silverRatePerGram: silver, platinumRatePerGram: platinum },
+      {
+        goldRatePerGram: gold,
+        silverRatePerGram: silver,
+        platinumRatePerGram: platinum,
+        source: 'Admin Dashboard',
+        updatedBy: 'Admin Dashboard',
+      },
       { new: true, upsert: true, runValidators: true }
     ).lean();
 
@@ -65,60 +127,46 @@ export const updateMetalRates = async (req: Request): Promise<NextResponse> => {
   }
 };
 
-const GOLD_API_METALS = [
-  { symbol: 'XAU', field: 'goldRatePerGram' },
-  { symbol: 'XAG', field: 'silverRatePerGram' },
-  { symbol: 'XPT', field: 'platinumRatePerGram' },
-] as const;
-const GRAMS_PER_TROY_OUNCE = 31.1034768;
-// Calibrated against the current IBJA bullion benchmark. This is not an
-// official IBJA feed, so the live market difference can still vary by day.
-const INDIA_BULLION_ADJUSTMENT = 1.15;
+export async function updateMetalRatesFromApi(): Promise<RateDocument> {
+  const fetchJson = async (path: string): Promise<JsonObject> => {
+    const response = await fetch(`${IBJA_API_BASE_URL}${path}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`IBJA ${path} request failed (${response.status})`);
 
-async function usdToInrRate(): Promise<number> {
-  const endpoint = process.env.CURRUNCY_API_KEY?.replace(/\/$/, '');
-  if (!endpoint) throw new Error('CURRUNCY_API_KEY is not configured');
+    const payload = asObject(await response.json());
+    if (!payload) throw new Error(`IBJA ${path} returned an invalid JSON object`);
+    return payload;
+  };
 
-  const response = await fetch(`${endpoint}/pair/USD/INR`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Currency API request failed (${response.status})`);
+  const [goldPayload, silverPayload, platinumPayload] = await Promise.all([
+    fetchJson('/latest'),
+    fetchJson('/silver/latest'),
+    fetchJson('/platinum/latest'),
+  ]);
 
-  const payload = await response.json() as { result?: string; conversion_rate?: number };
-  const conversionRate = Number(payload.conversion_rate);
-  if (payload.result !== 'success' || !Number.isFinite(conversionRate) || conversionRate <= 0) {
-    throw new Error('Currency API returned no usable USD to INR rate');
+  const goldPerTenGrams = asPositiveNumber(goldPayload.lblGold999_PM)
+    ?? asPositiveNumber(goldPayload.lblGold999_AM);
+  const silverPerKilogram = asPositiveNumber(silverPayload.lblSilver999_PM)
+    ?? asPositiveNumber(silverPayload.lblSilver999_AM);
+  const platinumPerGram = asPositiveNumber(platinumPayload.lblPlatinum999_PM)
+    ?? asPositiveNumber(platinumPayload.lblPlatinum999_AM);
+
+  if (goldPerTenGrams === null || silverPerKilogram === null || platinumPerGram === null) {
+    throw new Error('IBJA responses did not contain valid AM/PM metal rates');
   }
 
-  return conversionRate;
-}
+  const rates = {
+    goldRatePerGram: goldPerTenGrams / 10,
+    silverRatePerGram: silverPerKilogram / 1000,
+    platinumRatePerGram: platinumPerGram / 10,
+  };
 
-function ratePerGram(payload: Record<string, unknown>): number {
-  const direct = Number(payload.price_gram_24k);
-  if (Number.isFinite(direct) && direct > 0) return direct;
-
-  const price = Number(payload.price);
-  if (Number.isFinite(price) && price > 0) return price / GRAMS_PER_TROY_OUNCE;
-
-  throw new Error('GoldAPI returned no usable price');
-}
-
-export async function updateMetalRatesFromApi() {
-  const conversionRate = await usdToInrRate();
-  const results = await Promise.all(GOLD_API_METALS.map(async ({ symbol, field }) => {
-      const response = await fetch(`https://api.gold-api.com/price/${symbol}/USD`, {
-        cache: 'no-store',
-      });
-
-      if (!response.ok) throw new Error(`Gold API ${symbol} request failed (${response.status})`);
-      const payload = await response.json() as Record<string, unknown>;
-      const convertedRate = ratePerGram(payload) * conversionRate;
-      return [field, convertedRate * INDIA_BULLION_ADJUSTMENT] as const;
-  }));
-
-  const rates = Object.fromEntries(results);
   await dbConnect();
-  return MetalRate.findOneAndUpdate(
+  const updated = await MetalRate.findOneAndUpdate(
     { singleton: 'current' },
-    { ...rates, source: 'goldapi', updatedBy: 'daily-cron' },
+    { ...rates, source: 'IBJA-Automated', updatedBy: 'Cron Job', updatedAt: new Date() },
     { new: true, upsert: true, runValidators: true }
   ).lean();
+
+  if (!updated) throw new Error('IBJA rates could not be saved');
+  return updated as RateDocument;
 }

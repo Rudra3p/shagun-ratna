@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import { getMetalRates } from "@/controllers/metalRateController";
+import { getMetalRates, updateMetalRates } from "@/controllers/metalRateController";
 
 export async function GET(): Promise<NextResponse> {
   return getMetalRates();
 }
 
-export async function PUT(): Promise<NextResponse> {
-  return NextResponse.json(
-    { success: false, error: "Metal rates are updated automatically by the daily feed." },
-    { status: 405 }
-  );
+export async function PUT(request: Request): Promise<NextResponse> {
+  return updateMetalRates(request);
 }

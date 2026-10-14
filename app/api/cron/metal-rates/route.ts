@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateMetalRatesFromApi } from "@/controllers/metalRateController";
+import { readRates, updateMetalRatesFromApi } from "@/controllers/metalRateController";
 
 export const runtime = "nodejs";
 
@@ -18,6 +18,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, rates });
   } catch (error) {
     console.error("Metal rate cron failed:", error);
-    return NextResponse.json({ success: false, error: "Failed to update metal rates" }, { status: 500 });
+
+    try {
+      const currentRate = await readRates();
+      return NextResponse.json({ success: false, fallbackUsed: true, currentRate }, { status: 200 });
+    } catch (fallbackError) {
+      console.error("Metal rate fallback read failed:", fallbackError);
+      return NextResponse.json(
+        { success: false, fallbackUsed: true, currentRate: null },
+        { status: 200 }
+      );
+    }
   }
 }

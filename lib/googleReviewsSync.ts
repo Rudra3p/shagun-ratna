@@ -154,25 +154,28 @@ async function removeExistingExactDuplicates() {
 
 export async function syncGoogleReviews() {
   const apiKey = process.env.APIFY_API_KEY;
-  const placeId = process.env.GOOGLE_REVIEW_PLACE_ID;
+  const placeId = process.env.GOOGLE_REVIEW_PLACE_ID?.trim();
 
-  if (!apiKey || !placeId) {
-    throw new Error("APIFY_API_KEY and GOOGLE_REVIEW_PLACE_ID must be configured");
+  if (!apiKey) {
+    throw new Error("APIFY_API_KEY must be configured");
   }
 
   const client = new ApifyClient({ token: apiKey });
   const actorId = process.env.APIFY_GOOGLE_REVIEWS_ACTOR || DEFAULT_APIFY_ACTOR;
-  const placeUrl = process.env.GOOGLE_REVIEW_PLACE_URL ||
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_REVIEW_LOCATION)}&query_place_id=${encodeURIComponent(placeId)}`;
+  const placeUrl = process.env.GOOGLE_REVIEW_PLACE_URL || (placeId
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_REVIEW_LOCATION)}&query_place_id=${encodeURIComponent(placeId)}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_REVIEW_LOCATION)}`);
+  const comparisonKey = placeId || GOOGLE_REVIEW_LOCATION;
   const run = await client.actor(actorId).call({
     startUrls: [{ url: placeUrl }],
-    reviewsCount: DAILY_REVIEW_LIMIT,
+    maxReviews: DAILY_REVIEW_LIMIT,
     reviewsSort: "newest",
+    reviewsOrigin: "google",
   });
 
   const dataset = await client.dataset(run.defaultDatasetId).listItems();
   const reviews = collectReviews(dataset.items)
-    .map((review) => normalizeReview(review, placeId))
+    .map((review) => normalizeReview(review, comparisonKey))
     .filter((review): review is NonNullable<typeof review> => review !== null)
     .slice(0, DAILY_REVIEW_LIMIT);
 
