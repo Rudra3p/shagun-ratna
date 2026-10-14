@@ -151,7 +151,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] relative overflow-hidden pt-28 pb-20 px-6 md:px-12 lg:px-24">
+    <div className="min-h-screen bg-[#FDFBF7] relative overflow-hidden pt-24 md:pt-28 pb-20 px-6 md:px-12 lg:px-24">
       {/* Background luxury dotted matrix */}
       <div className="absolute inset-0 bg-[radial-gradient(#C5A059_1px,transparent_1px)] [background-size:32px_32px] opacity-10 pointer-events-none z-0" />
 
@@ -166,7 +166,7 @@ export default function Contact() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center max-w-2xl mx-auto mb-16"
+          className="text-center max-w-2xl mx-auto mb-6"
         >
           <h1 className="font-brand text-4xl md:text-5xl text-[#90060c] tracking-[0.15em] uppercase font-light leading-tight">
             Contact Us
@@ -174,14 +174,14 @@ export default function Contact() {
         </motion.div>
 
         {/* Page Divider */}
-        <PageDivider />
+        <PageDivider className="py-6 md:py-8" />
 
         {/* Main Content Grid */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start mt-0"
         >
           
           {/* Left Column: Contact Details */}
@@ -219,7 +219,7 @@ export default function Contact() {
                   <div>
                     <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Direct Lines</h4>
                     <p className="leading-relaxed">
-                      <a href="tel:+912222829800" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">+91 22 2282 9800</a>
+                      <a href="tel:+919265682478" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">092656 82478</a>
                     </p>
                     <p className="leading-relaxed">
                       <a href="tel:+919558888754" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">+91 95588 88754</a>

@@ -3,9 +3,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export default function PageDivider() {
+export default function PageDivider({ className = 'py-20' }) {
   return (
-    <div className="w-full py-20 flex justify-center items-center gap-6 overflow-hidden">
+    <div className={`w-full ${className} flex justify-center items-center gap-6 overflow-hidden`}>
       <motion.div 
         initial={{ width: "0%", opacity: 0 }}
         whileInView={{ width: "35%", opacity: 0.6 }}

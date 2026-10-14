@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import { daysSince } from '@/components/MetalRateStatus';
 import { purityFactor } from '@/lib/pricing';
-import { Loader2, CheckCircle2, AlertCircle, TrendingUp, TrendingDown, Info, RotateCcw, Minus } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, TrendingUp, TrendingDown, Info, Minus } from 'lucide-react';
 
-// One entry per priced metal — the form, the payload and the dirty check are all
-// derived from this, so adding a metal means adding a row here (plus its rate
+// One entry per priced metal — adding a metal means adding a row here (plus its rate
 // field on the MetalRate model and in lib/pricing.ts).
 //
 // `purities` are the labels the admin can actually pick on a product; each one is
@@ -20,7 +19,7 @@ const METALS = [
     field: 'goldRatePerGram',
     label: 'Gold',
     symbol: 'Au',
-    hint: 'Quoted for pure 24K. Each piece applies its own purity.',
+    hint: 'USD market rate converted to INR with the 15% IBJA-calibrated adjustment.',
     accent: { line: '#EBD9AE', ink: '#8A6A1F', chip: 'linear-gradient(135deg,#E9C46A,#C08A22)' },
     purities: [
       { label: '24K', value: '24K' },
@@ -34,7 +33,7 @@ const METALS = [
     field: 'silverRatePerGram',
     label: 'Silver',
     symbol: 'Ag',
-    hint: 'Quoted for pure silver. Sterling is billed at 92.5% of it.',
+    hint: 'USD market rate converted to INR with the 15% IBJA-calibrated adjustment.',
     accent: { line: '#D6DDE6', ink: '#4A5568', chip: 'linear-gradient(135deg,#DCE3EB,#98A4B2)' },
     purities: [
       { label: '999 Fine', value: '999' },
@@ -46,7 +45,7 @@ const METALS = [
     field: 'platinumRatePerGram',
     label: 'Platinum',
     symbol: 'Pt',
-    hint: 'Quoted for pure platinum. PT950 is billed at 95% of it.',
+    hint: 'USD market rate converted to INR with the 15% IBJA-calibrated adjustment.',
     accent: { line: '#CBD8E3', ink: '#3D5468', chip: 'linear-gradient(135deg,#CFE0EC,#7B98B1)' },
     purities: [
       { label: 'PT950', value: 'PT950' },
@@ -64,8 +63,8 @@ export default function MetalRatesPage() {
   const [saved, setSaved] = useState(ZEROED);
   const [affected, setAffected] = useState(ZEROED);
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [source, setSource] = useState('goldapi');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
   const showToast = (type, message) => {
@@ -80,6 +79,7 @@ export default function MetalRatesPage() {
       setRates(Object.fromEntries(METALS.map((m) => [m.key, String(r[m.field] ?? 0)])));
       setSaved(Object.fromEntries(METALS.map((m) => [m.key, r[m.field] ?? 0])));
       setUpdatedAt(r.updatedAt || null);
+      setSource(r.source || 'goldapi');
       setAffected({ ...ZEROED, ...(data.affected || {}) });
     } catch (err) {
       console.error('Failed to load metal rates:', err);
@@ -91,26 +91,6 @@ export default function MetalRatesPage() {
 
   useEffect(() => { load(); }, []);
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await adminApi.put('/metal-rates', Object.fromEntries(
-        METALS.map((m) => [m.field, Number(rates[m.key]) || 0])
-      ));
-      await load();
-      showToast('success', 'Rates updated — every formula-priced piece now uses them.');
-    } catch (err) {
-      console.error('Failed to update metal rates:', err);
-      showToast('error', err.response?.data?.error || 'Update failed. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const reset = () => setRates(Object.fromEntries(METALS.map((m) => [m.key, String(saved[m.key])])));
-
-  const isDirty = METALS.some((m) => (Number(rates[m.key]) || 0) !== saved[m.key]);
   const totalAffected = METALS.reduce((sum, m) => sum + (Number(affected[m.key]) || 0), 0);
 
   // Rates are a once-a-day job, so surface the age in days rather than a bare
@@ -131,7 +111,7 @@ export default function MetalRatesPage() {
             Metal Rates
           </h1>
           <p className="text-[13px] text-gray-500 font-sans mt-1 max-w-[560px] leading-relaxed">
-            Set today&rsquo;s rate once — every formula-priced piece reprices instantly.
+            Rates are refreshed automatically each day — every formula-priced piece reprices from the latest feed.
           </p>
         </div>
 
@@ -150,7 +130,7 @@ export default function MetalRatesPage() {
           Loading current rates…
         </div>
       ) : (
-        <form onSubmit={handleSave} className="space-y-6">
+        <div className="space-y-6">
           {/* One card per metal */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {METALS.map((metal) => {
@@ -211,8 +191,8 @@ export default function MetalRatesPage() {
                         step="0.01"
                         inputMode="decimal"
                         value={rates[metal.key]}
-                        onChange={(e) => setRates({ ...rates, [metal.key]: e.target.value })}
-                        className="w-full pl-9 pr-[62px] py-3.5 bg-gray-50/70 border border-gray-200 rounded-xl text-[22px] font-sans font-bold text-gray-900 tabular-nums transition-all focus:outline-none focus:bg-white focus:border-[#721c24] focus-visible:ring-2 focus-visible:ring-[#721c24]/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        readOnly
+                        className="w-full pl-9 pr-[62px] py-3.5 bg-gray-50/70 border border-gray-200 rounded-xl text-[22px] font-sans font-bold text-gray-900 tabular-nums [appearance:textfield]"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-sans font-bold text-gray-400 pointer-events-none">
                         / gram
@@ -269,8 +249,8 @@ export default function MetalRatesPage() {
                 How each price is built
               </h2>
               <p className="text-[#dcc0bf] text-[14px] leading-relaxed font-sans font-medium">
-                Pieces set to <strong className="text-white">Manual</strong> pricing keep the price you typed and are
-                never touched by this screen.
+                Pieces set to <strong className="text-white">Manual</strong> pricing keep the price you typed. Only
+                formula-priced pieces use this daily metal feed.
               </p>
             </div>
 
@@ -287,36 +267,10 @@ export default function MetalRatesPage() {
             </div>
           </div>
 
-          {/* Sticky so all three cards can be edited and Apply is still in reach */}
-          {isDirty && (
-            <div className="sticky bottom-4 z-40 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex items-center justify-between gap-4 flex-wrap bg-white/95 backdrop-blur border border-gray-100 rounded-[16px] px-5 py-4 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
-                <p className="text-[12.5px] font-sans font-semibold text-gray-600">
-                  Unsaved changes — {totalAffected} piece{totalAffected === 1 ? '' : 's'} will reprice.
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={reset}
-                    disabled={saving}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-[13px] font-sans font-bold text-gray-500 hover:bg-gray-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-                  >
-                    <RotateCcw size={14} />
-                    Reset
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-[#721c24] text-white rounded-lg shadow-md hover:bg-[#540411] disabled:bg-gray-300 disabled:shadow-none transition-all font-sans font-bold text-[13px] tracking-wide focus:outline-none focus-visible:ring-2 focus-visible:ring-[#721c24] focus-visible:ring-offset-2"
-                  >
-                    {saving ? <Loader2 size={14} className="animate-spin" /> : <TrendingUp size={14} />}
-                    {saving ? 'Applying…' : 'Apply New Rates'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </form>
+          <p className="text-[12px] text-gray-500 font-sans">
+            Source: {source === 'goldapi' ? 'GoldAPI' : source}. The next scheduled refresh will update these values.
+          </p>
+        </div>
       )}
 
       {toast && (

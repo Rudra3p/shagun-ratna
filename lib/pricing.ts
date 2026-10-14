@@ -2,9 +2,8 @@
 //
 //   price = (metal rate/gram × purity factor × weight) + labour cost
 //
-// The admin sets the gold, silver and platinum rates by hand in Admin → Metal
-// Rates. Products on 'manual' mode keep whatever price was typed in and ignore
-// all of this.
+// GoldAPI supplies the gold, silver and platinum rates daily. Products on
+// 'manual' mode keep whatever price was typed in and ignore all of this.
 
 export interface MetalRates {
   goldRatePerGram?: number;

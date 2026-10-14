@@ -186,6 +186,7 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showOfferOnly, setShowOfferOnly] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -202,30 +203,36 @@ export default function Products() {
 
   useEffect(() => () => clearTimeout(toastTimerRef.current), []);
 
-  // FETCH: Loads products and appends them to the existing list
-  const fetchProducts = async (pageNumber = 1) => {
-    setLoading(true);
+  // FETCH: Loads products and appends pages for both the catalog and search views.
+  const fetchProducts = async (pageNumber = 1, currentSearch = '') => {
+    if (pageNumber === 1) setLoading(true);
+    else setLoadingMore(true);
+
     try {
-      const res = await adminApi.get(`/products?page=${pageNumber}&limit=10`);
+      const query = currentSearch.trim() !== ''
+        ? `&search=${encodeURIComponent(currentSearch.trim())}`
+        : '';
+      const res = await adminApi.get(`/products?page=${pageNumber}&limit=10${query}`);
       const newProducts = res.data.products || [];
 
       setProducts(prev => {
-        // Force complete overwrite on page 1 to discard old layouts cleanly
         if (pageNumber === 1) {
           return newProducts;
         }
-        return [...prev, ...newProducts];
+        const seen = new Set(prev.map((product) => product._id));
+        return [...prev, ...newProducts.filter((product) => !seen.has(product._id))];
       });
 
       setTotalCount(res.data.total || 0);
       setHasMore(newProducts.length === 10);
       setPage(pageNumber);
-      setIsSearching(false); // Confirm we are back to standard view pipeline
+      if (pageNumber === 1) setIsSearching(currentSearch.trim() !== '');
     } catch (err) {
       console.error(err);
       showToast('error', 'Failed to load products.');
     } finally {
-      setLoading(false);
+      if (pageNumber === 1) setLoading(false);
+      else setLoadingMore(false);
     }
   };
 
@@ -259,14 +266,7 @@ export default function Products() {
 
     setLoading(true);
     try {
-      const res = await adminApi.get(`/products?search=${encodeURIComponent(searchQuery)}&page=1&limit=10`);
-      const foundItems = res.data.products || [];
-
-      setProducts(foundItems);
-      setTotalCount(res.data.total || 0);
-      setHasMore(foundItems.length === 10);
-      setPage(1);
-      setIsSearching(true); // Locks interface into search view mode
+      await fetchProducts(1, searchQuery);
     } catch (err) {
       console.error("Manual search execution failed:", err);
       showToast('error', 'Search failed. Please try again.');
@@ -417,6 +417,33 @@ export default function Products() {
   const visibleProducts = showOfferOnly ? products.filter(p => p.discount > 0) : products;
   const showSkeleton = loading && products.length === 0;
   const showEmpty = !loading && visibleProducts.length === 0;
+
+  // Infinite scroll keeps the admin catalog consistent with the public collection.
+  const sentinelRef = useRef(null);
+  const loadMoreRef = useRef(() => {});
+
+  useEffect(() => {
+    loadMoreRef.current = () => {
+      if (loading || loadingMore || !hasMore) return;
+      loadMoreRef.current = () => {};
+      fetchProducts(page + 1, isSearching ? searchQuery : '');
+    };
+  });
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMoreRef.current();
+      },
+      { rootMargin: '600px 0px' }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [products.length, hasMore]);
 
   // Live discount preview for the form — mirrors the exact hasDiscount logic used on
   // the actual product page/card, so what the admin sees while editing matches reality.
@@ -1028,17 +1055,14 @@ export default function Products() {
         </div>
       )}
 
-      {/* Append Pagination Load More Controls */}
-      {hasMore && !showSkeleton && !showEmpty && !showOfferOnly && (
-        <div className="mt-12 text-center">
-          <button
-            disabled={loading}
-            onClick={() => fetchProducts(page + 1)}
-            className="px-6 py-2.5 border border-gray-200 text-gray-700 bg-white rounded-lg hover:bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400 transition-all font-semibold text-[13px] shadow-sm inline-flex items-center gap-2"
-          >
-            {loading && <Loader2 size={14} className="animate-spin" />}
-            {loading ? 'Loading Next Assets...' : 'Load More Products'}
-          </button>
+      {hasMore && !showSkeleton && !showEmpty && (
+        <div ref={sentinelRef} className="mt-12 min-h-8 flex items-center justify-center" aria-live="polite">
+          {loadingMore && (
+            <span className="inline-flex items-center gap-2 text-[13px] font-semibold text-gray-500">
+              <Loader2 size={14} className="animate-spin" />
+              Loading more products...
+            </span>
+          )}
         </div>
       )}
 
