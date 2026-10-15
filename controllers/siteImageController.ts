@@ -7,15 +7,19 @@ import SiteImage from "@/models/siteImage";
 export const getPublicSiteImages = async (): Promise<NextResponse> => {
   try {
     await dbConnect();
-    const docs = await SiteImage.find().select("key imageUrl");
+    const docs = await SiteImage.find().select("key imageUrl mediaType");
 
     const images: Record<string, string> = {};
-    for (const doc of docs) images[doc.key] = doc.imageUrl;
+    const mediaTypes: Record<string, "image" | "video"> = {};
+    for (const doc of docs) {
+      images[doc.key] = doc.imageUrl;
+      mediaTypes[doc.key] = doc.mediaType === "video" ? "video" : "image";
+    }
 
-    return NextResponse.json({ images }, { status: 200 });
+    return NextResponse.json({ images, mediaTypes }, { status: 200 });
   } catch (error) {
     // The homepage/about page should never break because this feed failed
-    return NextResponse.json({ images: {} }, { status: 200 });
+    return NextResponse.json({ images: {}, mediaTypes: {} }, { status: 200 });
   }
 };
 
@@ -31,18 +35,26 @@ export const getAdminSiteImages = async (): Promise<NextResponse> => {
 };
 
 // ADMIN: upsert a single slot's image
-export const upsertSiteImage = async (body: { key?: string; imageUrl?: string }): Promise<NextResponse> => {
+export const upsertSiteImage = async (body: {
+  key?: string;
+  imageUrl?: string;
+  mediaType?: "image" | "video";
+}): Promise<NextResponse> => {
   try {
     await dbConnect();
     const { key, imageUrl } = body;
+    const mediaType = body.mediaType || "image";
 
     if (!key || !imageUrl) {
       return NextResponse.json({ error: "key and imageUrl are required" }, { status: 400 });
     }
+    if (!["image", "video"].includes(mediaType) || (mediaType === "video" && key !== "home-story")) {
+      return NextResponse.json({ error: "This media type is not allowed for the selected slot" }, { status: 400 });
+    }
 
     const updated = await SiteImage.findOneAndUpdate(
       { key },
-      { $set: { imageUrl } },
+      { $set: { imageUrl, mediaType } },
       { new: true, upsert: true, runValidators: true }
     );
 

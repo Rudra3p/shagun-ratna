@@ -6,7 +6,7 @@ import { SITE_IMAGE_SLOTS } from '@/lib/siteImageSlots';
 import { Upload, Loader2, RotateCcw, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function SiteImagesPage() {
-  const [overrides, setOverrides] = useState({}); // { key: imageUrl }
+  const [overrides, setOverrides] = useState({}); // { key: { imageUrl, mediaType } }
   const [loading, setLoading] = useState(true);
   const [busyKey, setBusyKey] = useState(null); // key currently uploading/resetting
   const [toast, setToast] = useState(null);
@@ -16,7 +16,9 @@ export default function SiteImagesPage() {
     try {
       const res = await adminApi.get('/site-images');
       const map = {};
-      for (const doc of res.data.images || []) map[doc.key] = doc.imageUrl;
+      for (const doc of res.data.images || []) {
+        map[doc.key] = { imageUrl: doc.imageUrl, mediaType: doc.mediaType === 'video' ? 'video' : 'image' };
+      }
       setOverrides(map);
     } catch (err) {
       console.error("Failed to load site images:", err);
@@ -39,12 +41,29 @@ export default function SiteImagesPage() {
     e.target.value = '';
     if (!file) return;
 
+    const isStorySlot = slotKey === 'home-story';
+    const isVideo = file.type === 'video/mp4';
+    if (isVideo && !isStorySlot) {
+      showToast('error', 'Videos are only supported for Our Story.');
+      return;
+    }
+    if (isVideo && file.size > 100 * 1024 * 1024) {
+      showToast('error', 'MP4 videos must be 100 MB or smaller.');
+      return;
+    }
+    if ((!isVideo && !file.type.startsWith('image/')) || (isStorySlot && file.type.startsWith('video/') && !isVideo)) {
+      showToast('error', isStorySlot ? 'Choose an image or MP4 video.' : 'Choose an image file.');
+      return;
+    }
+
     setBusyKey(slotKey);
     try {
       const { data } = await adminApi.post('/site-images', {
         action: 'get-upload-url',
+        key: slotKey,
         fileName: file.name,
-        fileType: file.type
+        fileType: file.type,
+        fileSize: file.size,
       });
 
       await fetch(data.signedUrl, {
@@ -53,10 +72,11 @@ export default function SiteImagesPage() {
         headers: { 'Content-Type': file.type }
       });
 
-      await adminApi.post('/site-images', { key: slotKey, imageUrl: data.publicUrl });
+      const mediaType = isVideo ? 'video' : 'image';
+      await adminApi.post('/site-images', { key: slotKey, imageUrl: data.publicUrl, mediaType });
 
-      setOverrides((prev) => ({ ...prev, [slotKey]: data.publicUrl }));
-      showToast('success', 'Image updated.');
+      setOverrides((prev) => ({ ...prev, [slotKey]: { imageUrl: data.publicUrl, mediaType } }));
+      showToast('success', isVideo ? 'Video updated.' : 'Image updated.');
     } catch (err) {
       console.error("Site image upload failed:", err);
       showToast('error', 'Upload failed. Please try again.');
@@ -89,8 +109,8 @@ export default function SiteImagesPage() {
     <div className="animate-in fade-in duration-500 pb-10 max-w-[1200px] mx-auto px-4 pt-6">
 
       <div className="border-b border-gray-100 pb-6 mb-8">
-        <h1 className="text-[22px] font-sans font-bold text-[#540411] tracking-tight">Site Images</h1>
-        <p className="text-[13px] text-gray-500 mt-0.5">Change any image shown on the homepage or about page.</p>
+        <h1 className="text-[22px] font-sans font-bold text-[#540411] tracking-tight">Site Media</h1>
+        <p className="text-[13px] text-gray-500 mt-0.5">Change media shown on the homepage or about page. Our Story also supports MP4 video.</p>
       </div>
 
       {loading ? (
@@ -107,9 +127,10 @@ export default function SiteImagesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {SITE_IMAGE_SLOTS.filter((s) => s.page === pageName).map((slot) => {
-                const currentSrc = overrides[slot.key] || slot.defaultSrc;
+                const currentMedia = overrides[slot.key] || { imageUrl: slot.defaultSrc, mediaType: 'image' };
                 const isOverridden = Boolean(overrides[slot.key]);
                 const isBusy = busyKey === slot.key;
+                const supportsVideo = slot.key === 'home-story';
 
                 return (
                   <div
@@ -117,12 +138,26 @@ export default function SiteImagesPage() {
                     className="bg-white border border-gray-100 rounded-[20px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)] flex flex-col"
                   >
                     <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[14px] bg-[#fdfbf7] mb-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={currentSrc}
-                        alt={slot.label}
-                        className="w-full h-full object-cover"
-                      />
+                      {currentMedia.mediaType === 'video' ? (
+                        <video
+                          src={currentMedia.imageUrl}
+                          aria-label={`${slot.label} video preview`}
+                          className="w-full h-full object-cover"
+                          muted
+                          loop
+                          playsInline
+                          autoPlay
+                        />
+                      ) : (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                          src={currentMedia.imageUrl}
+                          alt={slot.label}
+                          className="w-full h-full object-cover"
+                          />
+                        </>
+                      )}
                       {isBusy && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <Loader2 size={22} className="animate-spin text-white" />
@@ -140,7 +175,7 @@ export default function SiteImagesPage() {
                     <div className="mt-auto flex items-center gap-2">
                       <input
                         type="file"
-                        accept="image/*"
+                        accept={supportsVideo ? 'image/*,video/mp4' : 'image/*'}
                         className="hidden"
                         ref={(el) => { fileInputRefs.current[slot.key] = el; }}
                         onChange={(e) => handleFileChange(slot.key, e)}
