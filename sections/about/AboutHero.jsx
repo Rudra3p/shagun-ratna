@@ -127,25 +127,6 @@ export default function AboutHero() {
         </AnimatePresence>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
-        {slides.map((slide, slideIndex) => (
-          <button
-            key={slide.key}
-            type="button"
-            onClick={() => goToSlide(slideIndex, slideIndex > index ? 1 : -1)}
-            aria-label={`Show ${slide.title} slide`}
-            aria-current={slideIndex === index ? 'true' : undefined}
-            title={slide.title}
-            style={{
-              transform: `scale(${Math.max(0.4, 1 - Math.abs(slideIndex - index) * 0.2)})`,
-            }}
-            className={`h-2.5 w-2.5 rounded-full border border-[#faf3e5] shadow-[0_1px_8px_rgba(0,0,0,0.25)] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] ${
-              slideIndex === index ? 'bg-[#90060c]' : 'bg-[#faf3e5] hover:bg-[#90060c]/80'
-            }`}
-          />
-        ))}
-      </div>
-
     </section>
   );
 }

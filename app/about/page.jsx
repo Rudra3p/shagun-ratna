@@ -14,8 +14,6 @@ export default function About() {
     <main className="bg-[#FDFBF7] mt-5">
       <AboutHero />
 
-      <PageDivider />
-
       <HeritageSection />
 
       {/* Philosophy section provides a dark-mode contrast for better visual rhythm */}
