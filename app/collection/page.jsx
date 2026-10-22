@@ -68,13 +68,13 @@ const CATEGORY_THEMES = {
     ringColor: "ring-[#94A3B8]/40",
   },
   Diamond: {
-    icon: Diamond,
+    icon: Gem,
     iconColor: "text-[#0284C7]",
     bgColor: "bg-[#F0F9FF]",
     ringColor: "ring-[#38BDF8]/40",
   },
   Gemstones: {
-    icon: Gem,
+    icon: Diamond,
     iconColor: "text-[#BE123C]",
     bgColor: "bg-[#FFF1F2]",
     ringColor: "ring-[#FB7185]/40",
@@ -86,6 +86,15 @@ const CATEGORY_THEMES = {
     ringColor: "ring-[#90060C]/25",
   },
 };
+
+const QUICK_FILTERS = [
+  { id: "Gold", label: "Gold", icon: BullionBarIcon, iconColor: "text-[#C5A059]" },
+  { id: "Silver", label: "Silver", icon: BullionBarIcon, iconColor: "text-[#828D99]" },
+  { id: "Diamond", label: "Diamond", icon: Gem, iconColor: "text-[#0284C7]" },
+  { id: "Gemstone", label: "Gemstones", icon: Diamond, iconColor: "text-[#BE123C]" },
+  { id: "Bridal", label: "Bridal", icon: Sparkles, iconColor: "text-[#90060C]" },
+];
+
 
 const FILTER_GROUPS = [
   {
@@ -351,8 +360,8 @@ function Collection() {
             toolbarHidden ? '-translate-y-40 pointer-events-none' : 'translate-y-0'
           }`}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <form onSubmit={handleSearchSubmit} className="w-full sm:flex-1 sm:max-w-md">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3 justify-between">
+            <form onSubmit={handleSearchSubmit} className="w-full sm:flex-1 lg:max-w-xs shrink-0">
               {/* Underline search field — a quiet base line, with a crimson accent that expands from center on focus */}
               <div className="group relative flex items-center gap-2.5 pb-2.5 sm:pb-3">
                 <Search size={16} className="shrink-0 text-[#A8A196] group-focus-within:text-[#90060C] transition-colors duration-300" />
@@ -387,6 +396,34 @@ function Collection() {
                 <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-[#90060C] scale-x-0 group-focus-within:scale-x-100 origin-center transition-transform duration-300 ease-out" />
               </div>
             </form>
+
+            {/* Quick Category Filters in toolbar space */}
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1">
+              {QUICK_FILTERS.map((item) => {
+                const active = selectedCategories.includes(item.id);
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleCategoryToggle(item.id)}
+                    aria-pressed={active}
+                    className={`group flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all duration-300 shrink-0 cursor-pointer select-none ${
+                      active
+                        ? "bg-[#90060C] text-white shadow-sm shadow-[#90060C]/25"
+                        : "bg-transparent text-[#2D2926] hover:bg-[#F5EFE6] active:scale-95"
+                    }`}
+                  >
+                    <Icon
+                      className={`w-4 h-4 transition-colors ${
+                        active ? "text-white" : item.iconColor
+                      }`}
+                    />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
 
             <button
               onClick={() => setIsFilterOpen(true)}
