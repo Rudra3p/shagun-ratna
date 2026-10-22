@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
@@ -19,12 +20,32 @@ const fadeProps = {
   transition: { duration: 0.35, ease: 'easeOut' },
 };
 
-const CATEGORIES = [
-  "Gold", "Silver", "Platinum", "Diamond", "Gemstone",
-  "Ruby", "Emerald", "Sapphire", "Pearl", "Red Coral",
-  "Yellow Sapphire", "Blue Sapphire",
-  "Bridal", "Heirloom", "Contemporary", "Traditional",
-  "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"
+const FILTER_GROUPS = [
+  {
+    name: "Gold",
+    logo: "/gold-section.webp",
+    options: ["Gold", "Gold Rings", "Gold Necklaces", "Gold Earrings", "Gold Bangles", "Gold Pendants"],
+  },
+  {
+    name: "Silver",
+    logo: null,
+    options: ["Silver", "Silver Rings", "Silver Necklaces", "Silver Earrings", "Silver Bangles"],
+  },
+  {
+    name: "Diamond",
+    logo: "/diamond-section.webp",
+    options: ["Diamond", "Diamond Rings", "Diamond Necklaces", "Diamond Earrings", "Diamond Pendants"],
+  },
+  {
+    name: "Gemstones",
+    logo: "/gemstone-section.webp",
+    options: ["Gemstone", "Ruby", "Emerald", "Sapphire", "Pearl", "Red Coral", "Yellow Sapphire", "Blue Sapphire"],
+  },
+  {
+    name: "Style & occasion",
+    logo: null,
+    options: ["Bridal", "Heirloom", "Contemporary", "Traditional", "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"],
+  },
 ];
 
 // Cards fetched per auto-loaded batch as the reader scrolls.
@@ -448,23 +469,51 @@ function Collection() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="flex flex-wrap gap-2.5">
-                {CATEGORIES.map((cat) => {
-                  const active = selectedCategories.includes(cat);
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => handleCategoryToggle(cat)}
-                      className={`px-5 py-2.5 border text-xs tracking-wider uppercase font-medium transition-all duration-300 rounded-full cursor-pointer ${
-                        active
-                          ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20"
-                          : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  );
-                })}
+              <div className="space-y-7">
+                {FILTER_GROUPS.map((group) => (
+                  <section key={group.name}>
+                    <div className="mb-3 flex items-center gap-3">
+                      {group.logo ? (
+                        <Image
+                          src={group.logo}
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded-full object-cover ring-1 ring-[#C5A059]/40"
+                        />
+                      ) : (
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5EFE6] font-brand text-lg text-[#90060C] ring-1 ring-[#C5A059]/30">
+                          {group.name.charAt(0)}
+                        </span>
+                      )}
+                      <div>
+                        <h4 className="font-serif text-base font-semibold text-[#1a1a1a]">{group.name}</h4>
+                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#A8A196]">
+                          Choose a style
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {group.options.map((cat) => {
+                        const active = selectedCategories.includes(cat);
+                        return (
+                          <button
+                            key={cat}
+                            onClick={() => handleCategoryToggle(cat)}
+                            aria-pressed={active}
+                            className={`px-3.5 py-2 border text-[11px] tracking-wide font-medium transition-all duration-300 rounded-full cursor-pointer ${
+                              active
+                                ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20"
+                                : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
+                            }`}
+                          >
+                            {cat === group.name ? `All ${group.name.toLowerCase()}` : cat}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
               </div>
             </div>
 
