@@ -166,30 +166,6 @@ export default function HeroSection() {
         </motion.div>
 
       </div>
-
-      {/* Luxury Scroll Indicator */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.8, duration: 1 }}
-        className="absolute bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-3 z-20 cursor-pointer"
-        onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-      >
-        <span className="font-sans text-[9px] tracking-[0.35em] uppercase text-[#C5A059] font-semibold">Scroll</span>
-        <div className="w-[1px] h-8 lg:h-12 bg-[#C5A059]/35 relative overflow-hidden">
-          <motion.div 
-            animate={{ 
-              y: ["-100%", "100%"] 
-            }}
-            transition={{ 
-              duration: 2.2, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-            className="absolute top-0 left-0 w-full h-1/2 bg-[#90060c]"
-          />
-        </div>
-      </motion.div>
     </section>
   );
 }

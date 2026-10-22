@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import userApi from '@/lib/userApi';
 import ProductCard, { FAVORITES_STORAGE_KEY } from '@/components/ProductCard';
@@ -10,7 +9,7 @@ import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useSurvey } from '@/components/SurveyProvider';
 import { weaveRecommended } from '@/lib/weaveRecommended';
-import { Loader2, Search, SearchX, X, SlidersHorizontal } from 'lucide-react';
+import { Loader2, Search, SearchX, X, SlidersHorizontal, Diamond, Gem, Sparkles } from 'lucide-react';
 
 // Shared crossfade so skeleton -> content/error/empty swaps never hard-cut
 const fadeProps = {
@@ -20,30 +19,80 @@ const fadeProps = {
   transition: { duration: 0.35, ease: 'easeOut' },
 };
 
+// Bullion / Bar SVG symbol for Gold & Silver metals with luxury styling
+function BullionBarIcon({ className = "w-5 h-5", ...props }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      fillOpacity="0.18"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      <path d="M8.5 6h7l3 4.5h-13z" />
+      <path d="M5.5 10.5h13l2 6.5h-17z" />
+      <path d="M3.5 17v1.8a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1V17" />
+      <line x1="9" y1="13.7" x2="15" y2="13.7" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+const CATEGORY_THEMES = {
+  Gold: {
+    icon: BullionBarIcon,
+    iconColor: "text-[#C5A059]",
+    bgColor: "bg-[#FBF6EC]",
+    ringColor: "ring-[#C5A059]/40",
+  },
+  Silver: {
+    icon: BullionBarIcon,
+    iconColor: "text-[#828D99]",
+    bgColor: "bg-[#F1F5F9]",
+    ringColor: "ring-[#94A3B8]/40",
+  },
+  Diamond: {
+    icon: Diamond,
+    iconColor: "text-[#0284C7]",
+    bgColor: "bg-[#F0F9FF]",
+    ringColor: "ring-[#38BDF8]/40",
+  },
+  Gemstones: {
+    icon: Gem,
+    iconColor: "text-[#BE123C]",
+    bgColor: "bg-[#FFF1F2]",
+    ringColor: "ring-[#FB7185]/40",
+  },
+  "Style & occasion": {
+    icon: Sparkles,
+    iconColor: "text-[#90060C]",
+    bgColor: "bg-[#F5EFE6]",
+    ringColor: "ring-[#90060C]/25",
+  },
+};
+
 const FILTER_GROUPS = [
   {
     name: "Gold",
-    logo: "/gold-section.webp",
     options: ["Gold", "Gold Rings", "Gold Necklaces", "Gold Earrings", "Gold Bangles", "Gold Pendants"],
   },
   {
     name: "Silver",
-    logo: null,
     options: ["Silver", "Silver Rings", "Silver Necklaces", "Silver Earrings", "Silver Bangles"],
   },
   {
     name: "Diamond",
-    logo: "/diamond-section.webp",
     options: ["Diamond", "Diamond Rings", "Diamond Necklaces", "Diamond Earrings", "Diamond Pendants"],
   },
   {
     name: "Gemstones",
-    logo: "/gemstone-section.webp",
     options: ["Gemstone", "Ruby", "Emerald", "Sapphire", "Pearl", "Red Coral", "Yellow Sapphire", "Blue Sapphire"],
   },
   {
     name: "Style & occasion",
-    logo: null,
     options: ["Bridal", "Heirloom", "Contemporary", "Traditional", "Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Pendants"],
   },
 ];
@@ -470,50 +519,44 @@ function Collection() {
 
             <div className="flex-1 overflow-y-auto px-6 py-6">
               <div className="space-y-7">
-                {FILTER_GROUPS.map((group) => (
-                  <section key={group.name}>
-                    <div className="mb-3 flex items-center gap-3">
-                      {group.logo ? (
-                        <Image
-                          src={group.logo}
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="h-10 w-10 rounded-full object-cover ring-1 ring-[#C5A059]/40"
-                        />
-                      ) : (
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5EFE6] font-brand text-lg text-[#90060C] ring-1 ring-[#C5A059]/30">
-                          {group.name.charAt(0)}
+                {FILTER_GROUPS.map((group) => {
+                  const theme = CATEGORY_THEMES[group.name] || CATEGORY_THEMES["Style & occasion"];
+                  const Icon = theme.icon;
+                  return (
+                    <section key={group.name}>
+                      <div className="mb-3 flex items-center gap-3">
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-full ${theme.bgColor} ${theme.iconColor} ring-1 ${theme.ringColor} shadow-xs shrink-0`}>
+                          <Icon className="w-5 h-5" />
                         </span>
-                      )}
-                      <div>
-                        <h4 className="font-serif text-base font-semibold text-[#1a1a1a]">{group.name}</h4>
-                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#A8A196]">
-                          Choose a style
-                        </p>
+                        <div>
+                          <h4 className="font-serif text-base font-semibold text-[#1a1a1a]">{group.name}</h4>
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#A8A196]">
+                            Choose a style
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {group.options.map((cat) => {
-                        const active = selectedCategories.includes(cat);
-                        return (
-                          <button
-                            key={cat}
-                            onClick={() => handleCategoryToggle(cat)}
-                            aria-pressed={active}
-                            className={`px-3.5 py-2 border text-[11px] tracking-wide font-medium transition-all duration-300 rounded-full cursor-pointer ${
-                              active
-                                ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20"
-                                : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
-                            }`}
-                          >
-                            {cat === group.name ? `All ${group.name.toLowerCase()}` : cat}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ))}
+                      <div className="flex flex-wrap gap-2">
+                        {group.options.map((cat) => {
+                          const active = selectedCategories.includes(cat);
+                          return (
+                            <button
+                              key={cat}
+                              onClick={() => handleCategoryToggle(cat)}
+                              aria-pressed={active}
+                              className={`px-3.5 py-2 border text-[11px] tracking-wide font-medium transition-all duration-300 rounded-full cursor-pointer ${
+                                active
+                                  ? "bg-[#90060C] text-white border-[#90060C] shadow-sm shadow-[#90060C]/20"
+                                  : "bg-white border-[#EBE3D5] hover:border-[#90060C] text-[#2D2926] hover:bg-[#FDFBF7]"
+                              }`}
+                            >
+                              {cat === group.name ? `All ${group.name.toLowerCase()}` : cat}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                })}
               </div>
             </div>
 
