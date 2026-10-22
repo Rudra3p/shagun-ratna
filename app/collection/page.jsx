@@ -19,24 +19,37 @@ const fadeProps = {
   transition: { duration: 0.35, ease: 'easeOut' },
 };
 
-// Bullion / Bar SVG symbol for Gold & Silver metals with luxury styling
+// 3D Isometric Bullion Bar Stack (3 bars: 2 bottom, 1 top, rotated at 3D angle)
 function BullionBarIcon({ className = "w-5 h-5", ...props }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="currentColor"
-      fillOpacity="0.18"
+      fill="none"
       stroke="currentColor"
-      strokeWidth="1.75"
+      strokeWidth="1.25"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       {...props}
     >
-      <path d="M8.5 6h7l3 4.5h-13z" />
-      <path d="M5.5 10.5h13l2 6.5h-17z" />
-      <path d="M3.5 17v1.8a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1V17" />
-      <line x1="9" y1="13.7" x2="15" y2="13.7" strokeWidth="1.5" />
+      {/* Bottom-Left Bar */}
+      <g>
+        <path d="M2 17.5 L5.5 19.2 L5.5 16.2 L2 14.5 Z" fill="currentColor" fillOpacity="0.4" />
+        <path d="M5.5 19.2 L12 15.5 L12 12.5 L5.5 16.2 Z" fill="currentColor" fillOpacity="0.24" />
+        <path d="M2 14.5 L5.5 16.2 L12 12.5 L8.5 10.8 Z" fill="currentColor" fillOpacity="0.1" />
+      </g>
+      {/* Bottom-Right Bar */}
+      <g>
+        <path d="M12 17.5 L15.5 19.2 L15.5 16.2 L12 14.5 Z" fill="currentColor" fillOpacity="0.4" />
+        <path d="M15.5 19.2 L22 15.5 L22 12.5 L15.5 16.2 Z" fill="currentColor" fillOpacity="0.24" />
+        <path d="M12 14.5 L15.5 16.2 L22 12.5 L18.5 10.8 Z" fill="currentColor" fillOpacity="0.1" />
+      </g>
+      {/* Top-Center Bar (rests on top of bottom two bars) */}
+      <g>
+        <path d="M7 12 L10.5 13.7 L10.5 10.7 L7 9 Z" fill="currentColor" fillOpacity="0.4" />
+        <path d="M10.5 13.7 L17 10 L17 7 L10.5 10.7 Z" fill="currentColor" fillOpacity="0.24" />
+        <path d="M7 9 L10.5 10.7 L17 7 L13.5 5.3 Z" fill="currentColor" fillOpacity="0.1" />
+      </g>
     </svg>
   );
 }
