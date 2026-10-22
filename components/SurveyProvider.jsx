@@ -31,7 +31,7 @@ export function useSurvey() {
 const GENDERS = [
   { label: 'Woman', value: 'Female' },
   { label: 'Man', value: 'Male' },
-  { label: 'Prefer not to say', value: 'Unisex' },
+  { label: 'Other', value: 'Other' },
 ];
 
 // Nobody living was born before this, and it keeps the year spinner sane.
@@ -66,6 +66,7 @@ export function SurveyProvider({ children }) {
   const [autoOpened, setAutoOpened] = useState(false);
   // 'form' while answering, 'result' once there is a stone to show.
   const [view, setView] = useState('form');
+  const [step, setStep] = useState(1);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const pathname = usePathname();
@@ -94,6 +95,7 @@ export function SurveyProvider({ children }) {
     setPlaceHighlight(-1);
     setErrors({});
     setAutoOpened(auto);
+    setStep(1);
     // Someone who already has a reading should land on it rather than on a form
     // asking them the same questions again.
     setView(survey?.gemstone ? 'result' : 'form');
@@ -171,6 +173,17 @@ export function SurveyProvider({ children }) {
       choosePlace(placeSuggestions[placeHighlight]);
     } else if (e.key === 'Escape') {
       setPlaceOpen(false);
+    }
+  };
+
+    const handleNextStep = (e) => {
+    if (e) e.preventDefault();
+    const next = {};
+    if (!form.name.trim()) next.name = 'Please enter your name.';
+    if (!form.gender) next.gender = 'Please choose one.';
+    setErrors(next);
+    if (Object.keys(next).length === 0) {
+      setStep(2);
     }
   };
 
@@ -287,242 +300,252 @@ export function SurveyProvider({ children }) {
               <GemstoneResult
                 stone={stone}
                 name={survey.name}
-                onEdit={() => { setView('form'); setErrors({}); }}
+                onEdit={() => { setView('form'); setStep(1); setErrors({}); }}
                 onClose={() => setIsOpen(false)}
               />
             ) : (
-              <form onSubmit={handleSubmit} className="p-8">
-                <div className="flex items-center gap-2 text-[#C5A059] mb-2">
-                  <Sparkles size={14} />
-                  <span className="font-sans text-[10px] font-bold uppercase tracking-[0.25em]">
-                    {autoOpened ? 'Welcome' : 'Personalise'}
+              <form onSubmit={handleSubmit} className="p-7 sm:p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 id="survey-heading" className="font-brand text-2xl sm:text-3xl text-[#C5A059] tracking-wide">
+                    {step === 1 ? 'Find your stone' : 'Birth Details'}
+                  </h2>
+                  <span className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-[#C5A059] bg-[#C5A059]/10 border border-[#C5A059]/30 px-3 py-1 rounded-full">
+                    Step {step} of 2
                   </span>
                 </div>
-                <h2 id="survey-heading" className="font-brand text-2xl text-[#1a1a1a] mb-1.5">
-                  Find your stone
-                </h2>
-                <p className="font-sans text-xs text-[#1a1a1a]/60 leading-relaxed mb-6">
-                  Tell us when and where you were born and we&rsquo;ll find the gemstone
-                  your birth chart favours, along with the pieces we&rsquo;d pick for you.
-                  No account needed — this stays on your device.
-                </p>
 
-                <div className="space-y-5">
-                  <div>
-                    <label htmlFor="survey-name" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
-                      Your Name
-                    </label>
-                    <input
-                      id="survey-name"
-                      type="text"
-                      autoComplete="name"
-                      placeholder="e.g. Priya Sharma"
-                      value={form.name}
-                      onChange={(e) => updateForm({ name: e.target.value })}
-                      aria-invalid={!!errors.name}
-                      className="w-full bg-white border border-[#C5A059]/40 rounded-xl px-4 py-3 text-sm text-[#1a1a1a] placeholder-[#A8A196] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
-                    />
-                    {errors.name && <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.name}</p>}
-                  </div>
-
-                  <div>
-                    <label htmlFor="survey-dob" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
-                      Date of Birth
-                    </label>
-                    <input
-                      id="survey-dob"
-                      type="date"
-                      autoComplete="bday"
-                      min={`${EARLIEST_BIRTH_YEAR}-01-01`}
-                      max={todayISO()}
-                      value={form.birthDate}
-                      onChange={(e) => updateForm({ birthDate: e.target.value })}
-                      aria-invalid={!!errors.birthDate}
-                      className="w-full bg-white border border-[#C5A059]/40 rounded-xl px-4 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
-                    />
-                    {errors.birthDate && <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.birthDate}</p>}
-                  </div>
-
-                  <div>
-                    <span id="survey-time-label" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
-                      Time of Birth <span className="font-normal normal-case tracking-normal text-[#A8A196]">— optional</span>
-                    </span>
-                    <div className="flex items-center gap-2" role="group" aria-labelledby="survey-time-label">
-                      <select
-                        aria-label="Hour of birth"
-                        value={form.birthHour}
-                        onChange={(e) => updateForm({ birthHour: e.target.value })}
-                        aria-invalid={!!errors.birthTime}
-                        className={TIME_SELECT_CLASS}
-                      >
-                        <option value="">Hour</option>
-                        {HOURS_12.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
-                      </select>
-                      <span aria-hidden="true" className="text-[#A8A196] font-sans">:</span>
-                      <select
-                        aria-label="Minute of birth"
-                        value={form.birthMinute}
-                        onChange={(e) => updateForm({ birthMinute: e.target.value })}
-                        aria-invalid={!!errors.birthTime}
-                        className={TIME_SELECT_CLASS}
-                      >
-                        <option value="">Min</option>
-                        {MINUTES.map((minute) => <option key={minute} value={minute}>{minute}</option>)}
-                      </select>
-                      <select
-                        aria-label="AM or PM"
-                        value={form.birthMeridiem}
-                        onChange={(e) => updateForm({ birthMeridiem: e.target.value })}
-                        aria-invalid={!!errors.birthTime}
-                        className={TIME_SELECT_CLASS}
-                      >
-                        <option value="">AM/PM</option>
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                      </select>
-                    </div>
-                    {errors.birthTime
-                      ? <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.birthTime}</p>
-                      : (
-                        <p className="mt-1.5 text-[11px] text-[#1a1a1a]/45 font-sans">
-                          The moon changes sign every couple of days, so the time sharpens the reading.
-                          Midnight is 12 AM, midday is 12 PM.
-                        </p>
-                      )}
-                  </div>
-
-                  <div ref={placeFieldRef}>
-                    <label htmlFor="survey-place" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
-                      Place of Birth <span className="font-normal normal-case tracking-normal text-[#A8A196]">— optional</span>
-                    </label>
-                    <div className="relative">
-                      <MapPin size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196] pointer-events-none" />
+                {step === 1 ? (
+                  /* --- STEP 1: Name & Gender --- */
+                  <div className="space-y-6">
+                    <div>
+                      <label htmlFor="survey-name" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
+                        Your Name
+                      </label>
                       <input
-                        id="survey-place"
+                        id="survey-name"
                         type="text"
-                        role="combobox"
-                        aria-expanded={placeOpen && placeSuggestions.length > 0}
-                        aria-controls="survey-place-list"
-                        aria-autocomplete="list"
-                        autoComplete="off"
-                        placeholder={form.bornOutsideIndia ? 'e.g. Dubai' : 'e.g. Jaipur'}
-                        value={form.placeQuery}
-                        onChange={(e) => {
-                          updateForm({ placeQuery: e.target.value });
-                          setSelectedPlace(null);
-                          setPlaceOpen(true);
-                          setPlaceHighlight(-1);
-                        }}
-                        onFocus={() => setPlaceOpen(true)}
-                        onKeyDown={handlePlaceKeyDown}
-                        className="w-full bg-white border border-[#C5A059]/40 rounded-xl pl-11 pr-4 py-3 text-sm text-[#1a1a1a] placeholder-[#A8A196] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
+                        autoComplete="name"
+                        placeholder="e.g. Priya Sharma"
+                        value={form.name}
+                        onChange={(e) => updateForm({ name: e.target.value })}
+                        aria-invalid={!!errors.name}
+                        className="w-full bg-white border border-[#C5A059]/40 rounded-xl px-4 py-3 text-sm text-[#1a1a1a] placeholder-[#A8A196] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
                       />
-                      {placeOpen && placeSuggestions.length > 0 && (
-                        <ul
-                          id="survey-place-list"
-                          role="listbox"
-                          className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#C5A059]/40 rounded-xl shadow-lg overflow-hidden"
-                        >
-                          {placeSuggestions.map((place, index) => (
-                            <li key={`${place.city}-${place.state}`} role="option" aria-selected={index === placeHighlight}>
-                              <button
-                                type="button"
-                                onMouseEnter={() => setPlaceHighlight(index)}
-                                onClick={() => choosePlace(place)}
-                                className={`w-full text-left px-4 py-2.5 font-sans text-sm transition-colors ${
-                                  index === placeHighlight ? 'bg-[#EBE3D5]/60 text-[#90060c]' : 'text-[#1a1a1a]'
-                                }`}
-                              >
-                                {place.city}
-                                <span className="text-[#A8A196] text-xs"> · {place.state}</span>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      {errors.name && <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.name}</p>}
                     </div>
 
-                    <label className="mt-2.5 flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={form.bornOutsideIndia}
-                        onChange={(e) => {
-                          updateForm({
-                            bornOutsideIndia: e.target.checked,
-                            utcOffsetMinutes: INDIA_UTC_OFFSET_MINUTES,
-                          });
-                          setSelectedPlace(null);
-                          setPlaceOpen(false);
-                        }}
-                        className="w-3.5 h-3.5 accent-[#90060c]"
-                      />
-                      <span className="font-sans text-[11px] text-[#1a1a1a]/55">I was born outside India</span>
-                    </label>
+                    <div>
+                      <span className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
+                        You are shopping as
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {GENDERS.map((option) => {
+                          const active = form.gender === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => updateForm({ gender: option.value })}
+                              aria-pressed={active}
+                              className={`px-5 py-2.5 rounded-full border font-sans text-xs font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c]/40 cursor-pointer ${
+                                active
+                                  ? 'bg-[#90060c] border-[#90060c] text-white shadow-sm'
+                                  : 'bg-white border-[#C5A059]/40 text-[#1a1a1a] hover:border-[#90060c]'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {errors.gender && <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.gender}</p>}
+                    </div>
 
-                    {form.bornOutsideIndia && (
-                      <div className="mt-2.5">
-                        <label htmlFor="survey-offset" className="block font-sans text-[11px] text-[#1a1a1a]/55 mb-1.5">
-                          What did the local clock read against UTC?
-                        </label>
+                    <div className="flex items-center gap-3 pt-3">
+                      <button
+                        type="button"
+                        onClick={handleNextStep}
+                        className="flex-1 font-sans py-3.5 text-xs tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full hover:bg-[#730509] transition-all duration-300 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] focus-visible:ring-offset-2 cursor-pointer"
+                      >
+                        Continue
+                      </button>
+                      <button
+                        type="button"
+                        onClick={survey ? clearSurvey : () => setIsOpen(false)}
+                        className="px-6 py-3.5 font-sans text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/60 border border-[#C5A059]/40 rounded-full hover:text-[#90060c] hover:border-[#90060c] transition-colors cursor-pointer"
+                      >
+                        {survey ? 'Clear' : 'Skip'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* --- STEP 2: Birth Details (Date, Time, Place) --- */
+                  <div className="space-y-5">
+                    <div>
+                      <label htmlFor="survey-dob" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
+                        Date of Birth
+                      </label>
+                      <input
+                        id="survey-dob"
+                        type="date"
+                        autoComplete="bday"
+                        min={`${EARLIEST_BIRTH_YEAR}-01-01`}
+                        max={todayISO()}
+                        value={form.birthDate}
+                        onChange={(e) => updateForm({ birthDate: e.target.value })}
+                        aria-invalid={!!errors.birthDate}
+                        className="w-full bg-white border border-[#C5A059]/40 rounded-xl px-4 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
+                      />
+                      {errors.birthDate && <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.birthDate}</p>}
+                    </div>
+
+                    <div>
+                      <span id="survey-time-label" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
+                        Time of Birth <span className="font-normal normal-case tracking-normal text-[#A8A196]">— optional</span>
+                      </span>
+                      <div className="flex items-center gap-2" role="group" aria-labelledby="survey-time-label">
                         <select
-                          id="survey-offset"
-                          value={form.utcOffsetMinutes}
-                          onChange={(e) => updateForm({ utcOffsetMinutes: Number(e.target.value) })}
-                          className="w-full bg-white border border-[#C5A059]/40 rounded-xl px-4 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
+                          aria-label="Hour of birth"
+                          value={form.birthHour}
+                          onChange={(e) => updateForm({ birthHour: e.target.value })}
+                          aria-invalid={!!errors.birthTime}
+                          className={TIME_SELECT_CLASS}
                         >
-                          {UTC_OFFSET_OPTIONS.map((option) => (
-                            <option key={option.minutes} value={option.minutes}>{option.label}</option>
-                          ))}
+                          <option value="">Hour</option>
+                          {HOURS_12.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
+                        </select>
+                        <span aria-hidden="true" className="text-[#A8A196] font-sans">:</span>
+                        <select
+                          aria-label="Minute of birth"
+                          value={form.birthMinute}
+                          onChange={(e) => updateForm({ birthMinute: e.target.value })}
+                          aria-invalid={!!errors.birthTime}
+                          className={TIME_SELECT_CLASS}
+                        >
+                          <option value="">Min</option>
+                          {MINUTES.map((minute) => <option key={minute} value={minute}>{minute}</option>)}
+                        </select>
+                        <select
+                          aria-label="AM or PM"
+                          value={form.birthMeridiem}
+                          onChange={(e) => updateForm({ birthMeridiem: e.target.value })}
+                          aria-invalid={!!errors.birthTime}
+                          className={TIME_SELECT_CLASS}
+                        >
+                          <option value="">AM/PM</option>
+                          <option value="AM">AM</option>
+                          <option value="PM">PM</option>
                         </select>
                       </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <span className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
-                      You are shopping as
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {GENDERS.map((option) => {
-                        const active = form.gender === option.value;
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => updateForm({ gender: option.value })}
-                            aria-pressed={active}
-                            className={`px-4 py-2.5 rounded-full border font-sans text-xs font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c]/40 ${
-                              active
-                                ? 'bg-[#90060c] border-[#90060c] text-white shadow-sm'
-                                : 'bg-white border-[#C5A059]/40 text-[#1a1a1a] hover:border-[#90060c]'
-                            }`}
-                          >
-                            {option.label}
-                          </button>
-                        );
-                      })}
+                      {errors.birthTime && (
+                        <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.birthTime}</p>
+                      )}
                     </div>
-                    {errors.gender && <p className="mt-1.5 text-[11px] text-[#90060c] font-sans">{errors.gender}</p>}
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3 mt-8">
-                  <button
-                    type="submit"
-                    className="flex-1 font-sans py-3.5 text-xs tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full hover:bg-[#730509] transition-all duration-300 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] focus-visible:ring-offset-2"
-                  >
-                    {survey ? 'Update' : 'Show My Stone'}
-                  </button>
-                  {/* Someone who hasn't answered yet needs a way out that isn't the
-                      corner X — especially when the dialog opened on its own. */}
-                  <button
-                    type="button"
-                    onClick={survey ? clearSurvey : () => setIsOpen(false)}
-                    className="px-5 py-3.5 font-sans text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/60 border border-[#C5A059]/40 rounded-full hover:text-[#90060c] hover:border-[#90060c] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c]/40"
-                  >
-                    {survey ? 'Clear' : 'Skip'}
-                  </button>
-                </div>
+                    <div ref={placeFieldRef}>
+                      <label htmlFor="survey-place" className="block font-sans text-[11px] font-bold uppercase tracking-wider text-[#1a1a1a]/70 mb-2">
+                        Place of Birth <span className="font-normal normal-case tracking-normal text-[#A8A196]">— optional</span>
+                      </label>
+                      <div className="relative">
+                        <MapPin size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A8A196] pointer-events-none" />
+                        <input
+                          id="survey-place"
+                          type="text"
+                          role="combobox"
+                          aria-expanded={placeOpen && placeSuggestions.length > 0}
+                          aria-controls="survey-place-list"
+                          aria-autocomplete="list"
+                          autoComplete="off"
+                          placeholder={form.bornOutsideIndia ? 'e.g. Dubai' : 'e.g. Jaipur'}
+                          value={form.placeQuery}
+                          onChange={(e) => {
+                            updateForm({ placeQuery: e.target.value });
+                            setSelectedPlace(null);
+                            setPlaceOpen(true);
+                            setPlaceHighlight(-1);
+                          }}
+                          onFocus={() => setPlaceOpen(true)}
+                          onKeyDown={handlePlaceKeyDown}
+                          className="w-full bg-white border border-[#C5A059]/40 rounded-xl pl-11 pr-4 py-3 text-sm text-[#1a1a1a] placeholder-[#A8A196] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
+                        />
+                        {placeOpen && placeSuggestions.length > 0 && (
+                          <ul
+                            id="survey-place-list"
+                            role="listbox"
+                            className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#C5A059]/40 rounded-xl shadow-lg overflow-hidden"
+                          >
+                            {placeSuggestions.map((place, index) => (
+                              <li key={`${place.city}-${place.state}`} role="option" aria-selected={index === placeHighlight}>
+                                <button
+                                  type="button"
+                                  onMouseEnter={() => setPlaceHighlight(index)}
+                                  onClick={() => choosePlace(place)}
+                                  className={`w-full text-left px-4 py-2.5 font-sans text-sm transition-colors ${
+                                    index === placeHighlight ? 'bg-[#EBE3D5]/60 text-[#90060c]' : 'text-[#1a1a1a]'
+                                  }`}
+                                >
+                                  {place.city}
+                                  <span className="text-[#A8A196] text-xs"> · {place.state}</span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      <label className="mt-2.5 flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={form.bornOutsideIndia}
+                          onChange={(e) => {
+                            updateForm({
+                              bornOutsideIndia: e.target.checked,
+                              utcOffsetMinutes: INDIA_UTC_OFFSET_MINUTES,
+                            });
+                            setSelectedPlace(null);
+                            setPlaceOpen(false);
+                          }}
+                          className="w-3.5 h-3.5 accent-[#90060c]"
+                        />
+                        <span className="font-sans text-[11px] text-[#1a1a1a]/55">I was born outside India</span>
+                      </label>
+
+                      {form.bornOutsideIndia && (
+                        <div className="mt-2.5">
+                          <label htmlFor="survey-offset" className="block font-sans text-[11px] text-[#1a1a1a]/55 mb-1.5">
+                            What did the local clock read against UTC?
+                          </label>
+                          <select
+                            id="survey-offset"
+                            value={form.utcOffsetMinutes}
+                            onChange={(e) => updateForm({ utcOffsetMinutes: Number(e.target.value) })}
+                            className="w-full bg-white border border-[#C5A059]/40 rounded-xl px-4 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#90060c] focus-visible:ring-2 focus-visible:ring-[#90060c]/30 transition-colors font-sans"
+                          >
+                            {UTC_OFFSET_OPTIONS.map((option) => (
+                              <option key={option.minutes} value={option.minutes}>{option.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => { setStep(1); setErrors({}); }}
+                        className="px-5 py-3.5 flex items-center justify-center gap-1.5 font-sans text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/70 border border-[#C5A059]/40 rounded-full hover:text-[#90060c] hover:border-[#90060c] transition-colors cursor-pointer"
+                      >
+                        <ArrowLeft size={13} /> Back
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 font-sans py-3.5 text-xs tracking-[0.25em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full hover:bg-[#730509] transition-all duration-300 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#90060c] focus-visible:ring-offset-2 cursor-pointer"
+                      >
+                        {survey ? 'Update' : 'Show My Stone'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </form>
             )}
           </div>
