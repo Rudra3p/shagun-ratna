@@ -397,9 +397,10 @@ function Collection() {
               </div>
             </form>
 
-            {/* Right side cluster: Quick Filters attached directly to Filters button */}
-            <div className="flex items-center gap-2 sm:gap-3 lg:ml-auto overflow-x-auto no-scrollbar py-1 justify-between sm:justify-end w-full lg:w-auto">
-              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Right side cluster: Quick Filters with luxury divider and Filters button */}
+            <div className="flex items-center gap-2 sm:gap-3 lg:ml-auto w-full lg:w-auto justify-between sm:justify-end">
+              {/* Scrollable quick filter pills */}
+              <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-1 shrink min-w-0">
                 {QUICK_FILTERS.map((item) => {
                   const active = selectedCategories.includes(item.id);
                   const Icon = item.icon;
@@ -409,10 +410,10 @@ function Collection() {
                       type="button"
                       onClick={() => handleCategoryToggle(item.id)}
                       aria-pressed={active}
-                      className={`group flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-medium transition-all duration-300 shrink-0 cursor-pointer select-none ${
+                      className={`group flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-medium transition-all duration-300 ease-out shrink-0 cursor-pointer select-none active:scale-[0.96] ${
                         active
                           ? "bg-[#90060C] text-white shadow-sm shadow-[#90060C]/25"
-                          : "bg-transparent text-[#2D2926] hover:bg-[#F5EFE6] active:scale-95"
+                          : "bg-transparent text-[#2D2926] hover:bg-[#F5EFE6] active:bg-[#EBE3D5]/50"
                       }`}
                     >
                       <Icon
@@ -426,6 +427,10 @@ function Collection() {
                 })}
               </div>
 
+              {/* Delicate 1px luxury hairline divider */}
+              <div className="h-5 w-px bg-[#D9CFBB]/70 shrink-0" aria-hidden="true" />
+
+              {/* Filters drawer trigger button */}
               <button
                 onClick={() => setIsFilterOpen(true)}
                 aria-label="Filters"
