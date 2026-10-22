@@ -397,47 +397,49 @@ function Collection() {
               </div>
             </form>
 
-            {/* Quick Category Filters in toolbar space */}
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1">
-              {QUICK_FILTERS.map((item) => {
-                const active = selectedCategories.includes(item.id);
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleCategoryToggle(item.id)}
-                    aria-pressed={active}
-                    className={`group flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all duration-300 shrink-0 cursor-pointer select-none ${
-                      active
-                        ? "bg-[#90060C] text-white shadow-sm shadow-[#90060C]/25"
-                        : "bg-transparent text-[#2D2926] hover:bg-[#F5EFE6] active:scale-95"
-                    }`}
-                  >
-                    <Icon
-                      className={`w-4 h-4 transition-colors ${
-                        active ? "text-white" : item.iconColor
+            {/* Right side cluster: Quick Filters attached directly to Filters button */}
+            <div className="flex items-center gap-2 sm:gap-3 lg:ml-auto overflow-x-auto no-scrollbar py-1 justify-between sm:justify-end w-full lg:w-auto">
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                {QUICK_FILTERS.map((item) => {
+                  const active = selectedCategories.includes(item.id);
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleCategoryToggle(item.id)}
+                      aria-pressed={active}
+                      className={`group flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-medium transition-all duration-300 shrink-0 cursor-pointer select-none ${
+                        active
+                          ? "bg-[#90060C] text-white shadow-sm shadow-[#90060C]/25"
+                          : "bg-transparent text-[#2D2926] hover:bg-[#F5EFE6] active:scale-95"
                       }`}
-                    />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                    >
+                      <Icon
+                        className={`w-4 h-4 transition-colors ${
+                          active ? "text-white" : item.iconColor
+                        }`}
+                      />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-            <button
-              onClick={() => setIsFilterOpen(true)}
-              aria-label="Filters"
-              className="group flex items-center justify-center gap-2 w-full sm:w-auto sm:ml-auto px-5 py-2.5 sm:py-3 rounded-full border border-[#D9CFBB] bg-white hover:border-[#90060C] hover:bg-[#90060C] text-[#2D2926] hover:text-white text-xs font-semibold uppercase tracking-wider transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-[#90060C]/15 shrink-0 cursor-pointer"
-            >
-              <SlidersHorizontal size={15} className="transition-transform duration-300 group-hover:rotate-90" />
-              <span>Filters</span>
-              {selectedCategories.length > 0 && (
-                <span className="w-5 h-5 rounded-full bg-[#90060C] text-white group-hover:bg-white group-hover:text-[#90060C] text-[10px] font-bold flex items-center justify-center transition-colors duration-300">
-                  {selectedCategories.length}
-                </span>
-              )}
-            </button>
+              <button
+                onClick={() => setIsFilterOpen(true)}
+                aria-label="Filters"
+                className="group flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-[#D9CFBB] bg-white hover:border-[#90060C] hover:bg-[#90060C] text-[#2D2926] hover:text-white text-xs font-semibold uppercase tracking-wider transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-[#90060C]/15 shrink-0 cursor-pointer"
+              >
+                <SlidersHorizontal size={15} className="transition-transform duration-300 group-hover:rotate-90" />
+                <span>Filters</span>
+                {selectedCategories.length > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-[#90060C] text-white group-hover:bg-white group-hover:text-[#90060C] text-[10px] font-bold flex items-center justify-center transition-colors duration-300">
+                    {selectedCategories.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
           {!loading && hasActiveFilter && (
