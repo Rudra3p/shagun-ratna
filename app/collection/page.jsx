@@ -417,7 +417,7 @@ function Collection() {
                     >
                       <Icon
                         className={`w-4 h-4 transition-colors ${
-                          active ? "text-white" : item.iconColor
+                          active ? "text-white" : "text-[#90060C]"
                         }`}
                       />
                       <span>{item.label}</span>
