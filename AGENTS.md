@@ -185,3 +185,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
    - Ensure `collection/page.jsx` properly sets and clears `correctedQuery` across filter toggles.
 3. **Safety Guarantee**:
    - Verify every change with `npx tsc --noEmit` before concluding.
+
+## 9. HOMEPAGE CONTENT DIRECTION
+- Planned homepage addition: Add a curated Instagram/Reels section, titled something like “From the Atelier” or “Follow Our Journey.” This section has been recommended but is not implemented yet.
+- Placement: Put it immediately after the three sections rendered by `sections/home/FeaturedCollections.jsx` (Certified Diamonds, Rare Gemstones, Gold Artistry) and immediately before `sections/home/Testimonials.jsx` (Patron Experiences).
+- Intended homepage sequence: Hero → The Legacy → Authenticity & Certification → Selected Masterpieces → Certified Diamonds → Rare Gemstones → Gold Artistry → Instagram Reels → Patron Experiences → Footer.
+- Visitor psychology: move from brand introduction and heritage, through authenticity reassurance and product discovery, into current visual social content, then finish with customer testimonials as final reassurance. Keep the Instagram area curated and focused on selected reels.

@@ -442,24 +442,6 @@ function Collection() {
             </div>
           </div>
 
-          {!loading && hasActiveFilter && (
-            <div className="flex items-center justify-between gap-4 flex-wrap text-xs text-[#A8A196] font-sans mt-3">
-              <span>
-                {products.length} result{products.length === 1 ? '' : 's'}
-                {appliedSearch ? (
-                  <> for <em className="font-brand not-italic text-[#2D2926] font-semibold">“{appliedSearch}”</em></>
-                ) : selectedCategories.length > 0 ? (
-                  ` in ${selectedCategories.join(', ')}`
-                ) : null}
-              </span>
-              <button
-                onClick={handleClearFilters}
-                className="group flex items-center gap-1.5 text-[#90060C] hover:text-[#730509] font-medium uppercase tracking-wider transition-colors cursor-pointer"
-              >
-                <X size={12} /> <span className="border-b border-transparent group-hover:border-[#730509] transition-colors">Clear</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Product Grid Layout */}
@@ -535,13 +517,7 @@ function Collection() {
                 <Loader2 size={14} className="animate-spin" />
                 Unveiling more masterpieces…
               </span>
-            ) : hasMore ? null : (
-              <span className="inline-flex items-center gap-3 font-sans text-[11px] uppercase tracking-[0.25em] text-[#A8A196]">
-                <span className="h-px w-8 bg-[#D9CFBB]" />
-                You&rsquo;ve seen the full collection
-                <span className="h-px w-8 bg-[#D9CFBB]" />
-              </span>
-            )}
+            ) : null}
           </div>
         )}
       </div>
