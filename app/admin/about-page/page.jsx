@@ -19,7 +19,7 @@ export default function AdminAboutPage() {
       <SiteTextsProvider>
         <AdminEditorProvider page="About">
           <AdminEditToggle />
-          <main className="bg-[#FDFBF7] mt-5">
+          <main className="bg-[#FDFBF7]">
             <AboutHero />
             <PageDivider />
             <HeritageSection />

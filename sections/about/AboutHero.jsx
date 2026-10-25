@@ -97,9 +97,9 @@ export default function AboutHero() {
   return (
     <section
       className="relative h-[60vh] md:h-[90vh] w-full select-none touch-pan-y overflow-hidden bg-[#90060c]"
-      onPointerDown={handlePointerStart}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={() => { pointerStartX.current = null; }}
+      onPointerDown={isAdmin && editMode ? undefined : handlePointerStart}
+      onPointerUp={isAdmin && editMode ? undefined : handlePointerEnd}
+      onPointerCancel={isAdmin && editMode ? undefined : () => { pointerStartX.current = null; }}
     >
       <div className="absolute inset-0 overflow-hidden">
         <AnimatePresence initial={false} mode="sync">

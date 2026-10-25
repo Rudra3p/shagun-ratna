@@ -34,8 +34,8 @@ export default function AdminLayoutWrapper({ children }) {
         </button>
       )}
 
-      <main className={`grow pt-20 pb-8 px-4 sm:px-6 lg:pt-8 lg:p-8 transition-[margin] duration-300 w-full ${shouldCollapseSidebar ? 'lg:ml-0' : 'lg:ml-65'}`}>
-        <div className="max-w-7xl mx-auto">
+      <main className={`grow transition-[margin] duration-300 w-full ${isWideLayoutPage ? 'p-0 pt-0' : 'pt-20 pb-8 px-4 sm:px-6 lg:pt-8 lg:p-8'} ${shouldCollapseSidebar ? 'lg:ml-0' : 'lg:ml-65'}`}>
+        <div className={isWideLayoutPage ? 'w-full' : 'max-w-7xl mx-auto'}>
           {children}
         </div>
       </main>

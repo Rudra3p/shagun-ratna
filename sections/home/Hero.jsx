@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin } from 'lucide-react';
+import { MapPin, Camera } from 'lucide-react';
 import { useSiteImages } from '@/components/SiteImagesProvider';
+import { useSiteText } from '@/components/SiteTextsProvider';
 import { useAdminEditor } from '@/components/admin/AdminEditorContext';
 import { EditableText } from '@/components/admin/EditableText';
-import { EditableMedia } from '@/components/admin/EditableMedia';
 
 // Optimized animation variants for luxury choreography
 const containerVariants = {
@@ -31,7 +31,10 @@ const childVariants = {
 export default function HeroSection() {
   const [imageIndex, setImageIndex] = useState(0);
   const siteImages = useSiteImages();
-  const { isAdmin, editMode } = useAdminEditor();
+  const { isAdmin, editMode, openMediaEdit, openTextEdit } = useAdminEditor();
+
+  const ctaText = useSiteText('home-hero-cta', 'Explore Now');
+  const conciergeText = useSiteText('home-hero-concierge', 'Visit our Ahmedabad boutique by appointment');
 
   const heroSlides = [
     { src: siteImages['home-hero'] || '/hero_sec_hand.webp', alt: 'Shagun Ratna gemstone jewelry' },
@@ -41,6 +44,7 @@ export default function HeroSection() {
     { src: '/diamond-section.webp', alt: 'Certified diamonds at Shagun Ratna' },
   ];
 
+  // When edit mode is active, stay pinned to the primary hero showcase image (slide 0)
   useEffect(() => {
     if (isAdmin && editMode) return;
 
@@ -113,37 +117,50 @@ export default function HeroSection() {
           </motion.div>
 
           <motion.div variants={childVariants}>
-            <Link href="/collection">
-              <button className="relative font-sans px-10 py-3.5 lg:px-12 lg:py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_10px_30px_rgba(144,6,12,0.25)] active:scale-[0.98]">
-                <EditableText
-                  textKey="home-hero-cta"
-                  defaultText="Explore Now"
-                  label="Explore CTA Button"
-                  section="Hero"
-                  as="span"
-                  className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]"
-                />
-                <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+            {isAdmin && editMode ? (
+              <button
+                type="button"
+                onClick={() => openTextEdit('home-hero-cta', 'Explore CTA Button Text', 'Explore Now', 'text', 'Hero')}
+                className="relative font-sans px-10 py-3.5 lg:px-12 lg:py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group hover:shadow-[0_10px_30px_rgba(144,6,12,0.25)] hover:ring-2 hover:ring-[#C5A059] transition-all cursor-pointer"
+                title="Click to edit CTA button text"
+              >
+                <span className="relative z-10">{ctaText}</span>
               </button>
-            </Link>
+            ) : (
+              <Link href="/collection">
+                <button className="relative font-sans px-10 py-3.5 lg:px-12 lg:py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_10px_30px_rgba(144,6,12,0.25)] active:scale-[0.98]">
+                  <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">{ctaText}</span>
+                  <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
+                </button>
+              </Link>
+            )}
           </motion.div>
 
-          {/* Concierge model clarified up front — otherwise this isn't clear until the Contact page */}
+          {/* Concierge model clarified up front */}
           <motion.div variants={childVariants}>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 mt-6 lg:mt-8 text-[11px] sm:text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors group"
-            >
-              <MapPin size={13} className="text-[#C5A059] shrink-0" />
-              <EditableText
-                textKey="home-hero-concierge"
-                defaultText="Visit our Ahmedabad boutique by appointment"
-                label="Boutique Appointment Text"
-                section="Hero"
-                as="span"
-                className="underline underline-offset-4 decoration-[#C5A059]/40 group-hover:decoration-[#90060c]"
-              />
-            </Link>
+            {isAdmin && editMode ? (
+              <button
+                type="button"
+                onClick={() => openTextEdit('home-hero-concierge', 'Boutique Appointment Text', 'Visit our Ahmedabad boutique by appointment', 'text', 'Hero')}
+                className="inline-flex items-center gap-2 mt-6 lg:mt-8 text-[11px] sm:text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/70 hover:text-[#90060c] cursor-pointer hover:underline transition-colors"
+                title="Click to edit boutique concierge text"
+              >
+                <MapPin size={13} className="text-[#C5A059] shrink-0" />
+                <span className="underline underline-offset-4 decoration-[#C5A059]/40 hover:decoration-[#90060c]">
+                  {conciergeText}
+                </span>
+              </button>
+            ) : (
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 mt-6 lg:mt-8 text-[11px] sm:text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors group"
+              >
+                <MapPin size={13} className="text-[#C5A059] shrink-0" />
+                <span className="underline underline-offset-4 decoration-[#C5A059]/40 group-hover:decoration-[#90060c]">
+                  {conciergeText}
+                </span>
+              </Link>
+            )}
           </motion.div>
         </motion.div>
 
@@ -154,12 +171,23 @@ export default function HeroSection() {
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
           className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 h-[350px] sm:h-[450px] lg:h-[550px]"
         >
-          <EditableMedia
-            slotKey="home-hero"
-            label="Hero Showcase Hand"
-            defaultSrc="/hero_sec_hand.webp"
-            className="w-full h-full flex items-center justify-center relative"
-          >
+          {/* Change Media Button in Edit Mode */}
+          {isAdmin && editMode && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openMediaEdit('home-hero', 'Hero Showcase Hand Image', '/hero_sec_hand.webp');
+              }}
+              className="absolute top-2 right-2 z-40 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-sans font-medium text-white bg-[#90060c] hover:bg-[#730509] border border-[#C5A059] rounded-full shadow-2xl backdrop-blur-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              title="Change Hero Showcase Hand Image"
+            >
+              <Camera size={13} className="text-[#C5A059]" />
+              <span>Change Hero Image</span>
+            </button>
+          )}
+
           {/* Gold aura background glow */}
           <div className="absolute w-[80%] aspect-square rounded-full bg-radial from-[#C5A059]/15 to-transparent blur-3xl -z-10" />
 
@@ -183,7 +211,7 @@ export default function HeroSection() {
           <div className="absolute bottom-[10%] left-[15%] w-3 h-3 border-b border-l border-[#C5A059]/40 z-0 select-none pointer-events-none" />
           <div className="absolute bottom-[10%] right-[15%] w-3 h-3 border-b border-r border-[#C5A059]/40 z-0 select-none pointer-events-none" />
 
-          {/* The image carousel moves one slide at a time from right to left. */}
+          {/* The image carousel */}
           <div className="absolute inset-0 z-10 overflow-hidden">
             <AnimatePresence initial={false} mode="sync">
               <motion.div
@@ -211,7 +239,6 @@ export default function HeroSection() {
               </motion.div>
             </AnimatePresence>
           </div>
-          </EditableMedia>
         </motion.div>
 
       </div>

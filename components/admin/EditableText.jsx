@@ -35,20 +35,20 @@ export function EditableText({
 
   return (
     <Component
-      className={`relative group/editable transition-all duration-200 ${className} hover:outline hover:outline-1 hover:outline-[#C5A059]/70 hover:outline-dashed rounded cursor-pointer`}
+      className={`relative inline-block group/editable transition-all duration-200 ${className} hover:outline hover:outline-1 hover:outline-[#C5A059] hover:outline-dashed rounded cursor-pointer`}
       onClick={handleEditClick}
       title={`Click to edit: ${label || textKey}`}
       {...rest}
     >
       {children !== undefined ? children : text}
 
-      {/* Floating subtle luxury edit indicator button */}
+      {/* Floating subtle luxury edit indicator button that appears ONLY on hover */}
       <span
         onClick={handleEditClick}
         aria-label={`Edit ${label || textKey}`}
-        className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 text-[10px] tracking-wider uppercase font-sans font-medium text-[#90060c] bg-[#FAF7F2] border border-[#C5A059]/50 rounded-full shadow-sm opacity-70 group-hover/editable:opacity-100 transition-opacity align-middle select-none"
+        className="absolute -top-3 -right-2 z-30 inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] tracking-wider uppercase font-sans font-medium text-[#90060c] bg-white border border-[#C5A059] rounded-full shadow-md opacity-0 group-hover/editable:opacity-100 transition-opacity select-none pointer-events-none"
       >
-        <Pencil size={10} className="text-[#90060c]" />
+        <Pencil size={9} className="text-[#90060c]" />
         <span>Edit</span>
       </span>
     </Component>
@@ -78,7 +78,8 @@ export function EditableTextWrapper({
 
   return (
     <div
-      className={`relative group/editable hover:outline hover:outline-1 hover:outline-[#C5A059]/70 hover:outline-dashed rounded transition-all duration-200 ${className}`}
+      onClick={handleEditClick}
+      className={`relative group/editable hover:outline hover:outline-1 hover:outline-[#C5A059] hover:outline-dashed rounded transition-all duration-200 cursor-pointer ${className}`}
     >
       {children}
       <button
@@ -93,4 +94,3 @@ export function EditableTextWrapper({
     </div>
   );
 }
-
