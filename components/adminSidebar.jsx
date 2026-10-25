@@ -32,7 +32,6 @@ const NAV_GROUPS = [
       { label: 'Home Page', href: '/admin/home-page', icon: Home },
       { label: 'About Page', href: '/admin/about-page', icon: Info },
       { label: 'Homepage Grid', href: '/admin/homepage-grid', icon: LayoutGrid },
-      { label: 'Site Images', href: '/admin/site-images', icon: ImageIcon },
     ],
   },
   {

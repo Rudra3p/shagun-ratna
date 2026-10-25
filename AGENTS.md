@@ -71,10 +71,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `/admin/metal-rates` | `app/admin/metal-rates/page.jsx` | Live gold (24K, 22K, 18K) & silver rate management (instantly updates catalog) |
 | `/admin/inquiries` | `app/admin/inquiries/page.jsx` | Lead management: View, filter, and change status of customer inquiries |
 | `/admin/reviews` | `app/admin/reviews/page.jsx` | Review moderation, manual review addition, Google Review sync trigger |
-| `/admin/site-images` | `app/admin/site-images/page.jsx` | CMS image slot management (Hero banners, promo cards, showcase slots) |
-| `/admin/home-page` | `app/admin/home-page/page.jsx` | Homepage CMS content & section configuration |
+| `/admin/home-page` | `app/admin/home-page/page.jsx` | Homepage Studio: Visual mirrored editor for in-place text & media updates |
 | `/admin/homepage-grid`| `app/admin/homepage-grid/page.jsx`| Visual grid layout curator for homepage |
-| `/admin/about-page` | `app/admin/about-page/page.jsx` | About page text, imagery, and timeline management |
+| `/admin/about-page` | `app/admin/about-page/page.jsx` | About Page Studio: Visual mirrored editor for in-place text & media updates |
 | `/admin/history` | `app/admin/history/page.jsx` | Audit log of all changes made across products, rates, and CMS |
 | `/admin/profile` | `app/admin/profile/page.jsx` | Admin account security, email, password update |
 

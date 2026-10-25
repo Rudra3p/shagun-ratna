@@ -5,6 +5,7 @@ import Navbar from "@/components/nav";
 import FeedbackForm from "@/components/Feedback";
 import Footer from "@/components/Footer";
 import { SiteImagesProvider } from "@/components/SiteImagesProvider";
+import { SiteTextsProvider } from "@/components/SiteTextsProvider";
 import { SurveyProvider } from "@/components/SurveyProvider";
 import { SkeletonTheme } from "react-loading-skeleton";
 import { usePathname } from 'next/navigation';
@@ -32,7 +33,8 @@ export default function LayoutWrapper({ children }) {
   return (
     <SkeletonTheme baseColor={SKELETON_BASE_COLOR} highlightColor={SKELETON_HIGHLIGHT_COLOR}>
       <SiteImagesProvider>
-        <SurveyProvider>
+        <SiteTextsProvider>
+          <SurveyProvider>
           <Navbar />
           <main className="pt-16">
             {children}
@@ -40,6 +42,7 @@ export default function LayoutWrapper({ children }) {
           <Footer />
           <FeedbackForm />
         </SurveyProvider>
+        </SiteTextsProvider>
       </SiteImagesProvider>
     </SkeletonTheme>
   );

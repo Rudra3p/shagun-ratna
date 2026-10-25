@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSiteImages } from '@/components/SiteImagesProvider';
+import { useSiteText } from '@/components/SiteTextsProvider';
+import { EditableText } from '@/components/admin/EditableText';
+import { EditableMedia } from '@/components/admin/EditableMedia';
 import userApi from '@/lib/userApi';
 
 const collections = [
@@ -14,7 +17,9 @@ const collections = [
     text: "Unrivaled brilliance, ethically sourced. Each stone is hand-selected for its fire and clarity, ensuring your piece is as unique as the moments it celebrates.",
     searchTerm: "Diamond",
     imageKey: "home-featured-diamond",
-    image: "/diamond-section.webp"
+    image: "/diamond-section.webp",
+    titleKey: "home-featured-1-title",
+    descKey: "home-featured-1-desc",
   },
   {
     tag: "The Collection",
@@ -22,7 +27,9 @@ const collections = [
     text: "Stones that tell a story of origin. From deep emeralds to vibrant rubies, we curate rare treasures that bring color and life to traditional silhouettes.",
     searchTerm: "Gemstone",
     imageKey: "home-featured-gemstone",
-    image: "/gemstone-section.webp"
+    image: "/gemstone-section.webp",
+    titleKey: "home-featured-2-title",
+    descKey: "home-featured-2-desc",
   },
   {
     tag: "The Collection",
@@ -30,7 +37,9 @@ const collections = [
     text: "Tradition captured in 22K gold. Our master artisans breathe soul into metal, creating timeless pieces that carry the legacy of generations forward.",
     searchTerm: "Gold",
     imageKey: "home-featured-gold",
-    image: "/gold-section.webp"
+    image: "/gold-section.webp",
+    titleKey: "home-featured-3-title",
+    descKey: "home-featured-3-desc",
   }
 ];
 
@@ -62,12 +71,10 @@ export default function FeaturedCollections() {
       {collections.map((defaultItem, index) => {
         const assigned = featured[index];
         const product = assigned?.product;
-        const item = {
-          title: assigned?.title || defaultItem.title,
-          text: assigned?.description || defaultItem.text,
-          tag: defaultItem.tag,
-          image: product?.imageUrl || siteImages[defaultItem.imageKey] || defaultItem.image,
-        };
+        const initialTitle = assigned?.title || defaultItem.title;
+        const initialDesc = assigned?.description || defaultItem.text;
+
+        const mediaSrc = product?.imageUrl || siteImages[defaultItem.imageKey] || defaultItem.image;
 
         return (
         <section key={index} className="min-h-screen py-16 md:py-28 px-6 md:px-12 flex items-center overflow-hidden">
@@ -91,16 +98,23 @@ export default function FeaturedCollections() {
                 ${index % 2 !== 0 ? '-right-2 lg:-right-4 border-r rounded-br-2xl' : '-left-2 lg:-left-4 border-l rounded-bl-2xl'}`} 
               />
               
-              <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
-                  className="object-cover scale-100 group-hover:scale-103 transition-all duration-[1200ms] ease-out"
-                  priority={index === 0}
-                />
-              </div>
+              <EditableMedia
+                slotKey={defaultItem.imageKey}
+                label={defaultItem.title + " Image"}
+                defaultSrc={defaultItem.image}
+                className="relative h-full w-full"
+              >
+                <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
+                  <Image
+                    src={mediaSrc}
+                    alt={defaultItem.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
+                    className="object-cover scale-100 group-hover:scale-103 transition-all duration-[1200ms] ease-out"
+                    priority={index === 0}
+                  />
+                </div>
+              </EditableMedia>
             </motion.div>
 
             {/* Floating Glassmorphic Text Card */}
@@ -125,7 +139,7 @@ export default function FeaturedCollections() {
 
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px]">
-                  {item.tag}
+                  {defaultItem.tag}
                 </span>
                 <motion.div 
                   initial={{ width: 0 }}
@@ -136,13 +150,24 @@ export default function FeaturedCollections() {
                 />
               </div>
               
-              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight text-[#1a1a1a] font-light uppercase">
-                {item.title}
-              </h2>
+              <EditableText
+                textKey={defaultItem.titleKey}
+                defaultText={initialTitle}
+                label={defaultItem.title + " Card Title"}
+                section="Featured Collections"
+                as="h2"
+                className="font-brand text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight text-[#1a1a1a] font-light uppercase block"
+              />
               
-              <p className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/80 mb-8 text-left">
-                {item.text}
-              </p>
+              <EditableText
+                textKey={defaultItem.descKey}
+                defaultText={initialDesc}
+                label={defaultItem.title + " Card Description"}
+                section="Featured Collections"
+                type="textarea"
+                as="p"
+                className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/80 mb-8 text-left block"
+              />
               
               {product ? (
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -150,7 +175,7 @@ export default function FeaturedCollections() {
                     href={`/collection?search=${encodeURIComponent(defaultItem.searchTerm)}`}
                     className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
                   >
-                    <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
+                    <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover Collection</span>
                     <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
                   </Link>
                   <Link
@@ -162,7 +187,7 @@ export default function FeaturedCollections() {
                 </div>
               ) : (
                 <Link href={`/collection?search=${encodeURIComponent(defaultItem.searchTerm)}`} className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
-                  <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover {item.title}</span>
+                  <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover Collection</span>
                   <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
                 </Link>
               )}

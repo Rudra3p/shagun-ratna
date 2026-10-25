@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { ShieldCheck, Gem, BadgeCheck, Leaf } from 'lucide-react';
 import { useSiteImages } from '@/components/SiteImagesProvider';
 import CertificatePreview from '@/components/CertificatePreview';
+import { EditableText } from '@/components/admin/EditableText';
+import { EditableMedia } from '@/components/admin/EditableMedia';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -15,24 +17,33 @@ const fadeUp = {
 const CERTIFICATIONS = [
   {
     icon: ShieldCheck,
-    title: 'BIS Hallmarked',
-    description: 'Every gold piece carries the official BIS hallmark, certifying purity and fineness.',
+    titleKey: 'home-cert-1-title',
+    defaultTitle: 'BIS Hallmarked',
+    descKey: 'home-cert-1-desc',
+    defaultDesc: 'Every gold piece carries the official BIS hallmark, certifying purity and fineness.',
     imageKey: 'cert-bis-hallmark',
     defaultImage: '/certificates/bis-hallmark-sample.svg',
+    label: 'BIS Hallmark Certificate',
   },
   {
     icon: Gem,
-    title: 'Certified Gemstones',
-    description: 'Every gemstone is lab-certified for authenticity, clarity, and origin before it reaches you.',
+    titleKey: 'home-cert-2-title',
+    defaultTitle: 'Certified Gemstones',
+    descKey: 'home-cert-2-desc',
+    defaultDesc: 'Every gemstone is lab-certified for authenticity, clarity, and origin before it reaches you.',
     imageKey: 'cert-gemstone',
     defaultImage: '/certificates/gemstone-lab-report-sample.svg',
+    label: 'Gemstone Lab Report',
   },
   {
     icon: BadgeCheck,
-    title: 'GIA / IGI Referenced',
-    description: 'Diamonds are graded against internationally recognized GIA and IGI standards.',
+    titleKey: 'home-cert-3-title',
+    defaultTitle: 'GIA / IGI Referenced',
+    descKey: 'home-cert-3-desc',
+    defaultDesc: 'Diamonds are graded against internationally recognized GIA and IGI standards.',
     imageKey: 'cert-gia-igi',
     defaultImage: '/certificates/gia-igi-report-sample.svg',
+    label: 'GIA / IGI Report',
   },
 ];
 
@@ -51,12 +62,22 @@ export default function AuthenticitySection() {
           transition={{ duration: 1 }}
           className="w-[1px] bg-[#C5A059]/60 mb-6"
         />
-        <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3">
-          Our Promise
-        </span>
-        <h2 className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase">
-          Authenticity &amp; Certification
-        </h2>
+        <EditableText
+          textKey="home-authenticity-tag"
+          defaultText="Our Promise"
+          label="Promise Tag"
+          section="Authenticity & Certification"
+          as="span"
+          className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3"
+        />
+        <EditableText
+          textKey="home-authenticity-heading"
+          defaultText="Authenticity & Certification"
+          label="Authenticity Main Heading"
+          section="Authenticity & Certification"
+          as="h2"
+          className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase"
+        />
         <motion.div
           initial={{ width: 0 }}
           whileInView={{ width: 96 }}
@@ -64,10 +85,15 @@ export default function AuthenticitySection() {
           transition={{ duration: 1, delay: 0.2 }}
           className="h-[1px] bg-[#C5A059] mt-4 md:mt-6"
         />
-        <p className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/80 mt-8 max-w-2xl">
-          Every piece that leaves our atelier is backed by rigorous, independently verified certification —
-          because trust is the truest measure of fine jewelry.
-        </p>
+        <EditableText
+          textKey="home-authenticity-subheading"
+          defaultText="Every piece that leaves our atelier is backed by rigorous, independently verified certification — because trust is the truest measure of fine jewelry."
+          label="Authenticity Subheading"
+          section="Authenticity & Certification"
+          type="textarea"
+          as="p"
+          className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/80 mt-8 max-w-2xl"
+        />
       </div>
 
       {/* Certification badges */}
@@ -78,18 +104,40 @@ export default function AuthenticitySection() {
         variants={fadeUp}
         className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-10 md:gap-12 mb-20"
       >
-        {CERTIFICATIONS.map(({ icon: Icon, title, description, imageKey, defaultImage }) => (
-          <div key={title} className="flex flex-col items-center text-center px-4">
+        {CERTIFICATIONS.map(({ icon: Icon, titleKey, defaultTitle, descKey, defaultDesc, imageKey, defaultImage, label }) => (
+          <div key={titleKey} className="flex flex-col items-center text-center px-4">
             <div className="w-14 h-14 rounded-full bg-[#90060c]/5 border border-[#C5A059]/30 flex items-center justify-center text-[#90060c] mb-5">
               <Icon size={24} strokeWidth={1.5} />
             </div>
-            <h3 className="font-brand text-lg text-[#1a1a1a] mb-2 tracking-wide">{title}</h3>
-            <p className="font-sans text-xs leading-6 text-[#1a1a1a]/70 tracking-wide">{description}</p>
-            <CertificatePreview
-              title={title}
-              description={description}
-              image={siteImages[imageKey] || defaultImage}
+            <EditableText
+              textKey={titleKey}
+              defaultText={defaultTitle}
+              label={label + ' Title'}
+              section="Authenticity & Certification"
+              as="h3"
+              className="font-brand text-lg text-[#1a1a1a] mb-2 tracking-wide block"
             />
+            <EditableText
+              textKey={descKey}
+              defaultText={defaultDesc}
+              label={label + ' Description'}
+              section="Authenticity & Certification"
+              type="textarea"
+              as="p"
+              className="font-sans text-xs leading-6 text-[#1a1a1a]/70 tracking-wide mb-3 block"
+            />
+            <EditableMedia
+              slotKey={imageKey}
+              label={label + ' Image'}
+              defaultSrc={defaultImage}
+              className="inline-block mt-2"
+            >
+              <CertificatePreview
+                title={defaultTitle}
+                description={defaultDesc}
+                image={siteImages[imageKey] || defaultImage}
+              />
+            </EditableMedia>
           </div>
         ))}
       </motion.div>

@@ -6,6 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { useSiteImages } from '@/components/SiteImagesProvider';
+import { EditableText } from '@/components/admin/EditableText';
+import { EditableMedia } from '@/components/admin/EditableMedia';
 
 // Optimized animation variants for luxury choreography
 const containerVariants = {
@@ -61,9 +63,14 @@ export default function HeroSection() {
           className="flex flex-col items-center lg:items-start text-center lg:text-left justify-center w-full lg:col-span-6 order-2 lg:order-1 mt-4 lg:mt-0"
         >
           <motion.div variants={childVariants} className="flex items-center gap-4 mb-4 lg:mb-6">
-            <span className="font-sans text-[10px] tracking-[0.5em] uppercase text-[#C5A059] font-bold">
-              Est. 1980
-            </span>
+            <EditableText
+              textKey="home-hero-badge"
+              defaultText="Est. 1980"
+              label="Established Badge"
+              section="Hero"
+              as="span"
+              className="font-sans text-[10px] tracking-[0.5em] uppercase text-[#C5A059] font-bold"
+            />
             <div className="h-[1px] w-12 bg-[#90060c]/40" />
           </motion.div>
 
@@ -71,21 +78,46 @@ export default function HeroSection() {
             variants={childVariants} 
             className="font-brand text-4xl sm:text-5xl md:text-6xl text-[#1a1a1a] tracking-[0.15em] leading-tight mb-4 lg:mb-6 font-light uppercase"
           >
-            Shagun <br className="hidden lg:block"/>
-            <span className="text-[#90060c] font-normal">Ratna</span>
+            <EditableText
+              textKey="home-hero-title-prefix"
+              defaultText="Shagun"
+              label="Brand Title (Line 1)"
+              section="Hero"
+              as="span"
+            /> <br className="hidden lg:block"/>
+            <EditableText
+              textKey="home-hero-title-highlight"
+              defaultText="Ratna"
+              label="Brand Title (Highlight)"
+              section="Hero"
+              as="span"
+              className="text-[#90060c] font-normal"
+            />
           </motion.h1>
 
-          <motion.p 
-            variants={childVariants} 
-            className="font-brand text-lg sm:text-xl md:text-2xl text-[#C5A059] tracking-[0.15em] leading-relaxed mb-8 lg:mb-10 max-w-lg italic font-light"
-         >
-            Defining the art of subtlety through timeless, handcrafted elegance.
-          </motion.p>
+          <motion.div variants={childVariants} className="w-full">
+            <EditableText
+              textKey="home-hero-subtitle"
+              defaultText="Defining the art of subtlety through timeless, handcrafted elegance."
+              label="Hero Subtitle"
+              section="Hero"
+              type="textarea"
+              as="p"
+              className="font-brand text-lg sm:text-xl md:text-2xl text-[#C5A059] tracking-[0.15em] leading-relaxed mb-8 lg:mb-10 max-w-lg italic font-light block"
+            />
+          </motion.div>
 
           <motion.div variants={childVariants}>
             <Link href="/collection">
               <button className="relative font-sans px-10 py-3.5 lg:px-12 lg:py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_10px_30px_rgba(144,6,12,0.25)] active:scale-[0.98]">
-                <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Explore Now</span>
+                <EditableText
+                  textKey="home-hero-cta"
+                  defaultText="Explore Now"
+                  label="Explore CTA Button"
+                  section="Hero"
+                  as="span"
+                  className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]"
+                />
                 <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
               </button>
             </Link>
@@ -98,9 +130,14 @@ export default function HeroSection() {
               className="inline-flex items-center gap-2 mt-6 lg:mt-8 text-[11px] sm:text-xs tracking-[0.15em] uppercase text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors group"
             >
               <MapPin size={13} className="text-[#C5A059] shrink-0" />
-              <span className="underline underline-offset-4 decoration-[#C5A059]/40 group-hover:decoration-[#90060c]">
-                Visit our Ahmedabad boutique by appointment
-              </span>
+              <EditableText
+                textKey="home-hero-concierge"
+                defaultText="Visit our Ahmedabad boutique by appointment"
+                label="Boutique Appointment Text"
+                section="Hero"
+                as="span"
+                className="underline underline-offset-4 decoration-[#C5A059]/40 group-hover:decoration-[#90060c]"
+              />
             </Link>
           </motion.div>
         </motion.div>
@@ -112,6 +149,12 @@ export default function HeroSection() {
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
           className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 h-[350px] sm:h-[450px] lg:h-[550px]"
         >
+          <EditableMedia
+            slotKey="home-hero"
+            label="Hero Showcase Hand"
+            defaultSrc="/hero_sec_hand.webp"
+            className="w-full h-full flex items-center justify-center relative"
+          >
           {/* Gold aura background glow */}
           <div className="absolute w-[80%] aspect-square rounded-full bg-radial from-[#C5A059]/15 to-transparent blur-3xl -z-10" />
 
@@ -163,6 +206,7 @@ export default function HeroSection() {
               </motion.div>
             </AnimatePresence>
           </div>
+          </EditableMedia>
         </motion.div>
 
       </div>
