@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import adminApi from '@/lib/adminApi';
 import { daysSince } from '@/components/MetalRateStatus';
 import { purityFactor } from '@/lib/pricing';
-import { Loader2, CheckCircle2, AlertCircle, TrendingUp, TrendingDown, Info, Minus } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, TrendingUp, TrendingDown, Info, Minus, RefreshCw } from 'lucide-react';
 
 // One entry per priced metal — adding a metal means adding a row here (plus its rate
 // field on the MetalRate model and in lib/pricing.ts).
@@ -19,7 +19,7 @@ const METALS = [
     field: 'goldRatePerGram',
     label: 'Gold',
     symbol: 'Au',
-    hint: 'USD market rate converted to INR with the 15% IBJA-calibrated adjustment.',
+    hint: 'Ahmedabad (Gujarat) daily bullion rate with official IBJA calibration.',
     accent: { line: '#EBD9AE', ink: '#8A6A1F', chip: 'linear-gradient(135deg,#E9C46A,#C08A22)' },
     purities: [
       { label: '24K', value: '24K' },
@@ -33,7 +33,7 @@ const METALS = [
     field: 'silverRatePerGram',
     label: 'Silver',
     symbol: 'Ag',
-    hint: 'USD market rate converted to INR with the 15% IBJA-calibrated adjustment.',
+    hint: 'Ahmedabad (Gujarat) daily bullion rate with official IBJA calibration.',
     accent: { line: '#D6DDE6', ink: '#4A5568', chip: 'linear-gradient(135deg,#DCE3EB,#98A4B2)' },
     purities: [
       { label: '999 Fine', value: '999' },
@@ -45,7 +45,7 @@ const METALS = [
     field: 'platinumRatePerGram',
     label: 'Platinum',
     symbol: 'Pt',
-    hint: 'USD market rate converted to INR with the 15% IBJA-calibrated adjustment.',
+    hint: 'Ahmedabad (Gujarat) daily bullion rate with official IBJA calibration.',
     accent: { line: '#CBD8E3', ink: '#3D5468', chip: 'linear-gradient(135deg,#CFE0EC,#7B98B1)' },
     purities: [
       { label: 'PT950', value: 'PT950' },
@@ -65,6 +65,7 @@ export default function MetalRatesPage() {
   const [updatedAt, setUpdatedAt] = useState(null);
   const [source, setSource] = useState('goldapi');
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [toast, setToast] = useState(null);
 
   const showToast = (type, message) => {
@@ -86,6 +87,24 @@ export default function MetalRatesPage() {
       showToast('error', 'Could not load current rates.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSync = async () => {
+    try {
+      setSyncing(true);
+      const { data } = await adminApi.post('/metal-rates');
+      if (data.success) {
+        showToast('success', 'Live market rates updated from Ahmedabad Bullion & IBJA!');
+        await load();
+      } else {
+        showToast('error', data.error || 'Failed to sync market rates.');
+      }
+    } catch (err) {
+      console.error('Failed to sync metal rates:', err);
+      showToast('error', err?.response?.data?.error || 'Failed to scrape live metal rates.');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -111,16 +130,28 @@ export default function MetalRatesPage() {
             Metal Rates
           </h1>
           <p className="text-[13px] text-gray-500 font-sans mt-1 max-w-[560px] leading-relaxed">
-            Rates are refreshed automatically each day — every formula-priced piece reprices from the latest feed.
+            Rates are refreshed live every hour on visitor traffic using the Ahmedabad Gujarat bullion & IBJA benchmark scraper.
           </p>
         </div>
 
-        <div
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border text-[12.5px] font-sans font-bold shrink-0"
-          style={{ color: status.tone, background: status.bg, borderColor: status.line }}
-        >
-          <status.Icon size={15} />
-          {status.text}
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <button
+            onClick={handleSync}
+            disabled={syncing || loading}
+            type="button"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#721c24] hover:bg-[#5a161c] text-white text-[12.5px] font-sans font-semibold transition-all disabled:opacity-50 cursor-pointer shadow-sm active:scale-[0.98]"
+          >
+            <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Scraping Live Rates...' : 'Sync Market Rates'}
+          </button>
+
+          <div
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border text-[12.5px] font-sans font-bold shrink-0"
+            style={{ color: status.tone, background: status.bg, borderColor: status.line }}
+          >
+            <status.Icon size={15} />
+            {status.text}
+          </div>
         </div>
       </div>
 
@@ -268,7 +299,7 @@ export default function MetalRatesPage() {
           </div>
 
           <p className="text-[12px] text-gray-500 font-sans">
-            Source: {source === 'goldapi' ? 'GoldAPI' : source}. The next scheduled refresh will update these values.
+            Source: {source}. The daily automated scraper collects official rates from the Ahmedabad bullion market and IBJA benchmark.
           </p>
         </div>
       )}

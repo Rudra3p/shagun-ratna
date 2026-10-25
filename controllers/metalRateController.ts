@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/db/db";
 import MetalRate from "@/models/metalRate";
 import Product from "@/models/product";
+import { scrapeDailyMetalRates } from "@/lib/metalRateScraper";
 
 const DEFAULT_RATES = {
-  goldRatePerGram: 7850,
-  silverRatePerGram: 95,
-  platinumRatePerGram: 3200,
+  goldRatePerGram: 14260,
+  silverRatePerGram: 220,
+  platinumRatePerGram: 5500,
 } as const;
-
-const IBJA_API_BASE_URL = "https://ibja-api.vercel.app";
 
 type RateDocument = {
   singleton: string;
@@ -22,26 +21,45 @@ type RateDocument = {
   updatedAt?: Date;
 };
 
-type JsonObject = Record<string, unknown>;
+const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour cache window
+let inFlightScrapePromise: Promise<RateDocument | null> | null = null;
 
-function asObject(value: unknown): JsonObject | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? value as JsonObject
-    : null;
-}
-
-function asPositiveNumber(value: unknown): number | null {
-  if (typeof value !== "string" && typeof value !== "number") return null;
-
-  const numberValue = Number(String(value).replace(/[,₹\s]/g, ""));
-  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : null;
-}
-
-// Always resolves to the single rate document, creating it on first use so the
-// admin screen has something to edit rather than erroring on an empty database.
-export const readRates = async () => {
+// Resolves current metal rates with an automated 1-hour live scraper cache:
+// - When a visitor arrives: checks if the existing rate was updated within the last 1 hour.
+// - If within 1 hour: returns the cached database rate immediately (no scraper called).
+// - If after 1 hour (or never set): triggers the live Ahmedabad & IBJA scraper, saves to DB, and returns updated rates.
+export const readRates = async (): Promise<RateDocument> => {
   await dbConnect();
-  const existing = await MetalRate.findOne({ singleton: 'current' }).lean();
+  const existing = (await MetalRate.findOne({ singleton: 'current' }).lean()) as RateDocument | null;
+
+  const now = Date.now();
+  const lastUpdated = existing?.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
+  const isOlderThanOneHour = !existing || (now - lastUpdated) >= ONE_HOUR_MS;
+
+  // Rate is older than 1 hour (or initial visit): run live scraper
+  if (isOlderThanOneHour) {
+    try {
+      if (!inFlightScrapePromise) {
+        inFlightScrapePromise = updateMetalRatesFromApi()
+          .catch((scrapeErr) => {
+            console.warn("[Live Metal Scraper] Hourly scrape failed, falling back to cached rates:", scrapeErr);
+            return null;
+          })
+          .finally(() => {
+            inFlightScrapePromise = null;
+          });
+      }
+
+      const freshlyScraped = await inFlightScrapePromise;
+      if (freshlyScraped) {
+        return freshlyScraped;
+      }
+    } catch (err) {
+      console.warn("[Live Metal Scraper] In-flight scraper error:", err);
+    }
+  }
+
+  // Rate was updated within 1 hour (or fallback used on network glitch)
   if (existing) {
     const repairs = {
       ...(existing.goldRatePerGram > 0 ? {} : { goldRatePerGram: DEFAULT_RATES.goldRatePerGram }),
@@ -57,16 +75,17 @@ export const readRates = async () => {
       { new: true, runValidators: true }
     ).lean();
 
-    return repaired || { ...existing, ...repairs };
+    return (repaired || { ...existing, ...repairs }) as RateDocument;
   }
 
+  // Safety fallback if database had no record and scraper failed
   const created = await MetalRate.create({
     singleton: 'current',
     ...DEFAULT_RATES,
-    source: 'Safe Fallback',
+    source: 'Safe Fallback (Ahmedabad Rates)',
     updatedBy: 'System',
   });
-  return created.toObject();
+  return created.toObject() as RateDocument;
 };
 
 export const getMetalRates = async (): Promise<NextResponse> => {
@@ -112,7 +131,7 @@ export const updateMetalRates = async (req: Request): Promise<NextResponse> => {
         goldRatePerGram: gold,
         silverRatePerGram: silver,
         platinumRatePerGram: platinum,
-        source: 'Admin Dashboard',
+        source: 'Admin Manual Update',
         updatedBy: 'Admin Dashboard',
       },
       { new: true, upsert: true, runValidators: true }
@@ -127,46 +146,38 @@ export const updateMetalRates = async (req: Request): Promise<NextResponse> => {
   }
 };
 
+// Live Hourly & Scheduled Scraper: fetches Ahmedabad, Gujarat daily rates with IBJA official fallback
 export async function updateMetalRatesFromApi(): Promise<RateDocument> {
-  const fetchJson = async (path: string): Promise<JsonObject> => {
-    const response = await fetch(`${IBJA_API_BASE_URL}${path}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`IBJA ${path} request failed (${response.status})`);
-
-    const payload = asObject(await response.json());
-    if (!payload) throw new Error(`IBJA ${path} returned an invalid JSON object`);
-    return payload;
-  };
-
-  const [goldPayload, silverPayload, platinumPayload] = await Promise.all([
-    fetchJson('/latest'),
-    fetchJson('/silver/latest'),
-    fetchJson('/platinum/latest'),
-  ]);
-
-  const goldPerTenGrams = asPositiveNumber(goldPayload.lblGold999_PM)
-    ?? asPositiveNumber(goldPayload.lblGold999_AM);
-  const silverPerKilogram = asPositiveNumber(silverPayload.lblSilver999_PM)
-    ?? asPositiveNumber(silverPayload.lblSilver999_AM);
-  const platinumPerGram = asPositiveNumber(platinumPayload.lblPlatinum999_PM)
-    ?? asPositiveNumber(platinumPayload.lblPlatinum999_AM);
-
-  if (goldPerTenGrams === null || silverPerKilogram === null || platinumPerGram === null) {
-    throw new Error('IBJA responses did not contain valid AM/PM metal rates');
-  }
-
-  const rates = {
-    goldRatePerGram: goldPerTenGrams / 10,
-    silverRatePerGram: silverPerKilogram / 1000,
-    platinumRatePerGram: platinumPerGram / 10,
-  };
+  const scraped = await scrapeDailyMetalRates();
 
   await dbConnect();
   const updated = await MetalRate.findOneAndUpdate(
     { singleton: 'current' },
-    { ...rates, source: 'IBJA-Automated', updatedBy: 'Cron Job', updatedAt: new Date() },
+    {
+      goldRatePerGram: scraped.goldRatePerGram,
+      silverRatePerGram: scraped.silverRatePerGram,
+      platinumRatePerGram: scraped.platinumRatePerGram,
+      source: scraped.source,
+      updatedBy: 'Live Hourly Scraper',
+      updatedAt: new Date(),
+    },
     { new: true, upsert: true, runValidators: true }
   ).lean();
 
-  if (!updated) throw new Error('IBJA rates could not be saved');
+  if (!updated) throw new Error('Scraped metal rates could not be saved to database');
   return updated as RateDocument;
 }
+
+// Admin manual trigger for instant market scrape & sync
+export const syncMetalRates = async (): Promise<NextResponse> => {
+  try {
+    const rates = await updateMetalRatesFromApi();
+    return NextResponse.json({ success: true, rates }, { status: 200 });
+  } catch (error: any) {
+    console.error("Metal rate scraper sync error:", error);
+    return NextResponse.json(
+      { success: false, error: error?.message || "Failed to scrape daily metal rates" },
+      { status: 500 }
+    );
+  }
+};
