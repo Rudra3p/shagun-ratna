@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react'; // Added Star icon
 import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
+import { EditableText } from '@/components/admin/EditableText';
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -64,12 +65,22 @@ export default function Testimonials() {
             transition={{ duration: 1 }}
             className="w-[1px] bg-[#C5A059]/60 mb-6"
           />
-          <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3">
-            Words from our Patrons
-          </span>
-          <h2 className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase">
-            Patron Experiences
-          </h2>
+          <EditableText
+            textKey="home-testimonials-tag"
+            defaultText="Words from our Patrons"
+            label="Testimonials Tag"
+            section="Testimonials"
+            as="span"
+            className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3"
+          />
+          <EditableText
+            textKey="home-testimonials-title"
+            defaultText="Patron Experiences"
+            label="Testimonials Section Title"
+            section="Testimonials"
+            as="h2"
+            className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase"
+          />
           <motion.div
             initial={{ width: 0 }}
             whileInView={{ width: 96 }}

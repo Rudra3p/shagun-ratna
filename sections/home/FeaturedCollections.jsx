@@ -138,9 +138,14 @@ export default function FeaturedCollections() {
               />
 
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px]">
-                  {defaultItem.tag}
-                </span>
+                <EditableText
+                  textKey="home-featured-tag"
+                  defaultText={defaultItem.tag}
+                  label="Collections Tag"
+                  section="Featured Collections"
+                  as="span"
+                  className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px]"
+                />
                 <motion.div 
                   initial={{ width: 0 }}
                   whileInView={{ width: 32 }}
@@ -175,19 +180,39 @@ export default function FeaturedCollections() {
                     href={`/collection?search=${encodeURIComponent(defaultItem.searchTerm)}`}
                     className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
                   >
-                    <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover Collection</span>
+                    <EditableText
+                      textKey="home-featured-cta"
+                      defaultText="Discover Collection"
+                      label="Discover Collection Button"
+                      section="Featured Collections"
+                      as="span"
+                      className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]"
+                    />
                     <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
                   </Link>
                   <Link
                     href={`/contact?product=${encodeURIComponent(product.productName)}`}
                     className="inline-block py-2 text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/80 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
                   >
-                    Enquire about this piece
+                    <EditableText
+                      textKey="home-featured-enquire-cta"
+                      defaultText="Enquire about this piece"
+                      label="Collection Enquire CTA"
+                      section="Featured Collections"
+                      as="span"
+                    />
                   </Link>
                 </div>
               ) : (
                 <Link href={`/collection?search=${encodeURIComponent(defaultItem.searchTerm)}`} className="relative w-fit font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]">
-                  <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">Discover Collection</span>
+                  <EditableText
+                    textKey="home-featured-cta"
+                    defaultText="Discover Collection"
+                    label="Discover Collection Button"
+                    section="Featured Collections"
+                    as="span"
+                    className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]"
+                  />
                   <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
                 </Link>
               )}

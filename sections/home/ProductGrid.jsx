@@ -4,35 +4,40 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Sparkles, Edit3 } from 'lucide-react';
 import userApi from '@/lib/userApi';
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import { formatCategory } from '@/lib/formatCategory';
+import { EditableText } from '@/components/admin/EditableText';
+import { useAdminEditor } from '@/components/admin/AdminEditorContext';
+import { HomepageGridPickerModal } from '@/components/admin/HomepageGridPickerModal';
 
 export default function ProductGrid() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const { isAdmin, editMode } = useAdminEditor();
+
+  const fetchHomepageProducts = async () => {
+    try {
+      setLoading(true);
+      const res = await userApi.get('/products/homepage');
+      setProducts(res.data.products || []);
+    } catch {
+      // Homepage stays fine without this section if the catalog fetch fails
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    userApi.get('/products/homepage')
-      .then((res) => {
-        if (!cancelled) setProducts(res.data.products || []);
-      })
-      .catch(() => {
-        // Homepage stays fine without this section if the catalog fetch fails
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
+    fetchHomepageProducts();
   }, []);
 
   if (!loading && products.length === 0) return null;
 
   return (
-    <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7]">
+    <section className="py-20 md:py-32 px-6 md:px-12 bg-[#FDFBF7] relative">
       <div className="max-w-7xl mx-auto">
 
         {/* Section Header */}
@@ -45,12 +50,22 @@ export default function ProductGrid() {
             transition={{ duration: 1 }}
             className="w-[1px] bg-[#C5A059]/60 mb-6"
           />
-          <span className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3">
-            Our Curation
-          </span>
-          <h2 className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase">
-            Selected Masterpieces
-          </h2>
+          <EditableText
+            textKey="home-curation-tag"
+            defaultText="Our Curation"
+            label="Curation Tag"
+            section="Selected Masterpieces"
+            as="span"
+            className="text-[#90060c] font-bold tracking-[0.4em] uppercase text-[10px] mb-3"
+          />
+          <EditableText
+            textKey="home-curation-title"
+            defaultText="Selected Masterpieces"
+            label="Curation Section Title"
+            section="Selected Masterpieces"
+            as="h2"
+            className="font-brand text-3xl md:text-5xl text-[#1a1a1a] tracking-[0.15em] font-light uppercase"
+          />
           <motion.div
             initial={{ width: 0 }}
             whileInView={{ width: 96 }}
@@ -58,6 +73,28 @@ export default function ProductGrid() {
             transition={{ duration: 1, delay: 0.2 }}
             className="h-[1px] bg-[#C5A059] mt-4 md:mt-6"
           />
+
+          {/* Admin Edit Mode: Direct 6-Product Grid Action Bar */}
+          {isAdmin && editMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 flex items-center gap-3 bg-white border border-[#C5A059] px-5 py-2.5 rounded-full shadow-lg"
+            >
+              <span className="text-xs font-sans font-semibold text-[#90060c] flex items-center gap-1.5">
+                <Sparkles size={14} className="text-[#C5A059]" />
+                <span>Homepage 6-Piece Showcase Grid</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1 text-[11px] font-sans font-bold uppercase tracking-wider text-white bg-[#90060c] hover:bg-[#730509] rounded-full shadow transition-all cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <Edit3 size={11} />
+                <span>Manage 6 Masterpieces</span>
+              </button>
+            </motion.div>
+          )}
         </div>
 
         {/* Dynamic Responsive Grid Layout */}
@@ -67,17 +104,10 @@ export default function ProductGrid() {
               <ProductCardSkeleton key={i} aspectClassName="aspect-[3/4]" centered />
             ))
           ) : (
-            products.map((product) => (
-              <motion.div
-                key={product._id}
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-30px" }}
-                transition={{ duration: 0.8 }}
-                className="group bg-transparent"
-              >
-                <Link href={`/collection/${product._id}`}>
-                  {/* Product Image Card with updated aspect-[3/4] ratio */}
+            products.map((product, index) => {
+              const cardContent = (
+                <>
+                  {/* Product Image Card with aspect-[3/4] ratio */}
                   <div className="relative w-full aspect-[3/4] bg-[#e5e5e5] rounded-2xl border border-[#C5A059]/30 overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-700">
                     {product.imageUrl ? (
                       <Image
@@ -100,12 +130,19 @@ export default function ProductGrid() {
                       </p>
                     </div>
 
-                    {/* Hover Reveal Inquire Overlay */}
+                    {/* Edit Mode Slot Badge */}
+                    {isAdmin && editMode && (
+                      <div className="absolute top-4 right-4 z-10 bg-[#90060c] text-white border border-[#C5A059] px-2.5 py-0.5 rounded-full text-[10px] font-sans font-bold shadow-md">
+                        Slot {index + 1}
+                      </div>
+                    )}
+
+                    {/* Hover Reveal Overlay */}
                     <div className="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center z-20">
                       <span
                         className="font-sans px-8 py-3 bg-[#FDFBF7] text-[#90060c] border border-[#C5A059] text-[10px] tracking-[0.25em] uppercase font-bold rounded-full transform scale-95 group-hover:scale-100 transition-all duration-500 shadow-lg"
                       >
-                        View Piece
+                        {isAdmin && editMode ? 'Change Piece' : 'View Piece'}
                       </span>
                     </div>
                   </div>
@@ -116,23 +153,72 @@ export default function ProductGrid() {
                       {product.productName}
                     </h4>
                   </div>
-                </Link>
+                </>
+              );
 
-                {/* Secondary CTA — sits outside the card's main Link so it can route
-                    to Contact independently without nesting anchor tags */}
-                <div className="text-center mt-1">
-                  <Link
-                    href={`/contact?product=${encodeURIComponent(product.productName)}`}
-                    className="inline-block py-2 px-1 text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/80 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
-                  >
-                    Enquire about this piece
-                  </Link>
-                </div>
-              </motion.div>
-            ))
+              return (
+                <motion.div
+                  key={product._id}
+                  initial={{ opacity: 0, y: 25 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-30px" }}
+                  transition={{ duration: 0.8 }}
+                  className="group bg-transparent"
+                >
+                  {isAdmin && editMode ? (
+                    <div
+                      onClick={() => setIsPickerOpen(true)}
+                      className="cursor-pointer"
+                      title={`Click to change Slot ${index + 1} piece`}
+                    >
+                      {cardContent}
+                    </div>
+                  ) : (
+                    <Link href={`/collection/${product._id}`}>
+                      {cardContent}
+                    </Link>
+                  )}
+
+                  {/* Secondary CTA */}
+                  <div className="text-center mt-1">
+                    {isAdmin && editMode ? (
+                      <span className="inline-block py-2 px-1 text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/80 underline underline-offset-4 decoration-[#C5A059]/50">
+                        <EditableText
+                          textKey="home-curation-enquire-cta"
+                          defaultText="Enquire about this piece"
+                          label="Card Enquire CTA"
+                          section="Selected Masterpieces"
+                          as="span"
+                        />
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/contact?product=${encodeURIComponent(product.productName)}`}
+                        className="inline-block py-2 px-1 text-[11px] tracking-[0.2em] uppercase font-semibold text-[#90060c]/80 hover:text-[#90060c] underline underline-offset-4 decoration-[#C5A059]/50 hover:decoration-[#90060c] transition-colors"
+                      >
+                        <EditableText
+                          textKey="home-curation-enquire-cta"
+                          defaultText="Enquire about this piece"
+                          label="Card Enquire CTA"
+                          section="Selected Masterpieces"
+                          as="span"
+                        />
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })
           )}
         </div>
       </div>
+
+      {/* Product Selection Modal */}
+      <HomepageGridPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        onSaved={fetchHomepageProducts}
+      />
     </section>
   );
 }

@@ -152,22 +152,37 @@ export default function AuthenticitySection() {
       >
         <div className="flex items-center justify-center gap-3 mb-5">
           <Leaf size={16} className="text-[#C5A059]" />
-          <span className="text-[#C5A059] font-bold tracking-[0.3em] uppercase text-[10px]">
-            Provenance &amp; Ethics
-          </span>
+          <EditableText
+            textKey="home-provenance-tag"
+            defaultText="Provenance & Ethics"
+            label="Provenance Tag"
+            section="Authenticity & Certification"
+            as="span"
+            className="text-[#C5A059] font-bold tracking-[0.3em] uppercase text-[10px]"
+          />
         </div>
-        <p className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/85 mb-10">
-          We guarantee the provenance of every material we use — sourced responsibly and verified at each
-          stage, then crafted with an unwavering commitment to purity. Our artisans work only with ethically
-          sourced gold and conflict-free stones, upholding a standard of integrity that matches the
-          craftsmanship itself.
-        </p>
+        <EditableText
+          textKey="home-provenance-text"
+          defaultText="We guarantee the provenance of every material we use — sourced responsibly and verified at each stage, then crafted with an unwavering commitment to purity. Our artisans work only with ethically sourced gold and conflict-free stones, upholding a standard of integrity that matches the craftsmanship itself."
+          label="Provenance & Ethics Body"
+          section="Authenticity & Certification"
+          type="textarea"
+          as="p"
+          className="font-sans text-sm leading-[2.1] tracking-[0.05em] text-[#1a1a1a]/85 mb-10 block"
+        />
 
         <Link
           href="/about"
           className="relative w-fit inline-block font-sans px-10 py-3.5 text-xs tracking-[0.25em] uppercase text-[#90060c] border border-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_20px_rgba(144,6,12,0.15)] active:scale-[0.98]"
         >
-          <span className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]">View Our Standards</span>
+          <EditableText
+            textKey="home-provenance-cta"
+            defaultText="View Our Standards"
+            label="Provenance Button Text"
+            section="Authenticity & Certification"
+            as="span"
+            className="relative z-10 transition-colors duration-500 group-hover:text-[#faf3e5]"
+          />
           <span className="absolute inset-0 bg-[#90060c] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100" />
         </Link>
       </motion.div>
