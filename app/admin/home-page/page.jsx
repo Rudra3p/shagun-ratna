@@ -10,8 +10,7 @@ import Testimonials from '@/sections/home/Testimonials';
 import { SiteImagesProvider } from '@/components/SiteImagesProvider';
 import { SiteTextsProvider } from '@/components/SiteTextsProvider';
 import { AdminEditorProvider } from '@/components/admin/AdminEditorContext';
-import { AdminEditorToolbar } from '@/components/admin/AdminEditorToolbar';
-import { AdminEditorDrawer } from '@/components/admin/AdminEditorDrawer';
+import { AdminEditToggle } from '@/components/admin/AdminEditToggle';
 import { AdminEditModals } from '@/components/admin/AdminEditModals';
 
 export default function AdminHomePage() {
@@ -19,8 +18,8 @@ export default function AdminHomePage() {
     <SiteImagesProvider>
       <SiteTextsProvider>
         <AdminEditorProvider page="Home">
-          <AdminEditorToolbar />
-          <div className="relative border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-xl bg-[#FDFBF7]">
+          <AdminEditToggle />
+          <main>
             <HeroSection />
             <PageDivider />
             <StorySection />
@@ -30,8 +29,7 @@ export default function AdminHomePage() {
             <FeaturedCollections />
             <PageDivider />
             <Testimonials />
-          </div>
-          <AdminEditorDrawer />
+          </main>
           <AdminEditModals />
         </AdminEditorProvider>
       </SiteTextsProvider>

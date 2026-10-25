@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { useSiteImages } from '@/components/SiteImagesProvider';
+import { useAdminEditor } from '@/components/admin/AdminEditorContext';
 import { EditableText } from '@/components/admin/EditableText';
 import { EditableMedia } from '@/components/admin/EditableMedia';
 
@@ -30,6 +31,8 @@ const childVariants = {
 export default function HeroSection() {
   const [imageIndex, setImageIndex] = useState(0);
   const siteImages = useSiteImages();
+  const { isAdmin, editMode } = useAdminEditor();
+
   const heroSlides = [
     { src: siteImages['home-hero'] || '/hero_sec_hand.webp', alt: 'Shagun Ratna gemstone jewelry' },
     { src: '/new-launch.webp', alt: 'Shagun Ratna emerald jewelry' },
@@ -39,12 +42,14 @@ export default function HeroSection() {
   ];
 
   useEffect(() => {
+    if (isAdmin && editMode) return;
+
     const timer = setInterval(() => {
       setImageIndex((previousIndex) => (previousIndex + 1) % heroSlides.length);
     }, 4000);
 
     return () => clearInterval(timer);
-  }, [heroSlides.length]);
+  }, [heroSlides.length, isAdmin, editMode]);
 
   return (
     <section 
