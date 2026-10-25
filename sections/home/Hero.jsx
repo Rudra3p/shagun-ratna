@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Camera } from 'lucide-react';
+import { MapPin, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSiteImages } from '@/components/SiteImagesProvider';
 import { useSiteText } from '@/components/SiteTextsProvider';
 import { useAdminEditor } from '@/components/admin/AdminEditorContext';
@@ -37,20 +37,34 @@ export default function HeroSection() {
   const conciergeText = useSiteText('home-hero-concierge', 'Visit our Ahmedabad boutique by appointment');
 
   const heroSlides = [
-    { src: siteImages['home-hero'] || '/hero_sec_hand.webp', alt: 'Shagun Ratna gemstone jewelry' },
-    { src: '/new-launch.webp', alt: 'Shagun Ratna emerald jewelry' },
-    { src: '/gold-section.webp', alt: 'Shagun Ratna handcrafted gold jewelry' },
-    { src: '/gemstone-section.webp', alt: 'Natural gemstones at Shagun Ratna' },
-    { src: '/diamond-section.webp', alt: 'Certified diamonds at Shagun Ratna' },
+    { key: 'home-hero', label: 'Slide 1 (Handpiece)', defaultSrc: '/hero_sec_hand.webp', src: siteImages['home-hero'] || '/hero_sec_hand.webp', alt: 'Shagun Ratna gemstone jewelry' },
+    { key: 'home-hero-2', label: 'Slide 2 (Emerald Showcase)', defaultSrc: '/new-launch.webp', src: siteImages['home-hero-2'] || '/new-launch.webp', alt: 'Shagun Ratna emerald jewelry' },
+    { key: 'home-hero-3', label: 'Slide 3 (Gold Artistry)', defaultSrc: '/gold-section.webp', src: siteImages['home-hero-3'] || '/gold-section.webp', alt: 'Shagun Ratna handcrafted gold jewelry' },
+    { key: 'home-hero-4', label: 'Slide 4 (Rare Gemstones)', defaultSrc: '/gemstone-section.webp', src: siteImages['home-hero-4'] || '/gemstone-section.webp', alt: 'Natural gemstones at Shagun Ratna' },
+    { key: 'home-hero-5', label: 'Slide 5 (Certified Diamonds)', defaultSrc: '/diamond-section.webp', src: siteImages['home-hero-5'] || '/diamond-section.webp', alt: 'Certified diamonds at Shagun Ratna' },
   ];
 
-  // When edit mode is active, stay pinned to the primary hero showcase image (slide 0)
+  const currentSlide = heroSlides[imageIndex] || heroSlides[0];
+
+  const goToSlide = (nextIndex) => {
+    setImageIndex((nextIndex + heroSlides.length) % heroSlides.length);
+  };
+
+  const goToNextSlide = () => {
+    goToSlide(imageIndex + 1);
+  };
+
+  const goToPreviousSlide = () => {
+    goToSlide(imageIndex - 1);
+  };
+
+  // Only auto-advance when NOT in admin edit mode. When edit mode is active, slides stay manual.
   useEffect(() => {
     if (isAdmin && editMode) return;
 
     const timer = setInterval(() => {
-      setImageIndex((previousIndex) => (previousIndex + 1) % heroSlides.length);
-    }, 4000);
+      setImageIndex((prev) => (prev + 1) % heroSlides.length);
+    }, 4500);
 
     return () => clearInterval(timer);
   }, [heroSlides.length, isAdmin, editMode]);
@@ -171,21 +185,80 @@ export default function HeroSection() {
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
           className="relative flex justify-center items-center w-full lg:col-span-6 order-1 lg:order-2 z-10 h-[350px] sm:h-[450px] lg:h-[550px]"
         >
-          {/* Change Media Button in Edit Mode */}
+          {/* Change Media Button & Manual Navigation in Edit Mode */}
           {isAdmin && editMode && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                openMediaEdit('home-hero', 'Hero Showcase Hand Image', '/hero_sec_hand.webp');
-              }}
-              className="absolute top-2 right-2 z-40 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-sans font-medium text-white bg-[#90060c] hover:bg-[#730509] border border-[#C5A059] rounded-full shadow-2xl backdrop-blur-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              title="Change Hero Showcase Hand Image"
-            >
-              <Camera size={13} className="text-[#C5A059]" />
-              <span>Change Hero Image</span>
-            </button>
+            <>
+              {/* Dynamic Change Media Button for Active Slide */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openMediaEdit(
+                    currentSlide.key,
+                    `Home Hero — ${currentSlide.label}`,
+                    currentSlide.defaultSrc
+                  );
+                }}
+                className="absolute top-2 right-2 z-40 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-sans font-medium text-white bg-[#90060c] hover:bg-[#730509] border border-[#C5A059] rounded-full shadow-2xl backdrop-blur-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                title={`Change photo for ${currentSlide.label}`}
+              >
+                <Camera size={13} className="text-[#C5A059]" />
+                <span>Change Slide {imageIndex + 1} Image</span>
+              </button>
+
+              {/* Manual Slide Previous Arrow */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goToPreviousSlide();
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-black/60 hover:bg-[#90060c] text-white border border-[#C5A059]/60 flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer shadow-xl hover:scale-110 active:scale-95"
+                aria-label="Previous Slide"
+                title="Previous Slide"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              {/* Manual Slide Next Arrow */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goToNextSlide();
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-black/60 hover:bg-[#90060c] text-white border border-[#C5A059]/60 flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer shadow-xl hover:scale-110 active:scale-95"
+                aria-label="Next Slide"
+                title="Next Slide"
+              >
+                <ChevronRight size={20} />
+              </button>
+
+              {/* Bottom Slide Switcher Tabs */}
+              <div className="absolute -bottom-3 sm:bottom-2 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#C5A059]/60 shadow-2xl">
+                {heroSlides.map((slide, idx) => (
+                  <button
+                    key={slide.key}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      goToSlide(idx);
+                    }}
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans uppercase tracking-wider transition-all cursor-pointer ${
+                      idx === imageIndex
+                        ? 'bg-[#90060c] text-[#faf3e5] font-bold border border-[#C5A059] shadow-sm'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Slide {idx + 1}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
 
           {/* Gold aura background glow */}
