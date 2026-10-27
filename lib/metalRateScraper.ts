@@ -25,9 +25,42 @@ const BROWSER_HEADERS = {
   'Accept-Language': 'en-US,en;q=0.9',
 };
 
-// 1. Scrapes Ahmedabad, Gujarat live daily bullion rates
+function extractPlatinumRate(html?: string | null): number | null {
+  if (!html) return null;
+
+  // Pattern 1: Table with <th>1 gram</th> followed by <td>Date</td><td>&#x20b9;4,624</td>
+  const tableIdx = html.indexOf('<th>1 gram</th>');
+  if (tableIdx !== -1) {
+    const tableSlice = html.slice(tableIdx, tableIdx + 2000);
+    const rowMatch = tableSlice.match(/<tr>\s*<td>[^<]+<\/td>\s*<td>([^<]+)<\/td>/i);
+    if (rowMatch) {
+      const price = cleanPrice(rowMatch[1]);
+      if (price && price > 1000 && price < 20000) return Math.round(price);
+    }
+  }
+
+  // Pattern 2: Generic row with date and rupee prices
+  const regex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(html)) !== null) {
+    const row = m[1];
+    if (row.includes('&#x20b9;') || row.includes('₹')) {
+      const cells = (row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || [])
+        .map((c) => c.replace(/<[^>]+>/g, '').trim())
+        .filter(Boolean);
+      if (cells.length >= 2) {
+        const p1 = cleanPrice(cells[1]);
+        if (p1 && p1 > 1000 && p1 < 20000) return Math.round(p1);
+      }
+    }
+  }
+
+  return null;
+}
+
+// 1. Scrapes Ahmedabad, Gujarat live daily bullion rates (Gold, Silver, Platinum)
 async function scrapeAhmedabadBullion(): Promise<ScrapedMetalRates> {
-  const [goldRes, silverRes] = await Promise.all([
+  const [goldRes, silverRes, platRes] = await Promise.all([
     fetch('https://www.goodreturns.in/gold-rates/ahmedabad.html', {
       headers: BROWSER_HEADERS,
       cache: 'no-store',
@@ -38,13 +71,22 @@ async function scrapeAhmedabadBullion(): Promise<ScrapedMetalRates> {
       cache: 'no-store',
       signal: AbortSignal.timeout(8000),
     }),
+    fetch('https://www.goodreturns.in/platinum-rate-in-ahmedabad.html', {
+      headers: BROWSER_HEADERS,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+    }).catch(() => null),
   ]);
 
   if (!goldRes.ok || !silverRes.ok) {
     throw new Error(`Ahmedabad bullion HTTP failure: gold=${goldRes.status}, silver=${silverRes.status}`);
   }
 
-  const [goldHtml, silverHtml] = await Promise.all([goldRes.text(), silverRes.text()]);
+  const [goldHtml, silverHtml, platHtml] = await Promise.all([
+    goldRes.text(),
+    silverRes.text(),
+    platRes && platRes.ok ? platRes.text() : Promise.resolve(''),
+  ]);
 
   const match24k = goldHtml.match(/id="24K-price"[^>]*>([^<]+)</i);
   const match22k = goldHtml.match(/id="22K-price"[^>]*>([^<]+)</i);
@@ -63,6 +105,10 @@ async function scrapeAhmedabadBullion(): Promise<ScrapedMetalRates> {
     if (silver1kg) silverPerGram = Math.round(silver1kg / 1000);
   }
 
+  // Live Ahmedabad Platinum Rate
+  const scrapedPlatinum = extractPlatinumRate(platHtml);
+  const platinumPerGram = scrapedPlatinum || 4624;
+
   if (!gold24k || !silverPerGram) {
     throw new Error('Failed to parse valid gold/silver prices from Ahmedabad bullion feed');
   }
@@ -70,7 +116,7 @@ async function scrapeAhmedabadBullion(): Promise<ScrapedMetalRates> {
   return {
     goldRatePerGram: Math.round(gold24k),
     silverRatePerGram: Math.round(silverPerGram),
-    platinumRatePerGram: 5500,
+    platinumRatePerGram: platinumPerGram,
     goldRate22k: gold22k ? Math.round(gold22k) : Math.round(gold24k * 0.916),
     goldRate18k: gold18k ? Math.round(gold18k) : Math.round(gold24k * 0.75),
     source: 'Ahmedabad (Gujarat) Daily Bullion Rates',

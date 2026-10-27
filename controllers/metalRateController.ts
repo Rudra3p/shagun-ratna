@@ -7,7 +7,7 @@ import { scrapeDailyMetalRates } from "@/lib/metalRateScraper";
 const DEFAULT_RATES = {
   goldRatePerGram: 14260,
   silverRatePerGram: 220,
-  platinumRatePerGram: 5500,
+  platinumRatePerGram: 4624,
 } as const;
 
 type RateDocument = {
