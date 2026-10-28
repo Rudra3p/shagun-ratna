@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import adminApi from '@/lib/adminApi';
 import {
-  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut, GitMerge,
+  LayoutDashboard, UserCircle, Package, History, MessageSquare, LogOut,
   Menu, Workflow, X, Inbox, Image as ImageIcon, LayoutGrid, TrendingUp,
   ChevronDown, Gem, Palette, Users2, Settings, Home, Info
 } from 'lucide-react';
@@ -21,7 +21,6 @@ const NAV_GROUPS = [
     items: [
       { label: 'Products', href: '/admin/product', icon: Package },
       { label: 'Metal Rates', href: '/admin/metal-rates', icon: TrendingUp },
-      { label: 'Collections', href: '/admin/product-mapping', icon: GitMerge },
     ],
   },
   {

@@ -67,7 +67,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `/admin/login` | `app/admin/login/page.jsx` | Secure administrative authentication with rate limiting & JWT |
 | `/admin` | `app/admin/page.jsx` | Admin Dashboard: Live visitor metrics, product counts, inquiry alerts |
 | `/admin/product` | `app/admin/product/page.jsx` | Product Management: Create, edit, multi-category assign, image upload, formula pricing |
-| `/admin/product-mapping` | `app/admin/product-mapping/page.jsx` | Category showcase mapping and featured collection ordering |
 | `/admin/metal-rates` | `app/admin/metal-rates/page.jsx` | Live gold (24K, 22K, 18K) & silver rate management (instantly updates catalog) |
 | `/admin/inquiries` | `app/admin/inquiries/page.jsx` | Lead management: View, filter, and change status of customer inquiries |
 | `/admin/reviews` | `app/admin/reviews/page.jsx` | Review moderation, manual review addition, Google Review sync trigger |
