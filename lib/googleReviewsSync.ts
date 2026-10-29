@@ -6,7 +6,8 @@ import { s3Client } from "@/lib/r2";
 
 const DAILY_REVIEW_LIMIT = 15;
 const DEFAULT_APIFY_ACTOR = "compass/google-maps-reviews-scraper";
-const GOOGLE_REVIEW_LOCATION = "Shagunratna Gems & Jewellers, Satellite, Ahmedabad, India";
+const DEFAULT_PLACE_ID = "ChIJCXuSoJGbXjkRpYb16Lvjb4o";
+const GOOGLE_REVIEW_LOCATION = "Shagunratna Gems & Jewellers, Shivranjani Cross Road, Satellite, Ahmedabad, Gujarat 380015, India";
 
 type OutscraperReview = Record<string, unknown>;
 
@@ -32,10 +33,6 @@ function dateValue(...values: unknown[]): Date | undefined {
   }
 
   return undefined;
-}
-
-function normalizeForComparison(value: string): string {
-  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 }
 
 function escapeRegex(value: string): string {
@@ -72,7 +69,7 @@ function normalizeReview(review: OutscraperReview, placeId: string) {
     review.author_name,
     review.name,
   );
-  const text = stringValue(review.reviewText, review.review_text, review.text, review.content);
+  let text = stringValue(review.reviewText, review.review_text, review.text, review.content);
   const rating = numberValue(review.stars, review.review_rating, review.rating);
   const authorImage = stringValue(
     review.reviewerPhotoUrl,
@@ -88,6 +85,11 @@ function normalizeReview(review: OutscraperReview, placeId: string) {
     review.reviewDate,
     review.review_date,
   );
+
+  // If reviewer left stars only without text, assign a clean, compliant summary string
+  if (!text && rating >= 1 && rating <= 5) {
+    text = `Rated ${rating} stars on Google Reviews`;
+  }
 
   if (!name || !text || rating < 1 || rating > 5) return null;
 
@@ -109,42 +111,63 @@ function normalizeReview(review: OutscraperReview, placeId: string) {
   };
 }
 
-async function uploadAuthorImage(imageUrl: string, sourceReviewId: string) {
+async function uploadAuthorImage(imageUrl: string, sourceReviewId: string): Promise<string> {
   if (!imageUrl) return "";
 
   const publicDomain = process.env.R2_PUBLIC_DOMAIN;
   if (!publicDomain || !process.env.R2_BUCKET_NAME) {
-    throw new Error("R2_PUBLIC_DOMAIN and R2_BUCKET_NAME must be configured to store review images");
+    return imageUrl;
   }
 
-  const response = await fetch(imageUrl, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Reviewer image request failed with status ${response.status}`);
+  // Already uploaded to R2
+  if (imageUrl.startsWith(publicDomain)) {
+    return imageUrl;
+  }
 
-  const contentType = response.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-  if (!contentType.startsWith("image/")) throw new Error("Reviewer image URL did not return an image");
+  try {
+    const response = await fetch(imageUrl, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!response.ok) return imageUrl;
 
-  const key = `reviews/google/${sourceReviewId}.${contentType.split("/")[1] || "jpg"}`;
-  await s3Client.send(new PutObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
-    Key: key,
-    Body: Buffer.from(await response.arrayBuffer()),
-    ContentType: contentType,
-  }));
+    const contentType = response.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+    if (!contentType.startsWith("image/")) return imageUrl;
 
-  return `${publicDomain.replace(/\/$/, "")}/${key}`;
+    const ext = contentType.split("/")[1] || "jpg";
+    const key = `reviews/google/${sourceReviewId}.${ext}`;
+    await s3Client.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: key,
+      Body: Buffer.from(await response.arrayBuffer()),
+      ContentType: contentType,
+    }));
+
+    return `${publicDomain.replace(/\/$/, "")}/${key}`;
+  } catch (err) {
+    console.warn(`[Review Sync] Could not mirror avatar to R2 for ${sourceReviewId}, retaining original URL:`, err);
+    return imageUrl;
+  }
 }
 
-async function removeExistingExactDuplicates() {
+async function removeExistingExactDuplicates(): Promise<number> {
   const duplicateGroups = await Review.aggregate([
-    { $group: { _id: { name: "$name", text: "$text" }, ids: { $push: "$_id" }, count: { $sum: 1 } } },
+    { $group: { _id: { name: "$name" }, ids: { $push: "$_id" }, count: { $sum: 1 } } },
     { $match: { count: { $gt: 1 } } },
   ]);
 
   let removed = 0;
   for (const group of duplicateGroups) {
-    const idsToDelete = group.ids.slice(1);
-    if (idsToDelete.length > 0) {
-      const result = await Review.deleteMany({ _id: { $in: idsToDelete } });
+    const docs = await Review.find({ _id: { $in: group.ids } }).lean();
+    docs.sort((a, b) => {
+      const aScore = (a.sourceReviewId && a.sourceReviewId !== "NONE") ? 1 : 0;
+      const bScore = (b.sourceReviewId && b.sourceReviewId !== "NONE") ? 1 : 0;
+      return bScore - aScore;
+    });
+
+    const toDelete = docs.slice(1).map((d) => d._id);
+    if (toDelete.length > 0) {
+      const result = await Review.deleteMany({ _id: { $in: toDelete } });
       removed += result.deletedCount;
     }
   }
@@ -152,9 +175,9 @@ async function removeExistingExactDuplicates() {
   return removed;
 }
 
-export async function syncGoogleReviews() {
+export async function syncGoogleReviews(limit = DAILY_REVIEW_LIMIT) {
   const apiKey = process.env.APIFY_API_KEY;
-  const placeId = process.env.GOOGLE_REVIEW_PLACE_ID?.trim();
+  const placeId = process.env.GOOGLE_REVIEW_PLACE_ID?.trim() || DEFAULT_PLACE_ID;
 
   if (!apiKey) {
     throw new Error("APIFY_API_KEY must be configured");
@@ -162,58 +185,88 @@ export async function syncGoogleReviews() {
 
   const client = new ApifyClient({ token: apiKey });
   const actorId = process.env.APIFY_GOOGLE_REVIEWS_ACTOR || DEFAULT_APIFY_ACTOR;
-  const placeUrl = process.env.GOOGLE_REVIEW_PLACE_URL || (placeId
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_REVIEW_LOCATION)}&query_place_id=${encodeURIComponent(placeId)}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(GOOGLE_REVIEW_LOCATION)}`);
+  const placeUrl = process.env.GOOGLE_REVIEW_PLACE_URL ||
+    `https://www.google.com/maps/search/?api=1&query=Shagunratna%20Gems%20%26%20Jewellers&query_place_id=${encodeURIComponent(placeId)}`;
   const comparisonKey = placeId || GOOGLE_REVIEW_LOCATION;
+
   const run = await client.actor(actorId).call({
     startUrls: [{ url: placeUrl }],
-    maxReviews: DAILY_REVIEW_LIMIT,
+    maxReviews: limit,
     reviewsSort: "newest",
     reviewsOrigin: "google",
   });
 
   const dataset = await client.dataset(run.defaultDatasetId).listItems();
-  const reviews = collectReviews(dataset.items)
+  const rawReviews = collectReviews(dataset.items);
+  const reviews = rawReviews
     .map((review) => normalizeReview(review, comparisonKey))
     .filter((review): review is NonNullable<typeof review> => review !== null)
-    .slice(0, DAILY_REVIEW_LIMIT);
+    .slice(0, limit);
 
   const duplicatesRemoved = await removeExistingExactDuplicates();
-  const uniqueReviews = [];
+  let inserted = 0;
+  let updated = 0;
 
   for (const review of reviews) {
+    const uploadedImage = review.authorImage ? await uploadAuthorImage(review.authorImage, review.sourceReviewId) : "";
+    const reviewData = { ...review, authorImage: uploadedImage };
+
+    // 1. Check if a review with this exact sourceReviewId exists
+    const existingById = await Review.findOne({ sourceReviewId: review.sourceReviewId });
+    if (existingById) {
+      await Review.updateOne(
+        { _id: existingById._id },
+        {
+          $set: {
+            rating: reviewData.rating,
+            reviewDate: reviewData.reviewDate || existingById.reviewDate,
+            reviewUrl: reviewData.reviewUrl || existingById.reviewUrl,
+            authorImage: reviewData.authorImage || existingById.authorImage,
+            text: reviewData.text,
+            approved: true,
+          },
+        }
+      );
+      updated++;
+      continue;
+    }
+
+    // 2. Check if an existing review matches the reviewer's name
     const namePattern = new RegExp(`^${escapeRegex(review.name)}$`, "i");
-    const sameNameReviews = await Review.find({ name: namePattern }).select("sourceReviewId text").lean();
+    const existingByName = await Review.findOne({ name: namePattern });
 
-    // Verification step 1: a new author can be inserted immediately.
-    // Verification step 2: for an existing author, only a genuinely new review
-    // may be inserted. This handles repeat reviewers without duplicating a daily run.
-    const normalizedText = normalizeForComparison(review.text);
-    const alreadyExists = sameNameReviews.some((existing) =>
-      existing.sourceReviewId === review.sourceReviewId ||
-      normalizeForComparison(existing.text) === normalizedText
-    );
-    if (alreadyExists) continue;
+    if (existingByName) {
+      // Connect existing review to this sourceReviewId and update its metadata
+      await Review.updateOne(
+        { _id: existingByName._id },
+        {
+          $set: {
+            sourceReviewId: reviewData.sourceReviewId,
+            rating: reviewData.rating,
+            reviewDate: reviewData.reviewDate || existingByName.reviewDate,
+            reviewUrl: reviewData.reviewUrl || existingByName.reviewUrl,
+            authorImage: reviewData.authorImage || existingByName.authorImage,
+            text: reviewData.text,
+            approved: true,
+          },
+        }
+      );
+      updated++;
+      continue;
+    }
 
-    const authorImage = await uploadAuthorImage(review.authorImage, review.sourceReviewId);
-    uniqueReviews.push({ ...review, authorImage });
+    // 3. Brand new review: insert
+    await Review.create(reviewData);
+    inserted++;
   }
 
-  if (uniqueReviews.length === 0) {
-    return { fetched: reviews.length, inserted: 0, duplicatesRemoved };
-  }
+  // Deduplicate any remaining duplicate names
+  const postDuplicatesRemoved = await removeExistingExactDuplicates();
 
-  const result = await Review.bulkWrite(
-    uniqueReviews.map((review) => ({
-      updateOne: {
-        filter: { sourceReviewId: review.sourceReviewId },
-        update: { $setOnInsert: review },
-        upsert: true,
-      },
-    })),
-    { ordered: false }
-  );
-
-  return { fetched: reviews.length, inserted: result.upsertedCount, duplicatesRemoved };
+  return {
+    fetched: reviews.length,
+    inserted,
+    updated,
+    duplicatesRemoved: duplicatesRemoved + postDuplicatesRemoved,
+  };
 }

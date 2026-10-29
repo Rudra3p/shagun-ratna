@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Star, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, Camera, ExternalLink } from 'lucide-react';
+import { Star, Upload, ChevronDown, Trash2, CheckCircle2, AlertCircle, Loader2, Camera, ExternalLink, RefreshCw } from 'lucide-react';
 import adminApi from '@/lib/adminApi';
 import ReviewerAvatar from '@/components/reviews/ReviewerAvatar';
 import { GOOGLE_REVIEW_URL } from '@/lib/googleReview';
@@ -28,6 +28,7 @@ export default function ReviewsView() {
   const [deletingId, setDeletingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [uploading, setUploading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [photoBusyId, setPhotoBusyId] = useState(null);
   const [ratingFilter, setRatingFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
@@ -118,6 +119,20 @@ export default function ReviewsView() {
       showToast('error', 'Failed to update homepage. Please try again.');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleSyncGoogleReviews = async () => {
+    setSyncing(true);
+    try {
+      const { data } = await adminApi.post('/reviews', { action: 'sync-google-reviews' });
+      await fetchReviews();
+      showToast('success', `Synced ${data.fetched || 0} Google reviews (${data.inserted || 0} new, ${data.updated || 0} updated).`);
+    } catch (err) {
+      console.error("Failed to sync Google reviews:", err);
+      showToast('error', 'Google reviews sync failed. Please try again.');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -234,6 +249,15 @@ export default function ReviewsView() {
             <ExternalLink size={18} />
             Open Google Listing
           </a>
+          <button
+            onClick={handleSyncGoogleReviews}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-[#90060c] text-white rounded-lg font-semibold text-sm hover:bg-[#730509] transition-colors disabled:opacity-60 shadow-sm"
+            title="Scrape and sync latest reviews from Google Maps"
+          >
+            {syncing ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+            {syncing ? 'Syncing...' : 'Sync Google Reviews'}
+          </button>
           <button
             onClick={handleUploadToWeb}
             disabled={uploading}

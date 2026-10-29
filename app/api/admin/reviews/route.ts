@@ -8,6 +8,7 @@ import {
   syncFeaturedReviews,
 } from "@/controllers/reviewsController";
 import { generateUploadUrl } from "@/lib/r2Service";
+import { syncGoogleReviews } from "@/lib/googleReviewsSync";
 
 const ensureDB = async () => await dbConnect();
 
@@ -16,9 +17,10 @@ export async function GET(req: Request) {
   return await getReviews(req);
 }
 
-// POST does two jobs, told apart by `action`:
-//   'get-upload-url' -> presigned R2 URL for a reviewer photo, same flow as site images
-//   (no action)      -> save a review typed into the admin panel
+// POST does multiple jobs, told apart by `action`:
+//   'get-upload-url'      -> presigned R2 URL for a reviewer photo
+//   'sync-google-reviews' -> trigger live scrape and synchronization of Google reviews
+//   (no action)           -> save a review typed into the admin panel
 export async function POST(req: Request) {
   await ensureDB();
 
@@ -34,6 +36,19 @@ export async function POST(req: Request) {
       uniqueKey,
       publicUrl: `${process.env.R2_PUBLIC_DOMAIN}/${uniqueKey}`,
     });
+  }
+
+  if (body.action === "sync-google-reviews") {
+    try {
+      const result = await syncGoogleReviews();
+      return NextResponse.json({ success: true, ...result });
+    } catch (error: any) {
+      console.error("Live Google reviews sync failed:", error);
+      return NextResponse.json(
+        { success: false, error: error?.message || "Failed to sync Google reviews" },
+        { status: 500 }
+      );
+    }
   }
 
   return await addReview(body);

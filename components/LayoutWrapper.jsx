@@ -4,6 +4,7 @@
 import Navbar from "@/components/nav";
 import FeedbackForm from "@/components/Feedback";
 import Footer from "@/components/Footer";
+import FloatingInquiry from "@/components/FloatingInquiry";
 import { SiteImagesProvider } from "@/components/SiteImagesProvider";
 import { SiteTextsProvider } from "@/components/SiteTextsProvider";
 import { SurveyProvider } from "@/components/SurveyProvider";
@@ -41,6 +42,7 @@ export default function LayoutWrapper({ children }) {
           </main>
           <Footer />
           <FeedbackForm />
+          <FloatingInquiry />
         </SurveyProvider>
         </SiteTextsProvider>
       </SiteImagesProvider>

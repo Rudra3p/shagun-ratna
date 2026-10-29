@@ -12,7 +12,7 @@ export const revalidate = 300;
 async function getPageReviews() {
   await dbConnect();
   const response = await getReviews(
-    new Request("http://internal/api/reviews?approved=true&limit=6")
+    new Request("http://internal/api/reviews?approved=true&limit=50")
   );
   const data = await response.json();
 

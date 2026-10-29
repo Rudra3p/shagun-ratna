@@ -8,7 +8,8 @@ import {
   Mail, 
   Clock, 
   Send,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquare
 } from 'lucide-react';
 import PageDivider from '@/components/PageDivider';
 
@@ -148,6 +149,31 @@ export default function Contact() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleWhatsAppSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setErrorMessage('Please fill in your name and phone number to inquire on WhatsApp.');
+      return;
+    }
+
+    const messageText = `Namaste Shagun Ratna,\n\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Interest:* ${formData.productName}\n*Custom Request:* ${formData.customizationNotes || 'I would like to inquire about this piece.'}`;
+    const whatsappUrl = `https://wa.me/919558888754?text=${encodeURIComponent(messageText)}`;
+
+    fetch('/api/inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.name,
+        phone: formData.phone,
+        productName: formData.productName,
+        customizationNotes: formData.customizationNotes,
+      }),
+    }).catch(() => {});
+
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    setIsSuccess(true);
   };
 
   return (
@@ -301,9 +327,50 @@ export default function Contact() {
               <h2 className="font-brand text-2xl tracking-[0.12em] text-[#90060c] uppercase font-light mb-2">
                 Send An Inquiry
               </h2>
-              <p className="font-sans text-xs tracking-wide text-[#1a1a1a]/60 mb-8">
-                Our advisors will connect with you via call or WhatsApp within 24 business hours.
+              <p className="font-sans text-xs tracking-wide text-[#1a1a1a]/60 mb-6">
+                Connect directly with our master advisors via WhatsApp, Instagram, or Phone:
               </p>
+
+              {/* Direct 1-Click Inquiry Strip */}
+              <div className="mb-8 p-4 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/30">
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#90060C] mb-2.5">
+                  Instant Direct Inquiry
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <a
+                    href="https://wa.me/919558888754?text=Namaste%20Shagun%20Ratna%2C%20I%20would%20like%20to%20inquire%20about%20your%20jewelry%20collections."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#075e54] text-xs font-semibold border border-[#25D366]/30 transition-colors"
+                  >
+                    <WhatsAppIcon size={14} />
+                    <span>WhatsApp</span>
+                  </a>
+                  <a
+                    href="https://ig.me/m/shagunratnagemsjewellers"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#E1306C]/10 hover:bg-[#E1306C]/20 text-[#833AB4] text-xs font-semibold border border-[#E1306C]/30 transition-colors"
+                  >
+                    <InstagramIcon size={14} />
+                    <span>Instagram</span>
+                  </a>
+                  <a
+                    href="tel:+919558888754"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#90060C]/10 hover:bg-[#90060C]/20 text-[#90060C] text-xs font-semibold border border-[#90060C]/30 transition-colors"
+                  >
+                    <Phone size={13} />
+                    <span>Call Now</span>
+                  </a>
+                  <a
+                    href="sms:+919558888754?&body=Inquiry%20regarding%20Shagun%20Ratna%20jewelry."
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#C5A059]/15 hover:bg-[#C5A059]/25 text-[#7a602a] text-xs font-semibold border border-[#C5A059]/40 transition-colors"
+                  >
+                    <MessageSquare size={13} />
+                    <span>SMS</span>
+                  </a>
+                </div>
+              </div>
 
               <AnimatePresence mode="wait">
                 {isSuccess ? (
@@ -432,12 +499,21 @@ export default function Contact() {
                       />
                     </div>
 
-                    {/* Submit Button */}
-                    <div className="pt-2">
+                    {/* Submit Buttons: WhatsApp & Direct Transmit */}
+                    <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                      <button
+                        type="button"
+                        onClick={handleWhatsAppSubmit}
+                        className="flex-1 flex items-center justify-center gap-2.5 px-6 py-4 text-xs tracking-[0.2em] uppercase font-semibold text-white bg-[#075e54] hover:bg-[#128C7E] rounded-full transition-all duration-300 shadow-[0_4px_16px_rgba(37,211,102,0.25)] hover:shadow-[0_6px_22px_rgba(37,211,102,0.35)] cursor-pointer"
+                      >
+                        <WhatsAppIcon size={16} className="text-[#25D366]" />
+                        <span>Inquire on WhatsApp</span>
+                      </button>
+
                       <button 
                         type="submit" 
                         disabled={isSubmitting}
-                        className="w-full relative font-sans px-8 py-4 text-xs tracking-[0.3em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_25px_rgba(144,6,12,0.25)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
+                        className="flex-1 relative font-sans px-6 py-4 text-xs tracking-[0.2em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_25px_rgba(144,6,12,0.25)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                       >
                         <span className="relative z-10 flex items-center gap-2">
                           {isSubmitting ? 'Sending...' : 'Transmit Inquiry'}
