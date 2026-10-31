@@ -1,30 +1,25 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   MapPin, 
   Phone, 
   Mail, 
   Clock, 
-  Send,
-  CheckCircle2,
-  MessageSquare
+  ArrowUpRight,
+  Sparkles
 } from 'lucide-react';
 import PageDivider from '@/components/PageDivider';
 
+const WhatsAppIcon = ({ size = 20, ...props }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" {...props}>
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
+  </svg>
+);
+
 const InstagramIcon = ({ size = 20, ...props }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    stroke="currentColor"
-    strokeWidth="1.75"
-    fill="none"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
+  <svg viewBox="0 0 24 24" width={size} height={size} stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
@@ -32,156 +27,48 @@ const InstagramIcon = ({ size = 20, ...props }) => (
 );
 
 const FacebookIcon = ({ size = 20, ...props }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    stroke="currentColor"
-    strokeWidth="1.75"
-    fill="none"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
+  <svg viewBox="0 0 24 24" width={size} height={size} stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
-
-const WhatsAppIcon = ({ size = 20, ...props }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    fill="currentColor"
-    {...props}
-  >
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
-  </svg>
-);
-
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+    transition: { staggerChildren: 0.12, delayChildren: 0.1 }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
+  hidden: { opacity: 0, y: 18 },
+  visible: { 
+    opacity: 1, 
     y: 0,
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
   }
 };
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    productName: 'General Inquiry',
-    customizationNotes: '',
-    companyWebsite: '' // honeypot — real visitors never see or fill this field
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [inquiredProduct, setInquiredProduct] = useState('');
 
-  // Pre-fill from a product/collection card's "Enquire about this piece" link (?product=).
   useEffect(() => {
     const productParam = new URLSearchParams(window.location.search).get('product');
     if (productParam) {
-      setFormData((prev) => ({ ...prev, productName: productParam }));
+      setInquiredProduct(productParam);
     }
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage('');
-    
-    // Quick validation
-    if (!formData.name.trim() || !formData.phone.trim()) {
-      setErrorMessage('Please fill in your name and phone number.');
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/inquiry', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          phone: formData.phone,
-          productName: formData.productName,
-          customizationNotes: formData.customizationNotes,
-          companyWebsite: formData.companyWebsite
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setIsSuccess(true);
-        setFormData({
-          name: '',
-          phone: '',
-          productName: 'General Inquiry',
-          customizationNotes: '',
-          companyWebsite: ''
-        });
-      } else {
-        setErrorMessage(data.error || 'Failed to submit. Please try again.');
-      }
-    } catch (error) {
-      console.error('Submission error:', error);
-      setErrorMessage('A network error occurred. Please try again later.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleWhatsAppSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim()) {
-      setErrorMessage('Please fill in your name and phone number to inquire on WhatsApp.');
-      return;
-    }
-
-    const messageText = `Namaste Shagun Ratna,\n\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Interest:* ${formData.productName}\n*Custom Request:* ${formData.customizationNotes || 'I would like to inquire about this piece.'}`;
-    const whatsappUrl = `https://wa.me/919558888754?text=${encodeURIComponent(messageText)}`;
-
-    fetch('/api/inquiry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: formData.name,
-        phone: formData.phone,
-        productName: formData.productName,
-        customizationNotes: formData.customizationNotes,
-      }),
-    }).catch(() => {});
-
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-    setIsSuccess(true);
-  };
+  const whatsappMessage = inquiredProduct 
+    ? `Namaste Shagun Ratna, I would like to inquire about "${inquiredProduct}". Please share piece availability, specifications, and certified gemstone details.`
+    : `Namaste Shagun Ratna, I would like to inquire about your certified gemstone and luxury jewelry collections.`;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] relative overflow-hidden pt-24 md:pt-28 pb-20 px-6 md:px-12 lg:px-24">
       {/* Background luxury dotted matrix */}
       <div className="absolute inset-0 bg-[radial-gradient(#C5A059_1px,transparent_1px)] [background-size:32px_32px] opacity-10 pointer-events-none z-0" />
 
-      {/* Decorative Rotating Gold Ring */}
+      {/* Decorative Rotating Gold Rings */}
       <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full border border-[#C5A059]/10 pointer-events-none z-0 select-none hidden lg:block" />
       <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full border border-dashed border-[#C5A059]/15 pointer-events-none z-0 select-none hidden lg:block" />
 
@@ -189,359 +76,285 @@ export default function Contact() {
         
         {/* Header Section */}
         <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center max-w-2xl mx-auto mb-6"
+          transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center max-w-2xl mx-auto mb-4"
         >
+          <span className="text-[#C5A059] font-sans font-bold tracking-[0.3em] uppercase text-[10px] mb-2 block">
+            Direct Concierge & Showrooms
+          </span>
           <h1 className="font-brand text-4xl md:text-5xl text-[#90060c] tracking-[0.15em] uppercase font-light leading-tight">
-            Contact Us
+            Connect With Us
           </h1>
+          <p className="mt-3 font-sans text-xs sm:text-sm tracking-wide text-[#1a1a1a]/70 leading-relaxed max-w-xl mx-auto">
+            Connect directly with our master jewellers and certified gemstone advisors via WhatsApp, direct call, or email.
+          </p>
         </motion.div>
 
-        {/* Page Divider */}
-        <PageDivider className="py-6 md:py-8" />
+        {/* Product Banner if navigated from a product */}
+        {inquiredProduct && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-3xl mx-auto mb-6 p-4 rounded-2xl bg-[#90060C]/5 border border-[#C5A059]/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"
+          >
+            <div className="flex items-center gap-2.5">
+              <Sparkles size={18} className="text-[#C5A059] shrink-0" />
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-bold text-[#C5A059]">Selected Piece Inquiry</p>
+                <h4 className="font-brand text-lg text-[#90060C] font-normal">{inquiredProduct}</h4>
+              </div>
+            </div>
+            <a
+              href={`https://wa.me/919558888754?text=${encodeURIComponent(whatsappMessage)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#075e54] hover:bg-[#128C7E] text-white rounded-full text-xs font-semibold tracking-wider uppercase transition-all shadow-sm"
+            >
+              <WhatsAppIcon size={15} />
+              <span>Inquire on WhatsApp</span>
+            </a>
+          </motion.div>
+        )}
 
-        {/* Main Content Grid */}
+        {/* Page Divider */}
+        <PageDivider className="py-4 md:py-6" />
+
+        {/* Primary Contact Channels Grid */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start mt-0"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4"
         >
-          
-          {/* Left Column: Contact Details */}
-          <motion.div variants={itemVariants} className="lg:col-span-5">
-
-            {/* Contact Details Card */}
-            <div className="bg-[#FDFBF7]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 rounded-2xl shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-[#C5A059]/5 to-transparent rounded-full pointer-events-none" />
-              
-              <h2 className="font-brand text-2xl tracking-[0.12em] text-[#90060c] uppercase font-light mb-8 pb-3 border-b border-[#C5A059]/20">
-                Boutique Details
-              </h2>
-              
-              <div className="space-y-6 font-sans text-xs tracking-[0.08em] text-[#333]">
-                {/* Location */}
-                <div className="flex gap-4 items-start">
-                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
-                    <MapPin size={16} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Flagship Boutique</h4>
-                    <p className="leading-relaxed text-[#1a1a1a]/70">
-                      Shagun Ratna, GF/9, Akshar Complex,<br />
-                      Beside Harit Zaveri, Shivranjani Cross Road,<br />
-                      Satellite, Ahmedabad, Gujarat 380015
-                    </p>
-                  </div>
+          {/* Channel 1: WhatsApp (Primary) */}
+          <motion.div 
+            variants={itemVariants}
+            className="group relative bg-[#FDFBF7]/90 backdrop-blur-sm border border-[#25D366]/40 hover:border-[#25D366] p-7 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div className="p-3 bg-[#25D366]/15 rounded-xl text-[#075e54] border border-[#25D366]/30">
+                  <WhatsAppIcon size={24} />
                 </div>
-
-                {/* Phones */}
-                <div className="flex gap-4 items-start">
-                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
-                    <Phone size={16} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Direct Lines</h4>
-                    <p className="leading-relaxed">
-                      <a href="tel:+919265682478" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">092656 82478</a>
-                    </p>
-                    <p className="leading-relaxed">
-                      <a href="tel:+919558888754" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">+91 95588 88754</a>
-                    </p>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="flex gap-4 items-start">
-                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
-                    <Mail size={16} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Client Services</h4>
-                    <p className="leading-relaxed">
-                      <a href="mailto:shagunratna88@yahoo.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">shagunratna88@yahoo.com</a>
-                    </p>
-                    <p className="leading-relaxed">
-                      <a href="mailto:digwa.gurjot@gmail.com" className="text-[#1a1a1a]/70 hover:text-[#90060c] transition-colors">digwa.gurjot@gmail.com</a>
-                    </p>
-                  </div>
-                </div>
-
-                {/* Hours */}
-                <div className="flex gap-4 items-start">
-                  <div className="p-3 bg-[#90060c]/5 rounded-full text-[#90060c] border border-[#C5A059]/30">
-                    <Clock size={16} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">Boutique Hours</h4>
-                    <p className="leading-relaxed text-[#1a1a1a]/70">Monday – Saturday: 11:00 AM – 8:00 PM</p>
-                    <p className="leading-relaxed text-[#C5A059] italic mt-0.5">Sunday: Private Viewings by Appointment Only</p>
-                  </div>
-                </div>
+                <span className="text-[10px] font-sans uppercase tracking-[0.2em] font-bold text-[#075e54] bg-[#25D366]/15 px-2.5 py-1 rounded-full">
+                  Instant Reply
+                </span>
               </div>
-
-              {/* Social Media Links */}
-              <div className="mt-8 pt-8 border-t border-[#C5A059]/20">
-                <h4 className="font-sans text-[10px] tracking-[0.2em] font-bold uppercase text-[#C5A059] mb-4">
-                  Follow Our Journey
-                </h4>
-                <div className="flex gap-4">
-                  <a 
-                    href="https://www.instagram.com/shagunratnagemsjewellers/?hl=en" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
-                    title="Instagram"
-                  >
-                    <InstagramIcon size={18} />
-                  </a>
-                  <a 
-                    href="https://www.facebook.com/SHAGUNRATNA/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
-                    title="Facebook"
-                  >
-                    <FacebookIcon size={18} />
-                  </a>
-                  <a 
-                    href="https://wa.me/919558888754" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="p-3 border border-[#C5A059]/30 rounded-full text-[#90060c] hover:bg-[#90060c] hover:text-[#faf3e5] hover:border-[#90060c] transition-all duration-300 flex items-center justify-center"
-                    title="WhatsApp"
-                  >
-                    <WhatsAppIcon size={18} />
-                  </a>
-                </div>
-              </div>
-            </div>
-
-          </motion.div>
-
-          {/* Right Column: Inquiry Form */}
-          <motion.div variants={itemVariants} className="lg:col-span-7">
-            <div className="bg-[#FDFBF7]/80 backdrop-blur-md border border-[#C5A059]/20 p-8 md:p-10 rounded-2xl shadow-sm">
-              <h2 className="font-brand text-2xl tracking-[0.12em] text-[#90060c] uppercase font-light mb-2">
-                Send An Inquiry
-              </h2>
-              <p className="font-sans text-xs tracking-wide text-[#1a1a1a]/60 mb-6">
-                Connect directly with our master advisors via WhatsApp, Instagram, or Phone:
+              <h3 className="font-brand text-2xl text-[#1a1a1a] font-normal mb-2">WhatsApp</h3>
+              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed mb-6">
+                Direct chat with our master jeweller for live photos, gemstone lab certificates, and immediate quotes.
               </p>
-
-              {/* Direct 1-Click Inquiry Strip */}
-              <div className="mb-8 p-4 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/30">
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#90060C] mb-2.5">
-                  Instant Direct Inquiry
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <a
-                    href="https://wa.me/919558888754?text=Namaste%20Shagun%20Ratna%2C%20I%20would%20like%20to%20inquire%20about%20your%20jewelry%20collections."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#075e54] text-xs font-semibold border border-[#25D366]/30 transition-colors"
-                  >
-                    <WhatsAppIcon size={14} />
-                    <span>WhatsApp</span>
-                  </a>
-                  <a
-                    href="https://ig.me/m/shagunratnagemsjewellers"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#E1306C]/10 hover:bg-[#E1306C]/20 text-[#833AB4] text-xs font-semibold border border-[#E1306C]/30 transition-colors"
-                  >
-                    <InstagramIcon size={14} />
-                    <span>Instagram</span>
-                  </a>
-                  <a
-                    href="tel:+919558888754"
-                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#90060C]/10 hover:bg-[#90060C]/20 text-[#90060C] text-xs font-semibold border border-[#90060C]/30 transition-colors"
-                  >
-                    <Phone size={13} />
-                    <span>Call Now</span>
-                  </a>
-                  <a
-                    href="sms:+919558888754?&body=Inquiry%20regarding%20Shagun%20Ratna%20jewelry."
-                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#C5A059]/15 hover:bg-[#C5A059]/25 text-[#7a602a] text-xs font-semibold border border-[#C5A059]/40 transition-colors"
-                  >
-                    <MessageSquare size={13} />
-                    <span>SMS</span>
-                  </a>
-                </div>
-              </div>
-
-              <AnimatePresence mode="wait">
-                {isSuccess ? (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex flex-col items-center justify-center py-16 text-center"
-                  >
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                      className="text-[#90060c] mb-6"
-                    >
-                      <CheckCircle2 size={64} strokeWidth={1.5} />
-                    </motion.div>
-                    <h3 className="font-brand text-2xl tracking-wider text-[#1a1a1a] uppercase font-light mb-4">
-                      Thank You, Beloved Client
-                    </h3>
-                    <p className="font-sans text-xs leading-relaxed text-[#1a1a1a]/70 max-w-sm mb-8">
-                      Your inquiry has been logged securely in our registers. A dedicated concierge advisor will contact you shortly.
-                    </p>
-                    <button 
-                      onClick={() => setIsSuccess(false)}
-                      className="font-sans text-[10px] tracking-[0.25em] text-[#C5A059] border border-[#C5A059]/40 hover:bg-[#C5A059]/5 px-8 py-3 rounded-full uppercase transition-all duration-300 font-semibold"
-                    >
-                      Send Another Inquiry
-                    </button>
-                  </motion.div>
-                ) : (
-                  <motion.form 
-                    key="contact-form"
-                    onSubmit={handleSubmit} 
-                    className="space-y-6"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    {errorMessage && (
-                      <div className="p-4 bg-red-50 border border-red-200 text-red-800 text-xs rounded-lg font-sans">
-                        {errorMessage}
-                      </div>
-                    )}
-
-                    {/* Honeypot — invisible to real visitors, only bots tend to fill this in */}
-                    <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
-                      <label htmlFor="companyWebsite">Website</label>
-                      <input
-                        type="text"
-                        id="companyWebsite"
-                        name="companyWebsite"
-                        value={formData.companyWebsite}
-                        onChange={handleChange}
-                        tabIndex={-1}
-                        autoComplete="off"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Name */}
-                      <div className="space-y-2">
-                        <label htmlFor="name" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
-                          Full Name *
-                        </label>
-                        <input 
-                          type="text" 
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          placeholder="Full Name" 
-                          required
-                          className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400"
-                        />
-                      </div>
-
-                      {/* Phone */}
-                      <div className="space-y-2">
-                        <label htmlFor="phone" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
-                          Phone Number *
-                        </label>
-                        <input 
-                          type="tel" 
-                          id="phone"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          placeholder="+91 XXXXX XXXXX" 
-                          required
-                          className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Open-ended jewelry interest */}
-                    <div className="space-y-2">
-                      <label htmlFor="productName" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
-                        Jewelry Interest *
-                      </label>
-                      <input
-                        type="text"
-                        id="productName"
-                        name="productName"
-                        value={formData.productName}
-                        onChange={handleChange}
-                        placeholder="Gold, diamond, gemstone, or a custom piece"
-                        required
-                        className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400"
-                      />
-                    </div>
-
-                    {/* Customization Notes / Message */}
-                    <div className="space-y-2">
-                      <label htmlFor="customizationNotes" className="block font-sans text-[10px] tracking-[0.2em] font-bold text-[#C5A059] uppercase">
-                        Your Message / Customization Request
-                      </label>
-                      <textarea 
-                        id="customizationNotes"
-                        name="customizationNotes"
-                        value={formData.customizationNotes}
-                        onChange={handleChange}
-                        rows={5}
-                        placeholder="Describe details, metal type preferences, or appointment requests..."
-                        className="w-full bg-[#FDFBF7]/65 border border-[#C5A059]/30 rounded-xl px-4 py-3 text-xs tracking-wider text-gray-800 focus:outline-none focus:border-[#90060c] focus:bg-white transition-all font-sans placeholder-gray-400 resize-none leading-relaxed"
-                      />
-                    </div>
-
-                    {/* Submit Buttons: WhatsApp & Direct Transmit */}
-                    <div className="pt-2 flex flex-col sm:flex-row gap-3">
-                      <button
-                        type="button"
-                        onClick={handleWhatsAppSubmit}
-                        className="flex-1 flex items-center justify-center gap-2.5 px-6 py-4 text-xs tracking-[0.2em] uppercase font-semibold text-white bg-[#075e54] hover:bg-[#128C7E] rounded-full transition-all duration-300 shadow-[0_4px_16px_rgba(37,211,102,0.25)] hover:shadow-[0_6px_22px_rgba(37,211,102,0.35)] cursor-pointer"
-                      >
-                        <WhatsAppIcon size={16} className="text-[#25D366]" />
-                        <span>Inquire on WhatsApp</span>
-                      </button>
-
-                      <button 
-                        type="submit" 
-                        disabled={isSubmitting}
-                        className="flex-1 relative font-sans px-6 py-4 text-xs tracking-[0.2em] uppercase text-[#faf3e5] bg-[#90060c] rounded-full overflow-hidden group transition-all duration-500 hover:shadow-[0_8px_25px_rgba(144,6,12,0.25)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
-                      >
-                        <span className="relative z-10 flex items-center gap-2">
-                          {isSubmitting ? 'Sending...' : 'Transmit Inquiry'}
-                          {!isSubmitting && <Send size={12} />}
-                        </span>
-                        <span className="absolute inset-0 bg-[#C5A059] scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100 -z-0" />
-                      </button>
-                    </div>
-                  </motion.form>
-                )}
-              </AnimatePresence>
+            </div>
+            <div>
+              <a
+                href={`https://wa.me/919558888754?text=${encodeURIComponent(whatsappMessage)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#075e54] hover:bg-[#128C7E] text-white rounded-xl text-xs font-semibold tracking-wider uppercase transition-colors"
+              >
+                <span>Chat on WhatsApp</span>
+                <ArrowUpRight size={14} />
+              </a>
+              <p className="text-[11px] text-center text-[#1a1a1a]/60 mt-2.5 font-medium">+91 95588 88754</p>
             </div>
           </motion.div>
 
+          {/* Channel 2: Direct Phone Call */}
+          <motion.div 
+            variants={itemVariants}
+            className="group relative bg-[#FDFBF7]/90 backdrop-blur-sm border border-[#C5A059]/30 hover:border-[#90060C]/50 p-7 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div className="p-3 bg-[#90060c]/10 rounded-xl text-[#90060c] border border-[#C5A059]/30">
+                  <Phone size={22} />
+                </div>
+                <span className="text-[10px] font-sans uppercase tracking-[0.2em] font-bold text-[#90060C] bg-[#90060C]/10 px-2.5 py-1 rounded-full">
+                  Direct Line
+                </span>
+              </div>
+              <h3 className="font-brand text-2xl text-[#1a1a1a] font-normal mb-2">Direct Call</h3>
+              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed mb-6">
+                Speak directly with our concierge team for bridal inquiries, appointments, and showroom viewings.
+              </p>
+            </div>
+            <div>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="tel:+919558888754"
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 border border-[#C5A059]/30 hover:border-[#90060C] hover:bg-[#90060C]/5 rounded-xl text-xs text-[#1a1a1a] font-medium transition-colors"
+                >
+                  <span>+91 95588 88754</span>
+                  <ArrowUpRight size={13} className="text-[#90060C]" />
+                </a>
+                <a
+                  href="tel:+919265682478"
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 border border-[#C5A059]/30 hover:border-[#90060C] hover:bg-[#90060C]/5 rounded-xl text-xs text-[#1a1a1a] font-medium transition-colors"
+                >
+                  <span>092656 82478</span>
+                  <ArrowUpRight size={13} className="text-[#90060C]" />
+                </a>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Channel 3: Email Client Services */}
+          <motion.div 
+            variants={itemVariants}
+            className="group relative bg-[#FDFBF7]/90 backdrop-blur-sm border border-[#C5A059]/30 hover:border-[#C5A059] p-7 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div className="p-3 bg-[#C5A059]/15 rounded-xl text-[#7a602a] border border-[#C5A059]/40">
+                  <Mail size={22} />
+                </div>
+                <span className="text-[10px] font-sans uppercase tracking-[0.2em] font-bold text-[#7a602a] bg-[#C5A059]/15 px-2.5 py-1 rounded-full">
+                  Client Services
+                </span>
+              </div>
+              <h3 className="font-brand text-2xl text-[#1a1a1a] font-normal mb-2">Email</h3>
+              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed mb-6">
+                Send bespoke customization blueprints, horoscope charts, or corporate gifting requirements.
+              </p>
+            </div>
+            <div>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="mailto:shagunratna88@yahoo.com"
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 border border-[#C5A059]/30 hover:border-[#C5A059] hover:bg-[#C5A059]/5 rounded-xl text-xs text-[#1a1a1a] font-medium transition-colors truncate"
+                  title="shagunratna88@yahoo.com"
+                >
+                  <span className="truncate">shagunratna88@yahoo.com</span>
+                  <ArrowUpRight size={13} className="text-[#C5A059] shrink-0 ml-1" />
+                </a>
+                <a
+                  href="mailto:digwa.gurjot@gmail.com"
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 border border-[#C5A059]/30 hover:border-[#C5A059] hover:bg-[#C5A059]/5 rounded-xl text-xs text-[#1a1a1a] font-medium transition-colors truncate"
+                  title="digwa.gurjot@gmail.com"
+                >
+                  <span className="truncate">digwa.gurjot@gmail.com</span>
+                  <ArrowUpRight size={13} className="text-[#C5A059] shrink-0 ml-1" />
+                </a>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Channel 4: Instagram & Social Media */}
+          <motion.div 
+            variants={itemVariants}
+            className="group relative bg-[#FDFBF7]/90 backdrop-blur-sm border border-[#E1306C]/30 hover:border-[#E1306C] p-7 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div className="p-3 bg-gradient-to-tr from-[#F58529]/15 via-[#DD2A7B]/15 to-[#8134AF]/15 rounded-xl text-[#DD2A7B] border border-[#E1306C]/30">
+                  <InstagramIcon size={22} />
+                </div>
+                <span className="text-[10px] font-sans uppercase tracking-[0.2em] font-bold text-[#8134AF] bg-[#DD2A7B]/10 px-2.5 py-1 rounded-full">
+                  Atelier Social
+                </span>
+              </div>
+              <h3 className="font-brand text-2xl text-[#1a1a1a] font-normal mb-2">Social & DM</h3>
+              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed mb-6">
+                Discover our newest handcrafted collections, bridal reels, and message our curators directly.
+              </p>
+            </div>
+            <div>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://ig.me/m/shagunratnagemsjewellers"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#DD2A7B] to-[#8134AF] hover:opacity-90 text-white rounded-xl text-xs font-semibold tracking-wider uppercase transition-opacity"
+                >
+                  <InstagramIcon size={14} />
+                  <span>Instagram DM</span>
+                  <ArrowUpRight size={13} />
+                </a>
+                <a
+                  href="https://www.facebook.com/SHAGUNRATNA/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#C5A059]/30 hover:border-[#1877F2] hover:text-[#1877F2] rounded-xl text-xs text-[#1a1a1a] font-medium transition-colors"
+                >
+                  <FacebookIcon size={14} />
+                  <span>Facebook Page</span>
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Boutique Location & Timings Bar */}
+        <motion.div 
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          className="mt-10 p-6 md:p-8 rounded-2xl bg-[#FDFBF7]/90 border border-[#C5A059]/25 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6 items-center"
+        >
+          {/* Address */}
+          <div className="flex gap-4 items-start">
+            <div className="p-3 bg-[#90060c]/5 rounded-xl text-[#90060c] border border-[#C5A059]/30 shrink-0">
+              <MapPin size={18} />
+            </div>
+            <div>
+              <h4 className="font-sans text-[11px] font-bold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">
+                Satellite Boutique (Flagship)
+              </h4>
+              <p className="text-xs text-[#1a1a1a]/70 leading-relaxed">
+                GF/9, Akshar Complex, Beside Harit Zaveri, Shivranjani Cross Road, Satellite, Ahmedabad, 380015
+              </p>
+            </div>
+          </div>
+
+          {/* Manek Chowk */}
+          <div className="flex gap-4 items-start">
+            <div className="p-3 bg-[#90060c]/5 rounded-xl text-[#90060c] border border-[#C5A059]/30 shrink-0">
+              <MapPin size={18} />
+            </div>
+            <div>
+              <h4 className="font-sans text-[11px] font-bold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">
+                Heritage Showroom
+              </h4>
+              <p className="text-xs text-[#1a1a1a]/70 leading-relaxed">
+                Shop No. 16, Chanlla Oll, Manek Chowk Road, Old City, Ahmedabad, 380001
+              </p>
+            </div>
+          </div>
+
+          {/* Hours */}
+          <div className="flex gap-4 items-start">
+            <div className="p-3 bg-[#90060c]/5 rounded-xl text-[#90060c] border border-[#C5A059]/30 shrink-0">
+              <Clock size={18} />
+            </div>
+            <div>
+              <h4 className="font-sans text-[11px] font-bold text-[#1a1a1a] uppercase tracking-[0.15em] mb-1">
+                Boutique Hours
+              </h4>
+              <p className="text-xs text-[#1a1a1a]/70 leading-relaxed">
+                Monday – Saturday: 11:00 AM – 8:00 PM
+              </p>
+              <p className="text-[11px] text-[#C5A059] italic mt-0.5">
+                Sunday: Private Viewings by Appointment Only
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Branch maps stack on mobile and sit side by side on desktop. */}
-        <motion.div variants={itemVariants} initial="hidden" animate="visible" className="mt-10">
-          <div className="flex items-center gap-3 mb-5">
+        <motion.div variants={itemVariants} initial="hidden" animate="visible" className="mt-12">
+          <div className="flex items-center gap-3 mb-6">
             <h3 className="font-sans text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059]">
-              Find Our Boutiques
+              Showroom Locations & Navigation
             </h3>
             <div className="h-[1px] flex-1 bg-[#C5A059]/20" />
           </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <h4 className="font-brand text-xl tracking-[0.1em] text-[#90060c] uppercase font-light mb-3">
-                Satellite Boutique
+                Satellite Boutique (Shivranjani)
               </h4>
               <div className="border border-[#C5A059]/20 rounded-2xl overflow-hidden shadow-sm h-[320px] md:h-[380px] relative group bg-[#FDFBF7]">
                 <iframe

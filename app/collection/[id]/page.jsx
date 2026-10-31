@@ -269,7 +269,7 @@ export default function ProductDetail() {
                     href={`/contact?product=${encodeURIComponent(product.productName)}`}
                     className="text-[11px] font-sans text-[#9C8253] hover:text-[#90060C] underline underline-offset-4 tracking-wider uppercase transition-colors"
                   >
-                    Or submit inquiry form →
+                    Boutique details & showrooms →
                   </Link>
 
                   <button
