@@ -26,6 +26,12 @@ const InstagramIcon = ({ size = 18, ...props }) => (
   </svg>
 );
 
+const FacebookIcon = ({ size = 18, ...props }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} stroke="currentColor" strokeWidth="1.75" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
+
 export default function Contact() {
   const [inquiredProduct, setInquiredProduct] = useState('');
 
@@ -185,7 +191,10 @@ export default function Contact() {
             {/* Ledger Item: Social Media */}
             <div>
               <div className="flex items-center gap-2.5 mb-3">
-                <span className="text-[#DD2A7B]"><InstagramIcon size={16} /></span>
+                <span className="flex items-center gap-1.5">
+                  <span className="text-[#DD2A7B]"><InstagramIcon size={16} /></span>
+                  <span className="text-[#1877F2]"><FacebookIcon size={16} /></span>
+                </span>
                 <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#A8A196]">
                   Atelier Media & Direct Message
                 </span>
@@ -206,6 +215,7 @@ export default function Contact() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-xs font-sans uppercase tracking-[0.18em] text-[#1a1a1a]/80 hover:text-[#1877F2] font-semibold"
                 >
+                  <FacebookIcon size={14} className="text-[#1877F2]" />
                   <span>Facebook Page</span>
                 </a>
               </div>
