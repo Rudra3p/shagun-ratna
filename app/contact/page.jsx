@@ -168,23 +168,59 @@ export default function Contact() {
                   Client Services & Appraisals
                 </span>
               </div>
-              <div className="space-y-1">
-                <p>
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   <a 
-                    href="mailto:shagunratna88@yahoo.com" 
+                    href="https://compose.mail.yahoo.com/?to=shagunratna88@yahoo.com&subj=Inquiry%20regarding%20Shagun%20Ratna%20Jewelry" 
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="font-sans text-sm text-[#1a1a1a] hover:text-[#90060C] transition-colors underline underline-offset-4 decoration-[#C5A059]/50"
+                    title="Compose in Yahoo Mail"
                   >
                     shagunratna88@yahoo.com
                   </a>
-                </p>
-                <p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <a
+                      href="https://compose.mail.yahoo.com/?to=shagunratna88@yahoo.com&subj=Inquiry%20regarding%20Shagun%20Ratna%20Jewelry"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-sans text-[#730509] hover:text-[#90060C] font-semibold underline underline-offset-2"
+                    >
+                      Yahoo Mail ↗
+                    </a>
+                    <span className="text-[#A8A196]">•</span>
+                    <a
+                      href="https://mail.google.com/mail/?view=cm&fs=1&to=shagunratna88@yahoo.com&su=Inquiry%20regarding%20Shagun%20Ratna%20Jewelry"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-sans text-[#730509] hover:text-[#90060C] font-semibold underline underline-offset-2"
+                    >
+                      Gmail ↗
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   <a 
-                    href="mailto:digwa.gurjot@gmail.com" 
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=digwa.gurjot@gmail.com&su=Inquiry%20regarding%20Shagun%20Ratna%20Jewelry" 
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="font-sans text-sm text-[#1a1a1a] hover:text-[#90060C] transition-colors underline underline-offset-4 decoration-[#C5A059]/50"
+                    title="Compose in Gmail"
                   >
                     digwa.gurjot@gmail.com
                   </a>
-                </p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <a
+                      href="https://mail.google.com/mail/?view=cm&fs=1&to=digwa.gurjot@gmail.com&su=Inquiry%20regarding%20Shagun%20Ratna%20Jewelry"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-sans text-[#730509] hover:text-[#90060C] font-semibold underline underline-offset-2"
+                    >
+                      Gmail ↗
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
 
