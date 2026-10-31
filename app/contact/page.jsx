@@ -115,11 +115,8 @@ export default function Contact() {
                   WhatsApp Concierge • Fastest Response
                 </span>
               </div>
-              <p className="font-brand text-2xl text-[#90060C] mb-2 font-light">
+              <p className="font-brand text-2xl text-[#90060C] mb-3 font-light">
                 +91 95588 88754
-              </p>
-              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed mb-3 max-w-md">
-                Chat directly with our founding jeweller for high-definition video of gemstones, Vedic Jyotish suitability, and immediate live rate quotes.
               </p>
               <a
                 href={`https://wa.me/919558888754?text=${encodeURIComponent(whatsappMessage)}`}
@@ -140,7 +137,7 @@ export default function Contact() {
                   Telephone Consultations
                 </span>
               </div>
-              <div className="flex flex-wrap items-baseline gap-4 mb-2">
+              <div className="flex flex-wrap items-baseline gap-4">
                 <a 
                   href="tel:+919558888754" 
                   className="font-brand text-2xl text-[#1a1a1a] hover:text-[#90060C] font-light transition-colors"
@@ -155,9 +152,6 @@ export default function Contact() {
                   092656 82478
                 </a>
               </div>
-              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed">
-                Direct showroom lines for bridal suite appointments, custom gold making, and gemstone authenticity verification.
-              </p>
             </div>
 
             {/* Ledger Item: Email */}
@@ -168,7 +162,7 @@ export default function Contact() {
                   Client Services & Appraisals
                 </span>
               </div>
-              <div className="space-y-1 mb-2">
+              <div className="space-y-1">
                 <p>
                   <a 
                     href="mailto:shagunratna88@yahoo.com" 
@@ -186,22 +180,16 @@ export default function Contact() {
                   </a>
                 </p>
               </div>
-              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed">
-                Send horoscope birth chart details (Kundli / Navamsha) or bespoke design blueprints for appraisal.
-              </p>
             </div>
 
             {/* Ledger Item: Social Media */}
             <div>
-              <div className="flex items-center gap-2.5 mb-2">
+              <div className="flex items-center gap-2.5 mb-3">
                 <span className="text-[#DD2A7B]"><InstagramIcon size={16} /></span>
                 <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#A8A196]">
                   Atelier Media & Direct Message
                 </span>
               </div>
-              <p className="font-sans text-xs text-[#1a1a1a]/70 leading-relaxed mb-3">
-                Follow our newest atelier collections and message our design team directly on social channels:
-              </p>
               <div className="flex items-center gap-6">
                 <a
                   href="https://ig.me/m/shagunratnagemsjewellers"
